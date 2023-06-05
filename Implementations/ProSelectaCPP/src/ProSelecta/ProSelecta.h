@@ -17,6 +17,7 @@ public:
   void LoadText(std::string const &txt);
   void AddIncludePath(std::string const &path);
 
+  ProSelecta_ftypes::analysis GetAnalysisFunction(std::string const &);
   ProSelecta_ftypes::filter GetFilterFunction(std::string const &);
   ProSelecta_ftypes::project GetProjectionFunction(std::string const &);
   ProSelecta_ftypes::weight GetWeightFunction(std::string const &);

@@ -72,3 +72,9 @@ to produce a table of selected event properties:
 10, pass, 0.120557, 0.513592, 0.249243
 ...
 ```
+
+
+To run a blank function for debugging
+```
+Linux/bin/ProSelectaCPPUP -I Linux/include -f ../examples/example_proselectup.cxx -i ../examples/neut.vect.hepmc --Analysis analysis
+```
