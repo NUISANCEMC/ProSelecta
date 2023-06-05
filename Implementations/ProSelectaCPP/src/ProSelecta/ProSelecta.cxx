@@ -36,6 +36,17 @@ bool ProSelecta::LoadFile(std::string const &file_to_read) {
   return !bool(gInterpreter->LoadFile(file_to_read.c_str()));
 }
 
+ProSelecta_ftypes::analysis
+ProSelecta::GetAnalysisFunction(std::string const &fnname) {
+  std::cout << fnname << std::endl;
+  void *sym = gInterpreter->FindSym(fnname.c_str());
+  if (!sym) {
+    std::cout << "No analysis named: " << fnname << " declared to TCling."
+              << std::endl;
+    return nullptr;
+  }
+  return VoidToFunctionPtr<ProSelecta_ftypes::analysis>(sym);
+}
 ProSelecta_ftypes::filter
 ProSelecta::GetFilterFunction(std::string const &fnname) {
   void *sym = gInterpreter->FindSym(fnname.c_str());

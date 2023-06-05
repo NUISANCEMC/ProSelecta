@@ -48,5 +48,9 @@ to produce a table of selected event properties:
 20, pass, 0.444759, 0.444759, 0.754872, 0.372022, 11, 0
 ...
 ```
-
 The annotation step is required to interpret the specific simulation interaction channels (in this case NEUT) and annotate the HepMC3 events with attributes that the ProSelecta [Hard-Scatter Channels](../../README.md#hard-scatter-channels) functions use to work.
+
+To run a blank function for debugging
+```
+Linux/bin/ProSelectaCPPUP -I Linux/include -f ../examples/example_proselectup.cxx -i ../examples/neut.vect.hepmc --Analysis analysis
+```
