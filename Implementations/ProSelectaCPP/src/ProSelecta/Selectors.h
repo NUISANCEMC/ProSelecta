@@ -2,6 +2,8 @@
 
 #include "ProSelecta/detail/Selectors.h"
 
+namespace ps {
+
 // GetBeam(event, PID) -> particle
 HepMC3::ConstGenParticlePtr GetBeam(HepMC3::GenEvent const &ev, int PID) {
   return ProSelecta_detail::particle_1pdg<ProSelecta_detail::kBeam,
@@ -94,3 +96,5 @@ GetOutPartsExceptAny(HepMC3::GenEvent const &ev, std::vector<int> PIDs) {
                                       ProSelecta_detail::kNotFromPDGList>(ev,
                                                                           PIDs);
 }
+
+} // namespace ps

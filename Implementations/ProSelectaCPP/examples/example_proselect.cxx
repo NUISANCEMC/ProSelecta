@@ -1,23 +1,31 @@
 extern "C" {
 
-bool filt(HepMC3::GenEvent const &ev){
-  auto nu = GetBeam(ev,14);
-  auto mu = GetOutPartHM(ev,13);
-  if(!nu || !mu){
+bool filt(HepMC3::GenEvent const &ev) {
+  auto nu = ps::GetBeam(ev, ps::kNuMu);
+  auto mu = ps::GetOutPartHM(ev, ps::kMuon);
+  if (!nu || !mu) {
     return false;
   }
 
   return true;
 }
 
-double proj1(HepMC3::GenEvent const &ev){
-  auto mu = GetOutPartHM(ev,13);
-  return mu->momentum().e() * GeV;
+double proj_q0(HepMC3::GenEvent const &ev) {
+  auto nu = ps::GetBeam(ev, ps::kNuMu);
+  auto mu = ps::GetOutPartHM(ev, ps::kMuon);
+  return ps::q0(nu, mu) * ps::GeV;
 }
 
-double proj2(HepMC3::GenEvent const &ev){
-  auto mu = GetOutPartHM(ev,13);
-  return mu->momentum().pt() * GeV;
+double proj_q3(HepMC3::GenEvent const &ev) {
+  auto nu = ps::GetBeam(ev, ps::kNuMu);
+  auto mu = ps::GetOutPartHM(ev, ps::kMuon);
+  return ps::q3(nu, mu) * ps::GeV;
+}
+
+double proj_Q2Lep(HepMC3::GenEvent const &ev) {
+  auto nu = ps::GetBeam(ev, ps::kNuMu);
+  auto mu = ps::GetOutPartHM(ev, ps::kMuon);
+  return ps::Q2Lep(nu, mu) * ps::GeV2;
 }
 
 }

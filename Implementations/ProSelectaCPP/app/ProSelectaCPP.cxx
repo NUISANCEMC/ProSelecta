@@ -75,8 +75,10 @@ int main(int argc, char const *argv[]) {
     ProSelecta::Get().AddIncludePath(p);
   }
 
-  ProSelecta::Get().LoadText("#include \"ProSelecta/Selectors.h\"");
   ProSelecta::Get().LoadText("#include \"ProSelecta/Units.h\"");
+  ProSelecta::Get().LoadText("#include \"ProSelecta/PDGCodes.h\"");
+  ProSelecta::Get().LoadText("#include \"ProSelecta/Selectors.h\"");
+  ProSelecta::Get().LoadText("#include \"ProSelecta/Projectors.h\"");
 
   if (!ProSelecta::Get().LoadFile(file_to_read.c_str())) {
     std::cout << "[ERROR]: Cling failed interpreting: " << argv[1] << std::endl;

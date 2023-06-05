@@ -1,4 +1,4 @@
-set(HEADERS ftypes.h ProSelecta.h Selectors.h Units.h)
+set(HEADERS ftypes.h ProSelecta.h Selectors.h Projectors.h Units.h PDGCodes.h)
 
 add_library(ProSelecta SHARED ProSelecta.cxx)
 
