@@ -7,7 +7,7 @@ A C++ implementation of the ProSelecta Neutrino Measurement prediction Environme
 ```bash
 cd /path/to/ProSelectaCPP
 mkdir build; cd build
-cmake .. -DCMAKE_INSTALL_PREFIX=$()readlink -f Linux)
+cmake .. -DCMAKE_INSTALL_PREFIX=$(readlink -f Linux)
 make install -j 8
 ```
 
