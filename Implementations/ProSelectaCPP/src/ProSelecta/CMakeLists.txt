@@ -1,4 +1,12 @@
-set(HEADERS ftypes.h ProSelecta.h Selectors.h Projectors.h Units.h PDGCodes.h)
+set(HEADERS 
+  ftypes.h 
+  ProSelecta.h
+  # The ProSelecta environment headers 
+  Selectors.h
+  HardScatterSelector.h
+  Projectors.h
+  Units.h
+  PDGCodes.h)
 
 add_library(ProSelecta SHARED ProSelecta.cxx)
 

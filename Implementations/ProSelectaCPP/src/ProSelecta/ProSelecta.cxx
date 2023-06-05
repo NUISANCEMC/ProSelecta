@@ -25,8 +25,8 @@ ProSelecta &ProSelecta::Get() {
 
 ProSelecta::ProSelecta() {}
 
-void ProSelecta::LoadText(std::string const &txt) {
-  gInterpreter->LoadText(txt.c_str());
+bool ProSelecta::LoadText(std::string const &txt) {
+  return bool(gInterpreter->LoadText(txt.c_str()));
 }
 void ProSelecta::AddIncludePath(std::string const &path) {
   gInterpreter->AddIncludePath(path.c_str());
@@ -65,6 +65,16 @@ ProSelecta::GetWeightFunction(std::string const &fnname) {
     return nullptr;
   }
   return VoidToFunctionPtr<ProSelecta_ftypes::weight>(sym);
+}
+
+void *ProSelecta::FindSym(std::string const &fnname) {
+  void *sym = gInterpreter->FindSym(fnname.c_str());
+  if (!sym) {
+    std::cout << "No function named: " << fnname << " declared to TCling."
+              << std::endl;
+    return nullptr;
+  }
+  return sym;
 }
 
 bool ProSelecta::Filter(HepMC3::GenEvent const &event,

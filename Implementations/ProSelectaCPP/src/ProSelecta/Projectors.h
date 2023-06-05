@@ -1,8 +1,13 @@
 #pragma once
 
+#include "ProSelecta/PDGCodes.h"
+#include "ProSelecta/Selectors.h"
+
 namespace ps {
 
-// q0(particle, particle) -> real
+namespace parts {
+
+// parts::q0(particle, particle) -> real
 double q0(HepMC3::ConstGenParticlePtr pin, HepMC3::ConstGenParticlePtr pout) {
   if (!pin || !pout) {
     return 0xdeadbeef;
@@ -11,7 +16,7 @@ double q0(HepMC3::ConstGenParticlePtr pin, HepMC3::ConstGenParticlePtr pout) {
   return (pin->momentum() - pout->momentum()).e();
 }
 
-// q3(particle, particle) -> real
+// parts::q3(particle, particle) -> real
 double q3(HepMC3::ConstGenParticlePtr pin, HepMC3::ConstGenParticlePtr pout) {
   if (!pin || !pout) {
     return 0xdeadbeef;
@@ -20,8 +25,9 @@ double q3(HepMC3::ConstGenParticlePtr pin, HepMC3::ConstGenParticlePtr pout) {
   return (pin->momentum() - pout->momentum()).p3mod();
 }
 
-// Q2Lep(particle, particle) -> real
-double Q2Lep(HepMC3::ConstGenParticlePtr pin, HepMC3::ConstGenParticlePtr pout) {
+// parts::Q2Lep(particle, particle) -> real
+double Q2Lep(HepMC3::ConstGenParticlePtr pin,
+             HepMC3::ConstGenParticlePtr pout) {
   if (!pin || !pout) {
     return 0xdeadbeef;
   }
@@ -29,7 +35,7 @@ double Q2Lep(HepMC3::ConstGenParticlePtr pin, HepMC3::ConstGenParticlePtr pout) 
   return -(pin->momentum() - pout->momentum()).m2();
 }
 
-// CosTheta(particle, particle) -> real
+// parts::CosTheta(particle, particle) -> real
 double CosTheta(HepMC3::ConstGenParticlePtr p1,
                 HepMC3::ConstGenParticlePtr p2) {
   if (!p1 || !p2) {
@@ -45,7 +51,7 @@ double CosTheta(HepMC3::ConstGenParticlePtr p1,
   return dotp / (p1mom.p3mod() * p2mom.p3mod());
 }
 
-// Theta(particle, particle) -> real
+// parts::Theta(particle, particle) -> real
 double Theta(HepMC3::ConstGenParticlePtr p1, HepMC3::ConstGenParticlePtr p2) {
   if (!p1 || !p2) {
     return 0xdeadbeef;
@@ -54,7 +60,7 @@ double Theta(HepMC3::ConstGenParticlePtr p1, HepMC3::ConstGenParticlePtr p2) {
   return std::acos(CosTheta(p1, p2));
 }
 
-// W(list<particles>) -> real
+// parts::W(list<particles>) -> real
 double W(std::vector<HepMC3::ConstGenParticlePtr> parts) {
   HepMC3::FourVector fv;
 
@@ -68,7 +74,7 @@ double W(std::vector<HepMC3::ConstGenParticlePtr> parts) {
   return fv.m();
 }
 
-// EPmiss(list<particles>) -> 4vec
+// parts::EPmiss(list<particles>) -> 4vec
 HepMC3::FourVector EPmiss(std::vector<HepMC3::ConstGenParticlePtr> parts_in,
                           std::vector<HepMC3::ConstGenParticlePtr> parts_out) {
   HepMC3::FourVector fv_in, fv_out;
@@ -89,5 +95,38 @@ HepMC3::FourVector EPmiss(std::vector<HepMC3::ConstGenParticlePtr> parts_in,
 
   return fv_out - fv_in;
 }
+
+} // namespace parts
+
+namespace event {
+
+// event::q0(event) -> real
+double q0(HepMC3::GenEvent const &ev) {
+
+  auto pin = ps::GetBeamAny(ev, pdg::groups::kNeutralLeptons);
+  auto pout = ps::GetOutPartFirstAny(ev, pdg::groups::kLeptons);
+
+  return parts::q0(pin, pout);
+}
+
+// event::q3(event) -> real
+double q3(HepMC3::GenEvent const &ev) {
+
+  auto pin = ps::GetBeamAny(ev, pdg::groups::kNeutralLeptons);
+  auto pout = ps::GetOutPartFirstAny(ev, pdg::groups::kLeptons);
+
+  return parts::q3(pin, pout);
+}
+
+// event::Q2Lep(event) -> real
+double Q2Lep(HepMC3::GenEvent const &ev) {
+
+  auto pin = ps::GetBeamAny(ev, pdg::groups::kNeutralLeptons);
+  auto pout = ps::GetOutPartFirstAny(ev, pdg::groups::kLeptons);
+
+  return parts::Q2Lep(pin, pout);
+}
+
+} // namespace event
 
 } // namespace ps

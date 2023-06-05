@@ -45,7 +45,7 @@ The ProSelecta type system is defined below:
 * `bool`
 * `real`
 * `PID`: An integer identifier that specifies particle species. See [PDG 2023](https://pdg.lbl.gov/2023/mcdata/mc_particle_id_contents.html).
-* `3vec`: A 3-vector 
+* `4vec`: A 4-vector 
 * `particle`
 * `event`
 * `list<T>`: A generic container of a single, specified type, _e.g._ `list<particle>`.
@@ -56,9 +56,9 @@ All ProSelecta functions must be pure functions. Pure functions process inputs t
 
 Functions declarations look like:
 
-```MyFunction(event) -> list<particle>```
+```qual::MyFunction(event) -> list<particle>```
 
-which describes a function, `MyFunction`, which takes an `event` as input and returns a `list` of `particle`s.
+which describes a function, `MyFunction`, in namespace or module or with prefix `qual`, which takes an `event` as input and returns a `list` of `particle`s. Depending on the language the actual function invocation may look like: `qual::MyFunction`, `qual.MyFunction`, or `qual_MyFunction`, see documentation for the concrete implementation for explicit details.
 
 ## Selections
 
@@ -102,16 +102,30 @@ IsDIS(event) -> bool
 
 ## Projections
 
+### Event-level Projections
+
 ```
-Proj_q0(particle, particle) -> real
-Proj_q3(particle, particle) -> real
-Proj_Q2Lep(particle, particle) -> real
+event::q0(particle, particle) -> real
+event::q3(particle, particle) -> real
+event::Q2Lep(particle, particle) -> real
+```
 
-Proj_Theta(particle, particle) -> real
+### Particle-level Projections
 
-Proj_W(list<particles>) -> real
-Proj_Pt(list<particles>) -> real
-Proj_Pmiss(list<particles>) -> real
+The above event-level projections use some of the Particle [Selections](#selections) with default PID lists to grab the most likely particles that a user would like to use to calculate various projections. If you need more control you can use the `parts` versions of these functions.
+
+Additionally other useful projections are defined that we do not feel confident pre-deciding which particles a user may want included.
+
+```
+parts::q0(particle, particle) -> real
+parts::q3(particle, particle) -> real
+parts::Q2Lep(particle, particle) -> real
+
+parts::CosTheta(particle, particle) -> real
+parts::Theta(particle, particle) -> real
+
+parts::W(list<particles>) -> real
+parts::EPmiss(list<particles>) -> 4vec
 ```
 
 ## Reference Implementations

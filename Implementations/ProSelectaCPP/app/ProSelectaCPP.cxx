@@ -12,6 +12,7 @@
 std::string file_to_read;
 std::string filename;
 
+std::string annotate_symname;
 std::string filter_symname;
 std::vector<std::string> projection_symnames;
 std::vector<std::string> weights_symnames;
@@ -21,14 +22,17 @@ std::vector<std::string> include_paths;
 void SayUsage(char const *argv[]) {
   std::cout
       << "[USAGE]: " << argv[0] << "\n"
-      << "\t-f <sourcefile.cxx> : File to interpret\n"
-      << "\t--Filter <symname>  : Symbol to use for filtering\n"
-      << "\t--Project <symname> : Symbol to use for projection, can be passed "
+      << "\t-f <sourcefile.cxx>  : File to interpret\n"
+      << "\t--Annotate <symname> : A symbol to pass each event directly after\n"
+      << "\t                       reading. Can be used to annotate with\n"
+      << "\t                       input-specific metadata.\n"
+      << "\t--Filter <symname>   : Symbol to use for filtering\n"
+      << "\t--Project <symname>  : Symbol to use for projection, can be passed "
          "more than once\n"
-      << "\t--Weight <symname>  : Symbol to use for weights, can be passed "
+      << "\t--Weight <symname>   : Symbol to use for weights, can be passed "
          "more than once\n"
-      << "\t-i <file.hepmc>     : Input HepMC3 file\n"
-      << "\t-I <path>           : Path to include in the interpreter's search "
+      << "\t-i <file.hepmc>      : Input HepMC3 file\n"
+      << "\t-I <path>            : Path to include in the interpreter's search "
          "path\n"
       << std::endl;
 }
@@ -42,10 +46,14 @@ void handleOpts(int argc, char const *argv[]) {
     } else if ((opt + 1) < argc) {
       if (std::string(argv[opt]) == "-f") {
         file_to_read = argv[++opt];
+      } else if (std::string(argv[opt]) == "--Annotate") {
+        annotate_symname = argv[++opt];
       } else if (std::string(argv[opt]) == "--Filter") {
         filter_symname = argv[++opt];
       } else if (std::string(argv[opt]) == "--Project") {
-        projection_symnames.push_back(argv[++opt]);
+        while (((opt + 1) < argc) && (argv[opt + 1][0] != '-')) {
+          projection_symnames.push_back(argv[++opt]);
+        }
       } else if (std::string(argv[opt]) == "--Weight") {
         weights_symnames.push_back(argv[++opt]);
       } else if (std::string(argv[opt]) == "-i") {
@@ -67,6 +75,18 @@ void handleOpts(int argc, char const *argv[]) {
   }
 }
 
+typedef void (*annontate_ftype)(HepMC3::GenEvent &);
+
+// Borrowed from Cling::utils
+template <class T> T VoidToFunctionPtr(void *ptr) {
+  union {
+    T f;
+    void *v;
+  } tmp;
+  tmp.v = ptr;
+  return tmp.f;
+}
+
 int main(int argc, char const *argv[]) {
 
   handleOpts(argc, argv);
@@ -75,14 +95,34 @@ int main(int argc, char const *argv[]) {
     ProSelecta::Get().AddIncludePath(p);
   }
 
-  ProSelecta::Get().LoadText("#include \"ProSelecta/Units.h\"");
-  ProSelecta::Get().LoadText("#include \"ProSelecta/PDGCodes.h\"");
-  ProSelecta::Get().LoadText("#include \"ProSelecta/Selectors.h\"");
-  ProSelecta::Get().LoadText("#include \"ProSelecta/Projectors.h\"");
+  bool read_env = ProSelecta::Get().LoadText("#include \"ProSelecta/Units.h\"");
+  read_env = read_env &&
+             ProSelecta::Get().LoadText("#include \"ProSelecta/PDGCodes.h\"");
+  read_env = read_env &&
+             ProSelecta::Get().LoadText("#include \"ProSelecta/Selectors.h\"");
+  read_env = read_env && ProSelecta::Get().LoadText(
+                             "#include \"ProSelecta/HardScatterSelector.h\"");
+  read_env = read_env &&
+             ProSelecta::Get().LoadText("#include \"ProSelecta/Projectors.h\"");
+
+  if (!read_env) {
+    std::cout
+        << "[ERROR]: Cling failed to interpret the processor environment, if "
+           "you passed the right path to find these header files and this "
+           "still occures then it is a bug in ProSelectaCPP itself."
+        << std::endl;
+    return 1;
+  }
 
   if (!ProSelecta::Get().LoadFile(file_to_read.c_str())) {
     std::cout << "[ERROR]: Cling failed interpreting: " << argv[1] << std::endl;
     return 1;
+  }
+
+  annontate_ftype annotate_func = nullptr;
+  if (annotate_symname.length()) {
+    annotate_func = VoidToFunctionPtr<annontate_ftype>(
+        ProSelecta::Get().FindSym(annotate_symname));
   }
 
   auto filter_func = ProSelecta::Get().GetFilterFunction(filter_symname);
@@ -131,6 +171,10 @@ int main(int argc, char const *argv[]) {
     rdr->read_event(evt_in);
     if (rdr->failed()) {
       break;
+    }
+
+    if (annotate_func) {
+      annotate_func(evt_in);
     }
 
     std::cout << e_it << ", ";

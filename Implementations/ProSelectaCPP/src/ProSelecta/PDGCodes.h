@@ -4,6 +4,7 @@
 
 namespace ps {
 
+namespace pdg {
 static int const kNuE = 12;
 static int const kANuE = -12;
 
@@ -25,5 +26,23 @@ static int const kAProton = -2212;
 
 static int const kNeutron = 2112;
 static int const kANeutron = -2112;
+
+namespace groups {
+
+static std::vector<int> kChargedLeptons = {kElectron, kAElectron, kMuon,
+                                           kAMuon};
+static std::vector<int> kChargedLeptons_matter = {kElectron, kMuon};
+static std::vector<int> kChargedLeptons_amatter = {kAElectron, kAMuon};
+
+static std::vector<int> kNeutralLeptons = {kNuE, kANuE, kNuMu, kANuMu};
+static std::vector<int> kNeutralLeptons_matter = {kNuE, kNuMu};
+static std::vector<int> kNeutralLeptons_amatter = {kANuE, kANuMu};
+
+static std::vector<int> kLeptons = {kElectron, kAElectron, kMuon, kAMuon,
+                                    kNuE,      kANuE,      kNuMu, kANuMu};
+
+} // namespace groups
+
+} // namespace pdg
 
 } // namespace ps
