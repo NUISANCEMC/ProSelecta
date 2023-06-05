@@ -116,7 +116,7 @@ Proj_Pmiss(list<particles>) -> real
 
 ## Reference Implementations
 
-This package provides the ProSelecta++ reference implementation that can be used to process HepMC3 events and then two sets of additional language bindings.
+This package provides the ProSelectaCPP reference implementation that can be used to process HepMC3 events and then two sets of additional language bindings. Each comes with additional documentation and concrete examples of writing selection and projection operators in each environment.
 
 * [ProSelectaCPP](Implementations/ProSelectaCPP/README.md)
 * [pyProSelecta](Implementations/pyProSelecta/README.md)
