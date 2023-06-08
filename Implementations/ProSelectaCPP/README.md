@@ -15,10 +15,10 @@ make install -j 8
 
 See [examples/example_proselect.cxx](examples/example_proselect.cxx) for a simple example.
 
-Currently you need to tell ProSelecta where its own environment headers are with a `-I /path/to/prefix`, but we can fix this in the future. Run like:
+You can tell `ProSelectaCPP` where to find its processing environment with the `PROSELECTA_DIR` environment variable, which should point to the installation prefix or with the `--env` flag which should point directly to the directory containing the `env.h` header, expected to be in: `<install_prefix>/include/ProSelecta/env`.
 
 ```bash
-Linux/bin/ProSelectaCPP -I Linux/include -f ../examples/example_proselect.cxx -i ../examples/neut.vect.hepmc --Annotate annotate --Filter filt --Project proj_q0 projev_q0 proj_q3 proj_Q2Lep proj_NEUTChannel proj_IsCCQE
+Linux/bin/ProSelectaCPP --env Linux/include/ProSelecta/env -I Linux/include -f ../examples/example_proselect.cxx -i ../examples/neut.vect.hepmc --Annotate annotate --Filter filt --Project proj_q0 projev_q0 proj_q3 proj_Q2Lep proj_NEUTChannel proj_IsCCQE
 ```
 
 to produce a table of selected event properties:
@@ -50,7 +50,4 @@ to produce a table of selected event properties:
 ```
 The annotation step is required to interpret the specific simulation interaction channels (in this case NEUT) and annotate the HepMC3 events with attributes that the ProSelecta [Hard-Scatter Channels](../../README.md#hard-scatter-channels) functions use to work.
 
-To run a blank function for debugging
-```
-Linux/bin/ProSelectaCPPUP -I Linux/include -f ../examples/example_proselectup.cxx -i ../examples/neut.vect.hepmc --Analysis analysis
-```
+To run an arbitrary event processing function with prototype `void myfunc(HepMC3::GenEvent const&)` you can use the `--Analysis` argument instead of the `--Filter` argument.

@@ -1,5 +1,3 @@
-extern "C" {
-
 void annotate(HepMC3::GenEvent &ev) { // NEUT specific channel annotation
   auto attr = ev.attribute<HepMC3::IntAttribute>("ProcID");
   if (!attr) {
@@ -89,5 +87,4 @@ double proj_IsCCQE(HepMC3::GenEvent const &ev) {
     return 1;
   }
   return 0;
-}
 }

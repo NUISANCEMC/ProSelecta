@@ -1,16 +1,10 @@
 set(HEADERS 
   ftypes.h 
-  ProSelecta.h
-  # The ProSelecta environment headers 
-  Selectors.h
-  HardScatterSelector.h
-  Projectors.h
-  Units.h
-  PDGCodes.h)
+  ProSelecta.h)
 
 add_library(ProSelecta SHARED ProSelecta.cxx)
 
-target_link_libraries(ProSelecta PUBLIC HepMC3::All ROOT::Core)
+target_link_libraries(ProSelecta PRIVATE pybind11:embed HepMC3_static::All ROOT::Core)
 
 set_target_properties(ProSelecta PROPERTIES 
   PUBLIC_HEADER "${HEADERS}")
@@ -24,4 +18,4 @@ install(TARGETS ProSelecta
     LIBRARY DESTINATION lib/
     PUBLIC_HEADER DESTINATION include/ProSelecta)
 
-install(DIRECTORY detail DESTINATION include/ProSelecta)
+install(DIRECTORY env DESTINATION include/ProSelecta)

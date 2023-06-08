@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ProSelecta/detail/Selectors.h"
+#include "detail/Selectors.h"
 
 namespace ps {
 

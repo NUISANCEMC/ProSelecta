@@ -1,7 +1,7 @@
 #pragma once
 
-#include "ProSelecta/PDGCodes.h"
-#include "ProSelecta/Selectors.h"
+#include "PDGCodes.h"
+#include "Selectors.h"
 
 namespace ps {
 

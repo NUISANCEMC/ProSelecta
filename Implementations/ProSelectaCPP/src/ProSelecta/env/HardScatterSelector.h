@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ProSelecta/detail/HardScatterSelector.h"
+#include "detail/HardScatterSelector.h"
 
 namespace ps {
 // IsCC(event) -> bool
