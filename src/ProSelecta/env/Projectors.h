@@ -94,7 +94,7 @@ HepMC3::FourVector EPmiss(std::vector<HepMC3::ConstGenParticlePtr> parts_in,
     fv_out += p->momentum();
   }
 
-  return fv_out - fv_in;
+  return fv_in - fv_out;
 }
 
 } // namespace parts
@@ -105,7 +105,15 @@ namespace event {
 double q0(HepMC3::GenEvent const &ev) {
 
   auto pin = ps::sel::BeamAny(ev, pdg::groups::kNeutralLeptons);
-  auto pout = ps::sel::OutPartFirstAny(ev, pdg::groups::kLeptons);
+
+  if (!pin) {
+    return 0xdeadbeef;
+  }
+
+  int nupid = pin->pid();
+  int ccpid = nupid > 0 ? (nupid - 1) : (nupid + 1);
+
+  auto pout = ps::sel::OutPartFirstAny(ev, {ccpid, nupid});
 
   return parts::q0(pin, pout);
 }
@@ -114,7 +122,15 @@ double q0(HepMC3::GenEvent const &ev) {
 double q3(HepMC3::GenEvent const &ev) {
 
   auto pin = ps::sel::BeamAny(ev, pdg::groups::kNeutralLeptons);
-  auto pout = ps::sel::OutPartFirstAny(ev, pdg::groups::kLeptons);
+
+  if (!pin) {
+    return 0xdeadbeef;
+  }
+
+  int nupid = pin->pid();
+  int ccpid = nupid > 0 ? (nupid - 1) : (nupid + 1);
+
+  auto pout = ps::sel::OutPartFirstAny(ev, {ccpid, nupid});
 
   return parts::q3(pin, pout);
 }
@@ -123,7 +139,15 @@ double q3(HepMC3::GenEvent const &ev) {
 double Q2Lep(HepMC3::GenEvent const &ev) {
 
   auto pin = ps::sel::BeamAny(ev, pdg::groups::kNeutralLeptons);
-  auto pout = ps::sel::OutPartFirstAny(ev, pdg::groups::kLeptons);
+
+  if (!pin) {
+    return 0xdeadbeef;
+  }
+
+  int nupid = pin->pid();
+  int ccpid = nupid > 0 ? (nupid - 1) : (nupid + 1);
+
+  auto pout = ps::sel::OutPartFirstAny(ev, {ccpid, nupid});
 
   return parts::Q2Lep(pin, pout);
 }

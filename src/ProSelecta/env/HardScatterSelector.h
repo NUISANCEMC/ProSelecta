@@ -5,7 +5,6 @@
 namespace ps {
 // IsCC(event) -> bool
 bool IsCC(HepMC3::GenEvent const &ev) {
-  return ProSelecta_detail::IsChannel(ev, "IsCC");
 }
 // IsCOH(event) -> bool
 bool IsCOH(HepMC3::GenEvent const &ev) {

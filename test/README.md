@@ -32,10 +32,12 @@
 
 ## `env` Tests
 
-### Selection Functions
+### Selectors
 
-### Hard Scatter Selection Functions
+#### Hard Scatter Channel
 
-### Event Projections
+### Event Projectors
 
-### Particle Projections
+### Particle Projectors
+
+### Units Test

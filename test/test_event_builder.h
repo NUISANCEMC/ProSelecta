@@ -17,6 +17,9 @@ double default_mass_GeV(int pid) {
   case 1000060120: {
     return 12;
   }
+  case 1000060110: {
+    return 11;
+  }
   case 12:
   case 14:
   case -12:
@@ -58,15 +61,18 @@ double default_mass_GeV(int pid) {
 // e.g. 2212 11 1 20 .938 45
 //   -- Proton, status 11 with 1 GeV of 3-mom 20 degrees from z with .938 GeV
 //   of .938 GeV mass and with an azimuthal angle of 45 degrees from x-dir
+// e.g. 2212 11 1 20 - 45
+//   -- Proton, status 11 with 1 GeV of 3-mom 20 degrees from z with the
+//   default mass and with an azimuthal angle of 45 degrees from x-dir
 std::shared_ptr<HepMC3::GenParticle> BuildPart(std::string const &pline) {
 
   std::vector<std::string> split;
   size_t ptr = 0;
   while (ptr != std::string::npos) {
     size_t ns = pline.find_first_of(' ', ptr);
-    split.push_back(pline.substr(ptr, ns));
+    split.push_back(pline.substr(ptr, ns - ptr));
 
-    if(ns == std::string::npos){
+    if (ns == std::string::npos) {
       break;
     }
 
@@ -85,10 +91,10 @@ std::shared_ptr<HepMC3::GenParticle> BuildPart(std::string const &pline) {
     pol_rad = std::stod(split[3]) * (M_PI / 180.0);
   }
   double mass = default_mass_GeV(pdg);
-  if (split.size() >= 5) {
+  if ((split.size() >= 5) && (split[4] != "-")) {
     mass = std::stod(split[4]);
   }
-  double azim_rad = gRandom->Uniform(0, 360) * (M_PI / 180.0);
+  double azim_rad = gRandom->Uniform(0, 2 * M_PI);
   if (split.size() >= 6) {
     azim_rad = std::stod(split[5]) * (M_PI / 180.0);
   }
@@ -102,20 +108,38 @@ std::shared_ptr<HepMC3::GenParticle> BuildPart(std::string const &pline) {
                                                pdg, status);
 }
 
-HepMC3::GenEvent BuildEvent(std::vector<std::string> const &in,
-                            std::vector<std::string> const &out) {
+HepMC3::GenEvent BuildEvent(std::vector<std::vector<std::string>> const &parts,
+                            std::vector<int> const &vids = {}) {
 
   HepMC3::GenEvent evt;
-  // Make vertex
-  HepMC3::GenVertexPtr vertex = std::make_shared<HepMC3::GenVertex>();
-  for (auto const &pline : in) {
-    vertex->add_particle_in(BuildPart(pline));
-  }
-  for (auto const &pline : out) {
-    vertex->add_particle_out(BuildPart(pline));
+
+  for (int v = 0; v < (parts.size() - 1); ++v) {
+
+    HepMC3::GenVertexPtr vertex = std::make_shared<HepMC3::GenVertex>();
+
+    if (vids.size() > v) {
+      vertex->set_status(vids[v]);
+    }
+
+    if (v == 0) {
+      for (auto const &pline : parts[v]) {
+        vertex->add_particle_in(BuildPart(pline));
+      }
+    } else {
+      for (auto &part : evt.vertices().back()->particles_out()) {
+        if (part->status() != 0) {
+          vertex->add_particle_in(part);
+        }
+      }
+    }
+
+    for (auto const &pline : parts[v + 1]) {
+      vertex->add_particle_out(BuildPart(pline));
+    }
+
+    evt.add_vertex(vertex);
   }
 
-  evt.add_vertex(vertex);
   evt.set_units(HepMC3::Units::GEV, HepMC3::Units::CM);
 
   return evt;

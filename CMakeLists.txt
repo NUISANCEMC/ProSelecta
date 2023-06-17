@@ -36,6 +36,7 @@ CPMAddPackage(
       "HEPMC3_BUILD_STATIC_LIBS ON"
 )
 
+#get the same version of pybind11 as HepMC3 is using
 CPMAddPackage(
     NAME pybind11
     VERSION 2.9.2
