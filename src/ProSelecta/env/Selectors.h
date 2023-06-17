@@ -13,7 +13,7 @@ HepMC3::ConstGenParticlePtr Beam(HepMC3::GenEvent const &ev, int PID) {
 
 // BeamAny(event, list<PID>) -> particle
 HepMC3::ConstGenParticlePtr BeamAny(HepMC3::GenEvent const &ev,
-                                    std::vector<int> PIDs) {
+                                    std::vector<int> const &PIDs) {
   return ProSelecta_detail::particle<ProSelecta_detail::kBeam,
                                      ProSelecta_detail::kFirst>(ev, PIDs);
 }
@@ -27,8 +27,8 @@ std::vector<HepMC3::ConstGenParticlePtr> Beams(HepMC3::GenEvent const &ev,
 }
 
 // BeamsAny(event, list<PID>) -> list<particles>
-std::vector<HepMC3::ConstGenParticlePtr> BeamsAny(HepMC3::GenEvent const &ev,
-                                                  std::vector<int> PIDs) {
+std::vector<HepMC3::ConstGenParticlePtr>
+BeamsAny(HepMC3::GenEvent const &ev, std::vector<int> const &PIDs) {
   return ProSelecta_detail::particles<ProSelecta_detail::kBeam,
                                       ProSelecta_detail::kFromPDGList>(ev,
                                                                        PIDs);
@@ -47,7 +47,7 @@ HepMC3::ConstGenParticlePtr OutPartFirst(HepMC3::GenEvent const &ev, int PID) {
 }
 // OutPartFirstAny(event, list<PID>) -> particle
 HepMC3::ConstGenParticlePtr OutPartFirstAny(HepMC3::GenEvent const &ev,
-                                            std::vector<int> PIDs) {
+                                            std::vector<int> const &PIDs) {
   return ProSelecta_detail::particle<ProSelecta_detail::kUndecayedPhysical,
                                      ProSelecta_detail::kFirst>(ev, PIDs);
 }
@@ -61,7 +61,7 @@ HepMC3::ConstGenParticlePtr OutPartHM(HepMC3::GenEvent const &ev, int PID) {
 
 // OutPartHMAny(event, list<PID>) -> particle
 HepMC3::ConstGenParticlePtr OutPartHMAny(HepMC3::GenEvent const &ev,
-                                         std::vector<int> PIDs) {
+                                         std::vector<int> const &PIDs) {
   return ProSelecta_detail::particle<ProSelecta_detail::kUndecayedPhysical,
                                      ProSelecta_detail::kHighestMomentum>(ev,
                                                                           PIDs);
@@ -75,8 +75,8 @@ std::vector<HepMC3::ConstGenParticlePtr> OutParts(HepMC3::GenEvent const &ev,
       ev, PID);
 }
 // OutPartsAny(event, list<PID>) -> list<particles>
-std::vector<HepMC3::ConstGenParticlePtr> OutPartsAny(HepMC3::GenEvent const &ev,
-                                                     std::vector<int> PIDs) {
+std::vector<HepMC3::ConstGenParticlePtr>
+OutPartsAny(HepMC3::GenEvent const &ev, std::vector<int> const &PIDs) {
   return ProSelecta_detail::particles<ProSelecta_detail::kUndecayedPhysical,
                                       ProSelecta_detail::kFromPDGList>(ev,
                                                                        PIDs);
@@ -91,7 +91,7 @@ OutPartsExcept(HepMC3::GenEvent const &ev, int PID) {
 }
 // OutPartsExceptAny(event, list<PID>) -> list<particles>
 std::vector<HepMC3::ConstGenParticlePtr>
-OutPartsExceptAny(HepMC3::GenEvent const &ev, std::vector<int> PIDs) {
+OutPartsExceptAny(HepMC3::GenEvent const &ev, std::vector<int> const &PIDs) {
   return ProSelecta_detail::particles<ProSelecta_detail::kUndecayedPhysical,
                                       ProSelecta_detail::kNotFromPDGList>(ev,
                                                                           PIDs);
