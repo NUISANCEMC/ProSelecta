@@ -41,7 +41,7 @@ PYBIND11_MODULE(pyProSelecta, m) {
 
   parts.def("q0", &ps::proj::parts::q0, "");
   parts.def("q3", &ps::proj::parts::q3, "");
-  parts.def("Q2Lep", &ps::proj::parts::Q2Lep, "");
+  parts.def("Q2", &ps::proj::parts::Q2, "");
   parts.def("CosTheta", &ps::proj::parts::CosTheta, "");
   parts.def("Theta", &ps::proj::parts::Theta, "");
   parts.def("W", &ps::proj::parts::W, "");
@@ -50,9 +50,11 @@ PYBIND11_MODULE(pyProSelecta, m) {
   py::module event =
       proj.def_submodule("event", "The event Projector functions");
 
-  parts.def("q0", &ps::proj::event::q0, "");
-  parts.def("q3", &ps::proj::event::q3, "");
-  parts.def("Q2Lep", &ps::proj::event::Q2Lep, "");
+  event.def("q0", &ps::proj::event::q0, "");
+  event.def("q3", &ps::proj::event::q3, "");
+  event.def("Q2Lep", &ps::proj::event::Q2Lep, "");
+  event.def("CosThetaLep", &ps::proj::event::CosThetaLep, "");
+  event.def("ThetaLep", &ps::proj::event::ThetaLep, "");
 
   // Units.h
   py::module units = m.def_submodule("units", "Units constants");

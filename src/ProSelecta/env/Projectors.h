@@ -26,8 +26,8 @@ double q3(HepMC3::ConstGenParticlePtr pin, HepMC3::ConstGenParticlePtr pout) {
   return (pin->momentum() - pout->momentum()).p3mod();
 }
 
-// parts::Q2Lep(particle, particle) -> real
-double Q2Lep(HepMC3::ConstGenParticlePtr pin,
+// parts::Q2(particle, particle) -> real
+double Q2(HepMC3::ConstGenParticlePtr pin,
              HepMC3::ConstGenParticlePtr pout) {
   if (!pin || !pout) {
     return 0xdeadbeef;
@@ -149,7 +149,41 @@ double Q2Lep(HepMC3::GenEvent const &ev) {
 
   auto pout = ps::sel::OutPartFirstAny(ev, {ccpid, nupid});
 
-  return parts::Q2Lep(pin, pout);
+  return parts::Q2(pin, pout);
+}
+
+// event::CosThetaLep(event) -> real
+double CosThetaLep(HepMC3::GenEvent const &ev) {
+
+  auto pin = ps::sel::BeamAny(ev, pdg::groups::kNeutralLeptons);
+
+  if (!pin) {
+    return 0xdeadbeef;
+  }
+
+  int nupid = pin->pid();
+  int ccpid = nupid > 0 ? (nupid - 1) : (nupid + 1);
+
+  auto pout = ps::sel::OutPartFirstAny(ev, {ccpid, nupid});
+
+  return parts::CosTheta(pin, pout);
+}
+
+// event::ThetaLep(event) -> real
+double ThetaLep(HepMC3::GenEvent const &ev) {
+
+  auto pin = ps::sel::BeamAny(ev, pdg::groups::kNeutralLeptons);
+
+  if (!pin) {
+    return 0xdeadbeef;
+  }
+
+  int nupid = pin->pid();
+  int ccpid = nupid > 0 ? (nupid - 1) : (nupid + 1);
+
+  auto pout = ps::sel::OutPartFirstAny(ev, {ccpid, nupid});
+
+  return parts::Theta(pin, pout);
 }
 
 } // namespace event

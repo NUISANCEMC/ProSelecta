@@ -1,6 +1,6 @@
 # ProSelectaCPP
 
-A C++ implementation of the ProSelecta Neutrino Measurement prediction Environment version 0.1. See the [Specification](#Specification.md).
+A C++ implementation of the ProSelecta Neutrino Measurement prediction Environment version 0.1. See the [Specification](Specification.md).
 
 ## Build
 
@@ -48,7 +48,7 @@ to produce a table of selected event properties:
 20, pass, 0.444759, 0.444759, 0.754872, 0.372022, 11, 0
 ...
 ```
-The annotation step is required to interpret the specific simulation interaction channels (in this case NEUT) and annotate the HepMC3 events with attributes that the ProSelecta [Hard-Scatter Channels](../README.md#hard-scatter-channels) functions use to work.
+The annotation step is required to interpret the specific simulation interaction channels (in this case NEUT) and annotate the HepMC3 events with attributes that the ProSelecta [Hard-Scatter Channels](Specification.md#hard-scatter-channels) functions use to work.
 
 To run an arbitrary event processing function with prototype `void myfunc(HepMC3::GenEvent const&)` you can use the `--Analysis` argument instead of the `--Filter` argument.
 

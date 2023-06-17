@@ -108,6 +108,8 @@ IsDIS(event) -> bool
 event::q0(event) -> real
 event::q3(event) -> real
 event::Q2Lep(event) -> real
+event::CosThetaLep(event) -> real
+event::ThetaLep(event) -> real
 ```
 
 ### Particle-level Projections
@@ -119,7 +121,7 @@ Additionally other useful projections are defined that we do not feel confident 
 ```
 parts::q0(particle, particle) -> real
 parts::q3(particle, particle) -> real
-parts::Q2Lep(particle, particle) -> real
+parts::Q2(particle, particle) -> real
 
 parts::CosTheta(particle, particle) -> real
 parts::Theta(particle, particle) -> real
@@ -130,4 +132,4 @@ parts::EPmiss(list<particles>) -> 4vec
 
 ## Reference Implementation
 
-This package provides the [ProSelectaCPP](ProSelectaCPP/README.md) reference implementation that can be used to process HepMC3 events in the ProSelecta environment with interpreted C++ or python processing functions.
+This package provides the [ProSelectaCPP](README.md) reference implementation that can be used to process HepMC3 events in the ProSelecta environment with interpreted C++ or python processing functions.
