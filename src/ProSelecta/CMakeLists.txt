@@ -33,9 +33,9 @@ install(TARGETS ProSelecta
 install(DIRECTORY env DESTINATION include/ProSelecta)
 
 add_custom_command(
-         TARGET ProSelecta POST_BUILD
+         TARGET ProSelecta PRE_BUILD
          COMMAND ${CMAKE_COMMAND} -E create_symlink              
-             ${CMAKE_SOURCE_DIR}/src/ProSelecta ProSelecta
+             ${CMAKE_SOURCE_DIR}/src ${CMAKE_CURRENT_BINARY_DIR}/ENV
          COMMENT "Creating symlink to ProSelecta Env directory" VERBATIM
          )
 

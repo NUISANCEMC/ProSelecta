@@ -27,23 +27,23 @@ set(PROSELECTA_FOUND TRUE)
 get_filename_component(PROSELECTA_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
 
 find_path(PROSELECTA_INCLUDE_DIR
-  NAMES ProSelecta.h
-  PATHS ${PROSELECTA_CMAKE_DIR}/../../../src
+  NAMES ProSelecta/ProSelecta.h
+  PATHS ${PROSELECTA_CMAKE_DIR}/../../ENV/
 )
 
 find_path(PROSELECTA_LIB_DIR
   NAMES libProSelecta.so libProSelecta.a libProSelecta.dylib
-  PATHS ${PROSELECTA_CMAKE_DIR}/../../
+  PATHS ${PROSELECTA_CMAKE_DIR}/../
 )
 
 find_path(PROSELECTA_PREFIX
-  NAMES bin/setup.PROSELECTA.sh
-  PATHS ${PROSELECTA_CMAKE_DIR}/../../../
+  NAMES setup.PROSELECTA.sh
+  PATHS ${PROSELECTA_CMAKE_DIR}/../../
 )
 
 message("FOOUND ${PROSELECTA_CMAKE_DIR}")
 include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(NEUT
+find_package_handle_standard_args(ProSelecta
     REQUIRED_VARS 
       PROSELECTA_INCLUDE_DIR 
       PROSELECTA_LIB_DIR
