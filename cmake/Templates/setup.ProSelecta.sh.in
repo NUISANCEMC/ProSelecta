@@ -1,8 +1,9 @@
 #!/bin/bash
 CUR_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-PROSELECTA_ROOT="$CUR_DIR"
-PROSELECTA_DIR=$CUR_DIR/ProSelecta/
-PROSELECTA_INC=$CUR_DIR/include/
-PROSELECTA_LIB=$CUR_DIR/lib/
-PROSELECTA_BIN=$CUR_DIR/bin/
+export PROSELECTA_ROOT="$CUR_DIR"
+export PROSELECTA_DIR=$CUR_DIR/ProSelecta/
+export PROSELECTA_INC=$CUR_DIR/include/
+export PROSELECTA_LIB=$CUR_DIR/lib/
+export PROSELECTA_BIN=$CUR_DIR/bin/
+export CMAKE_PREFIX_PATH=$CUR_DIR/lib/cmake/
 
