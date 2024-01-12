@@ -6,6 +6,14 @@ find_program(CMAKE_CXX_COMPILER NAMES $ENV{CXX} g++ PATHS ENV PATH NO_DEFAULT_PA
 project(ProSelecta VERSION 0.1)
 
 set(CMAKE_CXX_STANDARD 17)
+if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+    set (CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/install/"
+           CACHE PATH "default install path" FORCE)
+endif()
+set(CMAKE_INCLUDE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/include)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 find_package(Python3 3.6 REQUIRED COMPONENTS Interpreter Development)
 find_package(ROOT 6.10 REQUIRED)
@@ -53,3 +61,18 @@ find_package(pybind11 REQUIRED)
 add_subdirectory(src/ProSelecta)
 add_subdirectory(app)
 #add_subdirectory(test)
+
+#install(FILES
+#  "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/setup.ProSelecta.sh" 
+#  DESTINATION
+#  "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/bin/)
+
+configure_file(${PROJECT_SOURCE_DIR}/cmake/Templates/__init__.py.in ${CMAKE_CURRENT_BINARY_DIR}/__init__.py @ONLY)
+configure_file(${PROJECT_SOURCE_DIR}/cmake/Templates/setup.ProSelecta.sh.in ${CMAKE_CURRENT_BINARY_DIR}/setup.ProSelecta.sh @ONLY)
+configure_file(${PROJECT_SOURCE_DIR}/cmake/Templates/ProSelectaConfig.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/lib/cmake/ProSelectaConfig.cmake @ONLY)
+
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/__init__.py DESTINATION ${ProSelecta_PYTHONPATH}/pyProSelecta)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/lib/cmake/ProSelectaConfig.cmake DESTINATION lib)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/setup.ProSelecta.sh DESTINATION bin)
+
+#file(CREATE_LINK ${PROJECT_SOURCE_DIR}/src/ProSelecta ProSelecta)

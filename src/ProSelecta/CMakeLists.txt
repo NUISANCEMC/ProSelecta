@@ -32,6 +32,15 @@ install(TARGETS ProSelecta
 
 install(DIRECTORY env DESTINATION include/ProSelecta)
 
+add_custom_command(
+         TARGET ProSelecta POST_BUILD
+         COMMAND ${CMAKE_COMMAND} -E create_symlink              
+             ${CMAKE_SOURCE_DIR}/src/ProSelecta ProSelecta
+         COMMENT "Creating symlink to ProSelecta Env directory" VERBATIM
+         )
+
+
+
 # Python bindings
 
 pybind11_add_module(pyProSelecta SHARED pyProSelecta.cxx)
