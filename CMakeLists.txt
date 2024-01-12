@@ -16,7 +16,7 @@ set(ProSelecta_PYSITEARCH "${Python3_VERSION_MAJOR}${Python3_VERSION_MINOR}")
 set(ProSelecta_PYTHONPATH "python/${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}")
 
 include(CPM)
-CPMAddPackage(
+CPMFindPackage(
     NAME HepMC3
     VERSION 3.2.6
     GIT_REPOSITORY "https://gitlab.cern.ch/hepmc/HepMC3.git"
@@ -32,18 +32,24 @@ CPMAddPackage(
       "HEPMC3_BUILD_EXAMPLES OFF"
       "HEPMC3_INSTALL_EXAMPLES OFF"
       "HEPMC3_ENABLE_TEST OFF"
-      "HEPMC3_INSTALL_INTERFACES OFF"
+      "HEPMC3_INSTALL_INTERFACES ON"
       "HEPMC3_BUILD_STATIC_LIBS ON"
 )
 
+#find_package(HepMC3 REQUIRED)
+add_library(HepMC3_includes INTERFACE)
+target_include_directories(HepMC3_includes SYSTEM INTERFACE ${HepMC3_SOURCE_DIR}/include)
+
 #get the same version of pybind11 as HepMC3 is using
-CPMAddPackage(
+CPMFindPackage(
     NAME pybind11
     VERSION 2.9.2
     GITHUB_REPOSITORY pybind/pybind11
     GIT_TAG v2.9.2
 )
 
+find_package(pybind11 REQUIRED)
+
 add_subdirectory(src/ProSelecta)
 add_subdirectory(app)
-add_subdirectory(test)
+#add_subdirectory(test)

@@ -9,12 +9,18 @@ target_link_libraries(ProSelecta PRIVATE
   ROOT::Core
   pybind11::embed)
 
+include_directories(HepMC3::All)
+include_directories(ROOT::Core)
+
 set_target_properties(ProSelecta PROPERTIES 
   PUBLIC_HEADER "${HEADERS}")
 
 target_include_directories(ProSelecta PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/..>
-  $<INSTALL_INTERFACE:include>)
+  $<INSTALL_INTERFACE:include>
+  HepMC3::All 
+  ROOT::Core
+)
 
 target_include_directories(ProSelecta PRIVATE
   ${Python3_INCLUDE_DIRS})
@@ -31,7 +37,7 @@ install(DIRECTORY env DESTINATION include/ProSelecta)
 pybind11_add_module(pyProSelecta SHARED pyProSelecta.cxx)
 
 target_link_libraries(pyProSelecta PRIVATE 
-  ProSelecta)
+  ProSelecta HepMC3::All)
 
 target_include_directories(pyProSelecta PRIVATE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/..>)
