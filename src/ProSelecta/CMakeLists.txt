@@ -25,7 +25,7 @@ target_include_directories(ProSelecta PUBLIC
 target_include_directories(ProSelecta PRIVATE
   ${Python3_INCLUDE_DIRS})
 
-install(TARGETS ProSelecta 
+install(TARGETS ProSelecta
     EXPORT proselecta-targets
     LIBRARY DESTINATION lib/
     PUBLIC_HEADER DESTINATION include/ProSelecta)
@@ -33,15 +33,9 @@ install(TARGETS ProSelecta
 install(DIRECTORY env DESTINATION include/ProSelecta)
 
 add_custom_command(
-         TARGET ProSelecta PRE_BUILD
-         COMMAND ${CMAKE_COMMAND} -E create_symlink              
-             ${CMAKE_SOURCE_DIR}/src ${CMAKE_CURRENT_BINARY_DIR}/ENV
-         COMMENT "Creating symlink to ProSelecta Env directory" VERBATIM
-         )
-
-
-
-# Python bindings
+    TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND cp -r ${CMAKE_SOURCE_DIR}/src ${CMAKE_BINARY_DIR}/ENV
+)
 
 pybind11_add_module(pyProSelecta SHARED pyProSelecta.cxx)
 
