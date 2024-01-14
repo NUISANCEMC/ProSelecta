@@ -19,7 +19,7 @@ ProSelecta &ProSelecta::Get() {
   return *instance_;
 }
 
-ProSelecta::ProSelecta() : pyint_guard{new py::scoped_interpreter()} {}
+ProSelecta::ProSelecta() {}
 
 ProSelecta::Interpreter GuessInterpreter(std::string const &path) {
   size_t last_dot = path.find_last_of('.');
@@ -33,9 +33,9 @@ ProSelecta::Interpreter GuessInterpreter(std::string const &path) {
 
   std::string ex = path.substr(last_dot + 1);
 
-  if (ex == "py") {
-    return ProSelecta::Interpreter::kPython;
-  }
+//  if (ex == "py") {
+//    return ProSelecta::Interpreter::kPython;
+//  }
 
   return ProSelecta::Interpreter::kCling;
 }
@@ -48,6 +48,7 @@ bool ProSelecta::LoadText(std::string const &txt,
         "Cannot call ProSelecta::LoadText with Interpreter type kAuto. "
         "Explicitly specify the interpreter type.");
   }
+  std::cout << "CALLING INTERPRETER LOAD TEXT" << std::endl;
   case Interpreter::kCling: {
     return bool(gInterpreter->LoadText(txt.c_str()));
   }
@@ -76,6 +77,8 @@ bool ProSelecta::LoadFile(std::string const &file_to_read,
     itype = GuessInterpreter(file_to_read);
   }
 
+  std::cout << "PROSELECTA LOADING CLING" << std::endl;
+
   switch (itype) {
   case Interpreter::kCling: {
     return !bool(gInterpreter->LoadFile(file_to_read.c_str()));
@@ -98,6 +101,7 @@ bool ProSelecta::LoadFile(std::string const &file_to_read,
 }
 
 void ProSelecta::AddIncludePath(std::string const &path) {
+  std::cout << "ADDDING INCLUDE PATH - " << path << std::endl;
   gInterpreter->AddIncludePath(path.c_str());
 }
 

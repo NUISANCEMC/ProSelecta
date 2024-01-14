@@ -16,7 +16,7 @@ private:
   ProSelecta();
   static ProSelecta *instance_;
 
-  std::unique_ptr<pybind11::scoped_interpreter> pyint_guard;
+  //std::unique_ptr<pybind11::scoped_interpreter> pyint_guard;
 
   void *GetMangledNameWithPrototype(std::string const &fnname,
                                     std::string const &arglist);
