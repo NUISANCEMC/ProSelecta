@@ -101,7 +101,6 @@ bool ProSelecta::LoadFile(std::string const &file_to_read,
 }
 
 void ProSelecta::AddIncludePath(std::string const &path) {
-  std::cout << "ADDDING INCLUDE PATH - " << path << std::endl;
   gInterpreter->AddIncludePath(path.c_str());
 }
 
