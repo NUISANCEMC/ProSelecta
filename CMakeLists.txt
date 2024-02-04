@@ -32,7 +32,7 @@ set(ProSelecta_PYTHONPATH "python/${Python3_VERSION_MAJOR}.${Python3_VERSION_MIN
 
 include(CPM)
 
-CPMAddPackage(
+CPMFindPackage(
     NAME NuHepMC_CPPUtils
     GIT_TAG main
     GIT_REPOSITORY "https://github.com/NuHepMC/cpputils.git"
