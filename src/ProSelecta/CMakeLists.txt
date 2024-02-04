@@ -4,9 +4,9 @@ set(HEADERS
 
 add_library(ProSelecta SHARED ProSelecta.cxx)
 
-target_link_libraries(ProSelecta PRIVATE 
-  HepMC3::All 
-  ROOT::Core
+target_link_libraries(ProSelecta PUBLIC 
+  NuHepMC::CPPUtils
+  ROOT::Core ROOT::Hist
   pybind11::embed)
 
 include_directories(HepMC3::All)

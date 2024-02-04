@@ -97,6 +97,20 @@ HepMC3::FourVector EPmiss(std::vector<HepMC3::ConstGenParticlePtr> parts_in,
   return fv_in - fv_out;
 }
 
+// parts::Pt(list<particles>) -> real
+double Pt(std::vector<HepMC3::ConstGenParticlePtr> parts) {
+  HepMC3::FourVector fv_tot;
+
+  for (auto &p : parts) {
+    if (!p) {
+      return 0xdeadbeef;
+    }
+    fv_tot += p->momentum();
+  }
+
+  return fv_tot.perp();
+}
+
 } // namespace parts
 
 namespace event {

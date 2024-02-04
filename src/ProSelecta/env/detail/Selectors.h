@@ -74,6 +74,9 @@ std::vector<HepMC3::ConstGenParticlePtr> particles(HepMC3::GenEvent const &evt,
     if (part->status() != status) {
       continue;
     }
+    if(part->pid() == 2009900000){
+      continue;
+    }
 
     if (!pdgs.size() || ((std::find(pdgs.begin(), pdgs.end(), part->pid()) !=
                           pdgs.end()) == select_from_pdg_list)) {
