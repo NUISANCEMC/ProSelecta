@@ -2,8 +2,6 @@
 
 set(ProSelecta_VERSION @PROJECT_VERSION@)
 
-LIST(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/../../../cmake)
-
 set(ProSelecta_CXX_STANDARD 17)
 
 find_package(Python3 @Python3_MIN_VERSION@ REQUIRED COMPONENTS Interpreter Development)
@@ -24,17 +22,17 @@ get_filename_component(ProSelecta_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
 
 find_path(ProSelecta_INCLUDE_DIR
   NAMES ProSelecta/ProSelecta.h
-  PATHS ${ProSelecta_CMAKE_DIR}/../../include/
+  PATHS ${ProSelecta_CMAKE_DIR}/../../../include/
 )
 
 find_path(ProSelecta_LIB_DIR
-  NAMES libProSelecta.so libProSelecta.a libProSelecta.dylib
-  PATHS ${ProSelecta_CMAKE_DIR}/../
+  NAMES libProSelectaInterpreter.so libProSelectaInterpreter.a libProSelectaInterpreter.dylib
+  PATHS ${ProSelecta_CMAKE_DIR}/../../
 )
 
 find_path(ProSelecta_PREFIX
-  NAMES setup.PROSELECTA.sh
-  PATHS ${ProSelecta_CMAKE_DIR}/../../
+  NAMES bin/setup.ProSelecta.sh
+  PATHS ${ProSelecta_CMAKE_DIR}/../../../
 )
 
 include(FindPackageHandleStandardArgs)
@@ -43,7 +41,7 @@ find_package_handle_standard_args(ProSelecta
       ProSelecta_INCLUDE_DIR 
       ProSelecta_LIB_DIR
       ProSelecta_PREFIX
-    VERSION_VAR 
+    VERSION_VAR
       ProSelecta_VERSION
 )
 
