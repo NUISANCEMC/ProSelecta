@@ -1,69 +1,55 @@
+@PACKAGE_INIT@
 
-####### Expanded from @PACKAGE_INIT@ by configure_package_config_file() #######
-####### Any changes to this file will be overwritten by the next CMake run ####
-####### The input file was NEUTConfig.cmake.in                            ########
-
-get_filename_component(PACKAGE_PREFIX_DIR "${CMAKE_CURRENT_LIST_DIR}/../" ABSOLUTE)
-
-####################################################################################
-
-set(PROSELECTA_VERSION 0.0.1)
+set(ProSelecta_VERSION @PROJECT_VERSION@)
 
 LIST(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/../../../cmake)
 
-set(PROSELECTA_CXX_STANDARD 17)
-if(DEFINED ROOT_CXX_STANDARD)
-  if(ROOT_CXX_STANDARD GREATER PROSELECTA_CXX_STANDARD)
-    set(PROSELECTA_CXX_STANDARD ${ROOT_CXX_STANDARD})
-  endif()
+set(ProSelecta_CXX_STANDARD 17)
+
+find_package(Python3 @Python3_MIN_VERSION@ REQUIRED COMPONENTS Interpreter Development)
+find_package(ROOT @ROOT_MIN_VERSION@ REQUIRED)
+
+find_package(pybind11 @pybind11_MIN_VERSION@ REQUIRED)
+find_package(NuHepMC_CPPUtils REQUIRED)
+
+set(ProSelecta_FOUND TRUE)
+include(${CMAKE_CURRENT_LIST_DIR}/ProSelectaTargets.cmake)
+
+if(NOT TARGET ProSelecta::Interpreter)
+  set(ProSelecta_FOUND FALSE)
+  return()
 endif()
 
-find_package(ROOT REQUIRED)
-find_package(pybind11 REQUIRED)
-find_package(HepMC3 REQUIRED)
+get_filename_component(ProSelecta_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
 
-set(PROSELECTA_FOUND TRUE)
-
-get_filename_component(PROSELECTA_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
-
-find_path(PROSELECTA_INCLUDE_DIR
+find_path(ProSelecta_INCLUDE_DIR
   NAMES ProSelecta/ProSelecta.h
-  PATHS ${PROSELECTA_CMAKE_DIR}/../../ENV/
+  PATHS ${ProSelecta_CMAKE_DIR}/../../include/
 )
 
-find_path(PROSELECTA_LIB_DIR
+find_path(ProSelecta_LIB_DIR
   NAMES libProSelecta.so libProSelecta.a libProSelecta.dylib
-  PATHS ${PROSELECTA_CMAKE_DIR}/../
+  PATHS ${ProSelecta_CMAKE_DIR}/../
 )
 
-find_path(PROSELECTA_PREFIX
+find_path(ProSelecta_PREFIX
   NAMES setup.PROSELECTA.sh
-  PATHS ${PROSELECTA_CMAKE_DIR}/../../
+  PATHS ${ProSelecta_CMAKE_DIR}/../../
 )
 
-message("FOOUND ${PROSELECTA_CMAKE_DIR}")
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(ProSelecta
     REQUIRED_VARS 
-      PROSELECTA_INCLUDE_DIR 
-      PROSELECTA_LIB_DIR
-      PROSELECTA_PREFIX
+      ProSelecta_INCLUDE_DIR 
+      ProSelecta_LIB_DIR
+      ProSelecta_PREFIX
     VERSION_VAR 
-      PROSELECTA_VERSION
+      ProSelecta_VERSION
 )
 
-message(STATUS "Found PROSELECTA Version: ${PROSELECTA_VERSION} in \"${PROSELECTA_CMAKE_DIR}\"")
-message(STATUS "    PROSELECTA_CXX_STANDARD: ${PROSELECTA_CXX_STANDARD}")
-message(STATUS "    PROSELECTA_INCLUDE_DIR: ${PROSELECTA_INCLUDE_DIR}")
-message(STATUS "    PROSELECTA_LIB_DIR: ${PROSELECTA_LIB_DIR}")
-message(STATUS "    PROSELECTA_PREFIX: ${PROSELECTA_PREFIX}")
-
-if(NOT TARGET PROSELECTA::IO)
-      add_library(PROSELECTA::IO INTERFACE IMPORTED)
-      set_target_properties(PROSELECTA::IO PROPERTIES
-          INTERFACE_INCLUDE_DIRECTORIES "${PROSELECTA_INCLUDE_DIR};"
-          INTERFACE_LINK_DIRECTORIES "${PROSELECTA_LIB_DIR};"
-          INTERFACE_LINK_LIBRARIES "ProSelecta"
-      )
-endif()
+message(STATUS "Found ProSelecta Version: ${ProSelecta_VERSION} in \"${ProSelecta_CMAKE_DIR}\"")
+message(STATUS "    ProSelecta_CXX_STANDARD: ${ProSelecta_CXX_STANDARD}")
+message(STATUS "    ProSelecta_INCLUDE_DIR: ${ProSelecta_INCLUDE_DIR}")
+message(STATUS "    ProSelecta_LIB_DIR: ${ProSelecta_LIB_DIR}")
+message(STATUS "    ProSelecta_PREFIX: ${ProSelecta_PREFIX}")
 
