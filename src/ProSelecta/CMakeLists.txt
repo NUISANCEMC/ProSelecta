@@ -9,9 +9,6 @@ target_link_libraries(ProSelectaInterpreter PUBLIC
   ROOT::Core ROOT::Hist
   pybind11::embed)
 
-include_directories(HepMC3::All)
-include_directories(ROOT::Core)
-
 set_target_properties(ProSelectaInterpreter PROPERTIES 
   PUBLIC_HEADER "${HEADERS}"
   EXPORT_NAME Interpreter)
@@ -32,8 +29,3 @@ install(TARGETS ProSelectaInterpreter
 add_library(ProSelecta::Interpreter ALIAS ProSelectaInterpreter)
 
 install(DIRECTORY env DESTINATION include/ProSelecta)
-
-# add_custom_command(
-#     TARGET ${PROJECT_NAME} POST_BUILD
-#     COMMAND cp -r ${CMAKE_SOURCE_DIR}/src ${CMAKE_BINARY_DIR}/ENV
-# )
