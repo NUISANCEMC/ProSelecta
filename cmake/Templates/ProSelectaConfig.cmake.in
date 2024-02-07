@@ -1,5 +1,10 @@
 @PACKAGE_INIT@
 
+if(TARGET ProSelecta::Interpreter)
+  set(ProSelecta_FOUND TRUE)
+  return()
+endif()
+
 set(ProSelecta_VERSION @PROJECT_VERSION@)
 
 set(ProSelecta_CXX_STANDARD 17)
