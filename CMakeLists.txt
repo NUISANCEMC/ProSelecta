@@ -68,18 +68,11 @@ CPMFindPackage(
     OPTIONS "BUILTIN_HEPMC3 ON"
 )
 
-#get the same version of pybind11 as HepMC3 is using
-CPMFindPackage(
-    NAME pybind11
-    VERSION ${pybind11_MIN_VERSION}
-    GITHUB_REPOSITORY pybind/pybind11
-    GIT_TAG "v${pybind11_MIN_VERSION}"
-)
-
 add_subdirectory(src/ProSelecta)
-# add_subdirectory(src/pyProSelecta)
 add_subdirectory(app)
-#add_subdirectory(test)
+if(ProSelecta_TESTS_ENABLED)
+  add_subdirectory(test)
+endif()
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/Templates/setup.ProSelecta.sh.in 
   ${CMAKE_CURRENT_BINARY_DIR}/setup.ProSelecta.sh @ONLY)

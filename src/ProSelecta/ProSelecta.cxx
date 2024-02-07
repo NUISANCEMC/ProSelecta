@@ -4,11 +4,7 @@
 
 #include "TInterpreter.h"
 
-#include "pybind11/embed.h" // everything needed for embedding
-
 #include <stdexcept>
-
-namespace py = pybind11;
 
 ProSelecta *ProSelecta::instance_ = nullptr;
 
@@ -33,10 +29,6 @@ ProSelecta::Interpreter GuessInterpreter(std::string const &path) {
 
   std::string ex = path.substr(last_dot + 1);
 
-//  if (ex == "py") {
-//    return ProSelecta::Interpreter::kPython;
-//  }
-
   return ProSelecta::Interpreter::kCling;
 }
 
@@ -51,18 +43,6 @@ bool ProSelecta::LoadText(std::string const &txt,
   std::cout << "CALLING INTERPRETER LOAD TEXT" << std::endl;
   case Interpreter::kCling: {
     return bool(gInterpreter->LoadText(txt.c_str()));
-  }
-  case Interpreter::kPython: {
-    // if it throws an exception then let it take down the program
-    try {
-      py::exec(txt);
-    } catch (...) {
-      std::cout << "[ERROR]: Failed to process text as Python:\n>>>>>\n"
-                << txt << "\n<<<<<\n"
-                << std::endl;
-      throw;
-    }
-    return true;
   }
   default: {
     throw std::runtime_error("invalid interpreter type");
@@ -83,17 +63,6 @@ bool ProSelecta::LoadFile(std::string const &file_to_read,
   case Interpreter::kCling: {
     return !bool(gInterpreter->LoadFile(file_to_read.c_str()));
   }
-  case Interpreter::kPython: {
-    // if it throws an exception then let it take down the program
-    try {
-      py::eval_file(file_to_read);
-    } catch (...) {
-      std::cout << "[ERROR]: Failed to process file: " << file_to_read
-                << " as Python" << std::endl;
-      throw;
-    }
-    return true;
-  }
   default: {
     throw std::runtime_error("invalid interpreter type");
   }
@@ -104,9 +73,6 @@ void ProSelecta::AddIncludePath(std::string const &path) {
   gInterpreter->AddIncludePath(path.c_str());
 }
 
-bool ProSelecta::PythonFunctionIsDefined(std::string const &fnname) {
-  return py::globals().contains(fnname.c_str());
-}
 bool ProSelecta::ClingFunctionIsDefined(std::string const &fnname,
                                         std::string const &arglist) {
   std::string mname = gInterpreter
@@ -142,17 +108,10 @@ void *ProSelecta::GetMangledNameWithPrototype(std::string const &fnname,
 
 ProSelecta::Interpreter ProSelecta::ResolveType(std::string const &fnname,
                                                 std::string const &arglist) {
-  bool pyf = PythonFunctionIsDefined(fnname);
   bool cf = ClingFunctionIsDefined(fnname, "HepMC3::GenEvent const &");
 
-  if (pyf && cf) {
-    std::cout << "[WARN]: Function: " << fnname
-              << " declared to both python and cling interpreters, "
-                 "defaulting to cling implementation."
-              << std::endl;
+  if (cf) {
     return Interpreter::kCling;
-  } else if (pyf || cf) {
-    return pyf ? Interpreter::kPython : Interpreter::kCling;
   } else {
     std::stringstream ss("");
     ss << "Function: " << fnname
@@ -173,11 +132,6 @@ ProSelecta_ftypes::sel ProSelecta::GetFilterFunction(std::string const &fnname,
     return FindClingSym<ProSelecta_ftypes::sel_p>(fnname,
                                                   "HepMC3::GenEvent const &");
   }
-  case Interpreter::kPython: {
-    return [=](HepMC3::GenEvent const &evt) -> bool {
-      return py::globals()[fnname.c_str()](evt).cast<bool>();
-    };
-  }
   default: {
     throw std::runtime_error("invalid interpreter type");
   }
@@ -196,11 +150,6 @@ ProSelecta::GetProjectionFunction(std::string const &fnname,
     return FindClingSym<ProSelecta_ftypes::pro_p>(fnname,
                                                   "HepMC3::GenEvent const &");
   }
-  case Interpreter::kPython: {
-    return [=](HepMC3::GenEvent const &evt) -> double {
-      return py::globals()[fnname.c_str()](evt).cast<double>();
-    };
-  }
   default: {
     throw std::runtime_error("invalid interpreter type");
   }
@@ -217,11 +166,6 @@ ProSelecta_ftypes::wgt ProSelecta::GetWeightFunction(std::string const &fnname,
   case Interpreter::kCling: {
     return FindClingSym<ProSelecta_ftypes::wgt_p>(fnname,
                                                   "HepMC3::GenEvent const &");
-  }
-  case Interpreter::kPython: {
-    return [=](HepMC3::GenEvent const &evt) -> double {
-      return py::globals()[fnname.c_str()](evt).cast<double>();
-    };
   }
   default: {
     throw std::runtime_error("invalid interpreter type");

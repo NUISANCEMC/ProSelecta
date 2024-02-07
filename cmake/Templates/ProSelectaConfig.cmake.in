@@ -7,7 +7,6 @@ set(ProSelecta_CXX_STANDARD 17)
 find_package(Python3 @Python3_MIN_VERSION@ REQUIRED COMPONENTS Interpreter Development)
 find_package(ROOT @ROOT_MIN_VERSION@ REQUIRED)
 
-find_package(pybind11 @pybind11_MIN_VERSION@ REQUIRED)
 find_package(NuHepMC_CPPUtils REQUIRED)
 
 set(ProSelecta_FOUND TRUE)

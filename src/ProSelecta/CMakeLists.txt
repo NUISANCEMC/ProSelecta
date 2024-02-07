@@ -6,8 +6,7 @@ add_library(ProSelectaInterpreter SHARED ProSelecta.cxx)
 
 target_link_libraries(ProSelectaInterpreter PUBLIC 
   NuHepMC::CPPUtils
-  ROOT::Core ROOT::Hist
-  pybind11::embed)
+  ROOT::Core ROOT::Hist)
 
 set_target_properties(ProSelectaInterpreter PROPERTIES 
   PUBLIC_HEADER "${HEADERS}"
@@ -17,9 +16,6 @@ target_include_directories(ProSelectaInterpreter PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/..>
   $<INSTALL_INTERFACE:include>
 )
-
-target_include_directories(ProSelectaInterpreter PRIVATE
-  ${Python3_INCLUDE_DIRS})
 
 install(TARGETS ProSelectaInterpreter
     EXPORT proselecta-targets

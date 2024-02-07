@@ -7,16 +7,10 @@
 
 #include "ProSelecta/ftypes.h"
 
-namespace pybind11 {
-class scoped_interpreter;
-}
-
 class ProSelecta {
 private:
   ProSelecta();
   static ProSelecta *instance_;
-
-  //std::unique_ptr<pybind11::scoped_interpreter> pyint_guard;
 
   void *GetMangledNameWithPrototype(std::string const &fnname,
                                     std::string const &arglist);
@@ -32,7 +26,7 @@ private:
   }
 
 public:
-  enum class Interpreter { kAuto, kCling, kPython };
+  enum class Interpreter { kAuto, kCling };
 
   static ProSelecta &Get();
 

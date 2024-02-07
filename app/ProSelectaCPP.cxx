@@ -132,9 +132,6 @@ int main(int argc, char const *argv[]) {
     return 1;
   }
 
-  ProSelecta::Get().LoadText("from pyHepMC3 import HepMC3 as hm",
-                             ProSelecta::Interpreter::kPython);
-
   for (auto const &file_to_read : files_to_read) {
     if (!ProSelecta::Get().LoadFile(file_to_read.c_str())) {
       std::cout << "[ERROR]: Cling failed interpreting: " << argv[1]
