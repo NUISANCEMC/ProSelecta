@@ -9,7 +9,7 @@ class GenEvent;
 }
 
 namespace ProSelecta_ftypes {
-using sel_p = bool (*)(HepMC3::GenEvent const &);
+using sel_p = int (*)(HepMC3::GenEvent const &);
 using pro_p = double (*)(HepMC3::GenEvent const &);
 using wgt_p = pro_p;
 

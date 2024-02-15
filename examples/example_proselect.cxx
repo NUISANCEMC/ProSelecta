@@ -46,7 +46,7 @@ void annotate(HepMC3::GenEvent &ev) { // NEUT specific channel annotation
   }
 }
 
-bool filt(HepMC3::GenEvent const &ev) {
+int filt(HepMC3::GenEvent const &ev) {
   auto nu = ps::GetBeam(ev, ps::pdg::kNuMu);
   auto mu = ps::GetOutPartHM(ev, ps::pdg::kMuon);
   if (!nu || !mu) {

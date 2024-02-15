@@ -1,4 +1,4 @@
-bool MINERvA_PRL129_021803_SignalDefinition(HepMC3::GenEvent const &ev) {
+int MINERvA_PRL129_021803_SignalDefinition(HepMC3::GenEvent const &ev) {
   auto nu = ps::GetBeam(ev, ps::pdg::kNuMu);
   auto mu = ps::GetOutPartHM(ev, ps::pdg::kMuon);
   if (!nu || !mu) {
