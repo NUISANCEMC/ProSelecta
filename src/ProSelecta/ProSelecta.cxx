@@ -40,8 +40,8 @@ bool ProSelecta::LoadText(std::string const &txt,
         "Cannot call ProSelecta::LoadText with Interpreter type kAuto. "
         "Explicitly specify the interpreter type.");
   }
-  std::cout << "CALLING INTERPRETER LOAD TEXT" << std::endl;
   case Interpreter::kCling: {
+    std::cout << "CALLING INTERPRETER LOAD TEXT" << std::endl;
     return bool(gInterpreter->LoadText(txt.c_str()));
   }
   default: {
@@ -107,7 +107,7 @@ void *ProSelecta::GetMangledNameWithPrototype(std::string const &fnname,
 }
 
 ProSelecta::Interpreter ProSelecta::ResolveType(std::string const &fnname,
-                                                std::string const &arglist) {
+                                                std::string const &) {
   bool cf = ClingFunctionIsDefined(fnname, "HepMC3::GenEvent const &");
 
   if (cf) {
