@@ -73,10 +73,39 @@ if ! type add_to_PYTHONPATH &> /dev/null; then
 
 fi
 
+if ! type add_to_ProSelecta_INCLUDE_PATH &> /dev/null; then
+
+ function add_to_ProSelecta_INCLUDE_PATH () {
+   for d; do
+
+     d=$(cd -- "$d" && { pwd -P || pwd; }) 2>/dev/null  # canonicalize symbolic links
+     if [ -z "$d" ]; then continue; fi  # skip nonexistent directory
+
+     if [ "$d" == "/usr/lib" ] || [ "$d" == "/usr/lib64" ] || [ "$d" == "/usr/local/lib" ] || [ "$d" == "/usr/local/lib64" ]; then
+       case ":$ProSelecta_INCLUDE_PATH:" in
+         *":$d:"*) :;;
+         *) export ProSelecta_INCLUDE_PATH=$ProSelecta_INCLUDE_PATH:$d;;
+       esac
+     else
+       case ":$ProSelecta_INCLUDE_PATH:" in
+         *":$d:"*) :;;
+         *) export ProSelecta_INCLUDE_PATH=$d:$ProSelecta_INCLUDE_PATH;;
+       esac
+     fi
+   done
+ }
+
+fi
+
 Proselecta_ROOT=@CMAKE_INSTALL_PREFIX@
 
 add_to_PATH ${Proselecta_ROOT}/bin
 add_to_LD_LIBRARY_PATH ${Proselecta_ROOT}/lib
+
+add_to_ProSelecta_INCLUDE_PATH ${Proselecta_ROOT}/include
+if [ ! -z "@HEPMC3_INCLUDE_DIR@" ] && [ -e "@HEPMC3_INCLUDE_DIR@" ]; then
+  add_to_ProSelecta_INCLUDE_PATH @HEPMC3_INCLUDE_DIR@
+fi
 
 if [ -e ${Proselecta_ROOT}/lib64 ]; then
   add_to_LD_LIBRARY_PATH ${Proselecta_ROOT}/lib64

@@ -5,11 +5,14 @@
 #include "TInterpreter.h"
 
 #include <cassert>
+#include <filesystem>
+#include <regex>
 #include <stdexcept>
 
 ProSelecta *ProSelecta::instance_ = nullptr;
-std::function<std::tuple<bool, bool, bool>()> type_check_helper;
 
+std::function<std::tuple<bool, bool, bool>()> type_check_helper;
+// use cling to check the return type of a named function declared to cling
 bool returns_int(std::string const &symname,
                  TInterpreter::EErrorCode &cling_err) {
   gInterpreter->ProcessLine(
@@ -26,6 +29,7 @@ bool returns_int(std::string const &symname,
 
   return std::get<0>(type_check_helper());
 }
+// use cling to check the return type of a named function declared to cling
 bool returns_double(std::string const &symname,
                     TInterpreter::EErrorCode &cling_err) {
   gInterpreter->ProcessLine(
@@ -87,6 +91,21 @@ std::vector<double> ProSelecta_detail_test_vector_double(){ return {1,}; }
       abort();
     }
   }
+
+  std::string paths = std::getenv("ProSelecta_INCLUDE_PATH");
+  const std::regex ws_re(":");
+  for (auto it =
+           std::sregex_token_iterator(paths.begin(), paths.end(), ws_re, -1);
+       it != std::sregex_token_iterator(); ++it) {
+    std::filesystem::path path = std::string(*it);
+    if (path.empty() || !std::filesystem::exists(path)) {
+      continue;
+    }
+    instance_->AddIncludePath(path.native());
+  }
+
+  instance_->LoadText(R"(#include "ProSelecta/env/env.h")",
+                      ProSelecta::Interpreter::kCling);
   return *instance_;
 }
 
@@ -116,7 +135,6 @@ bool ProSelecta::LoadText(std::string const &txt,
         "Explicitly specify the interpreter type.");
   }
   case Interpreter::kCling: {
-    std::cout << "CALLING INTERPRETER LOAD TEXT" << std::endl;
     return bool(gInterpreter->LoadText(txt.c_str()));
   }
   default: {
@@ -131,9 +149,6 @@ bool ProSelecta::LoadFile(std::string const &file_to_read,
   if (itype == Interpreter::kAuto) {
     itype = GuessInterpreter(file_to_read);
   }
-
-  std::cout << "PROSELECTA LOADING CLING" << std::endl;
-
   switch (itype) {
   case Interpreter::kCling: {
     return !bool(gInterpreter->LoadFile(file_to_read.c_str()));
@@ -175,6 +190,11 @@ void *ProSelecta::GetMangledNameWithPrototype(std::string const &fnname,
               << std::endl;
     std::cout << "Searched for " << fnname << " and C++ mangled: " << fnname
               << "(" << arglist << ")" << std::endl;
+    std::cout
+        << "\n\n!N.B. the constness of arguments is important, if you are "
+           "sure a function like this should have been declared to "
+           "cling, double check the constness."
+        << std::endl;
     return nullptr;
   }
 
@@ -232,14 +252,14 @@ ProSelecta::GetProjectionFunction(std::string const &fnname,
 
   switch (itype) {
   case Interpreter::kCling: {
-
     auto fsel = FindClingSym<ProSelecta_ftypes::pro_p>(
         fnname, "HepMC3::GenEvent const &");
     TInterpreter::EErrorCode cling_err = TInterpreter::EErrorCode::kNoError;
     if (!returns_double(fnname, cling_err)) {
       std::stringstream ss("");
       ss << "Function: " << fnname
-         << " was requested as a projection function, but it does not return a "
+         << " was requested as a projection function, but it does not return "
+            "a "
             "double."
          << std::endl;
       throw std::runtime_error(ss.str());
@@ -260,8 +280,18 @@ ProSelecta_ftypes::wgt ProSelecta::GetWeightFunction(std::string const &fnname,
 
   switch (itype) {
   case Interpreter::kCling: {
-    return FindClingSym<ProSelecta_ftypes::wgt_p>(fnname,
-                                                  "HepMC3::GenEvent const &");
+    auto fsel = FindClingSym<ProSelecta_ftypes::wgt_p>(
+        fnname, "HepMC3::GenEvent const &");
+    TInterpreter::EErrorCode cling_err = TInterpreter::EErrorCode::kNoError;
+    if (!returns_double(fnname, cling_err)) {
+      std::stringstream ss("");
+      ss << "Function: " << fnname
+         << " was requested as a weight function, but it does not return a "
+            "double."
+         << std::endl;
+      throw std::runtime_error(ss.str());
+    }
+    return fsel;
   }
   default: {
     throw std::runtime_error("invalid interpreter type");

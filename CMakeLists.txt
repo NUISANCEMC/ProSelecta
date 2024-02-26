@@ -65,6 +65,10 @@ CPMFindPackage(
     OPTIONS "BUILTIN_HEPMC3 ON"
 )
 
+if(NOT DEFINED HEPMC3_INCLUDE_DIR OR "${HEPMC3_INCLUDE_DIR}x" STREQUAL "x")
+  get_target_property(HEPMC3_INCLUDE_DIR HepMC3::HepMC3 INTERFACE_INCLUDE_DIRECTORIES)
+endif()
+
 add_subdirectory(src/ProSelecta)
 add_subdirectory(app)
 
