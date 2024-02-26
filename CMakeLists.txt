@@ -55,9 +55,6 @@ set(pybind11_MIN_VERSION 2.9.2)
 find_package(Python3 ${Python3_MIN_VERSION} REQUIRED COMPONENTS Interpreter Development)
 find_package(ROOT ${ROOT_MIN_VERSION} REQUIRED)
 
-set(ProSelecta_PYSITEARCH "${Python3_VERSION_MAJOR}${Python3_VERSION_MINOR}")
-set(ProSelecta_PYTHONPATH "python/${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}")
-
 LIST(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules)
 include(CPM)
 
@@ -70,6 +67,18 @@ CPMFindPackage(
 
 add_subdirectory(src/ProSelecta)
 add_subdirectory(app)
+
+CPMFindPackage(
+    NAME pybind11
+    VERSION ${pybind11_MIN_VERSION}
+    GITHUB_REPOSITORY pybind/pybind11
+    GIT_TAG "v${pybind11_MIN_VERSION}"
+)
+set(ProSelecta_PYSITEARCH "${Python3_VERSION_MAJOR}${Python3_VERSION_MINOR}")
+set(ProSelecta_PYTHONPATH "python/${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}")
+
+add_subdirectory(python)
+
 if(ProSelecta_TESTS_ENABLED)
   add_subdirectory(test)
 endif()
@@ -77,7 +86,6 @@ endif()
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/Templates/setup.ProSelecta.sh.in 
   ${CMAKE_CURRENT_BINARY_DIR}/setup.ProSelecta.sh @ONLY)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/setup.ProSelecta.sh DESTINATION bin)
-
 
 install(EXPORT proselecta-targets
   FILE ProSelectaTargets.cmake

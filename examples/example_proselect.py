@@ -12,13 +12,5 @@ if not pps.load_text("#include \"env.h\""):
 pps.load_file(argv[1])
 
 filter = pps.filter.MINERvA_PRL129_021803_SignalDefinition
-proj = pps.project.MINERvA_PRL129_021803_SignalDefinition
-
-pps.load_text("""
-double proj_elep(HepMC3::GenEvent const &ev) {
-  auto mu = ps::sel::OutPartHM(ev, ps::pdg::kMuon);
-  return mu->momentum().e() * ps::GeV;
-}
-""")
-
-proj2 = pps.project.proj_elep
+proj = pps.project.MINERvA_PRL129_021803_Project_MuonE
+proj2 = pps.project.MINERvA_PRL129_021803_SignalDefinition

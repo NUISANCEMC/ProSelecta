@@ -36,7 +36,7 @@ auto GetFilterFunc(std::string key) {
 PYBIND11_MODULE(pyProSelecta, m) {
   m.doc() = "ProSelecta implementation in python";
 
-  py::module pyHepMC3 = py::module::import("pyHepMC3");
+  m.add_object("hm",py::module::import("pyHepMC3"));
 
   m.def("load_file", [](std::string analysis) {
     return ProSelecta::Get().LoadFile(analysis.c_str(),

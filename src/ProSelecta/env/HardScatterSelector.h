@@ -4,7 +4,7 @@
 
 namespace ps {
 // IsCC(event) -> bool
-bool IsCC(HepMC3::GenEvent const &ev) {
+bool IsCC(HepMC3::GenEvent const &) {
   return true;
 }
 // IsCOH(event) -> bool

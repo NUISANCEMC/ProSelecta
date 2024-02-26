@@ -101,11 +101,11 @@ int main(int argc, char const *argv[]) {
     ProSelecta::Get().AddIncludePath(p);
   }
 
-  char *ProSelecta_env = getenv("PROSELECTA_DIR");
+  char *ProSelecta_env = getenv("ProSelecta_ROOT");
 
   if (!ProSelecta_env && !ProSelecta_env_dir.length()) {
     std::cout << "[ERROR]: Cannot find ProSelecta environment headers. Either "
-                 "define PROSELECTA_DIR in the calling environment or add "
+                 "define ProSelecta_ROOT in the calling environment or add "
                  "--env command line argument."
               << std::endl;
     return 1;

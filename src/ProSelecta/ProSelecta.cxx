@@ -4,13 +4,88 @@
 
 #include "TInterpreter.h"
 
+#include <cassert>
 #include <stdexcept>
 
 ProSelecta *ProSelecta::instance_ = nullptr;
+std::function<std::tuple<bool, bool, bool>()> type_check_helper;
+
+bool returns_int(std::string const &symname,
+                 TInterpreter::EErrorCode &cling_err) {
+  gInterpreter->ProcessLine(
+      (std::string(
+           "ProSelecta_detail_FillFuncReturnTypeDeductions<decltype(std:"
+           ":function{") +
+       symname + "})::result_type>(0);")
+          .c_str(),
+      &cling_err);
+
+  if (cling_err != TInterpreter::EErrorCode::kNoError) {
+    return false;
+  }
+
+  return std::get<0>(type_check_helper());
+}
+bool returns_double(std::string const &symname,
+                    TInterpreter::EErrorCode &cling_err) {
+  gInterpreter->ProcessLine(
+      (std::string(
+           "ProSelecta_detail_FillFuncReturnTypeDeductions<decltype(std:"
+           ":function{") +
+       symname + "})::result_type>(0);")
+          .c_str(),
+      &cling_err);
+
+  if (cling_err != TInterpreter::EErrorCode::kNoError) {
+    return false;
+  }
+
+  return std::get<1>(type_check_helper());
+}
 
 ProSelecta &ProSelecta::Get() {
   if (!instance_) {
     instance_ = new ProSelecta();
+
+    gInterpreter->LoadText(R"(
+static bool ProSelecta_detail_func_return_type_is_int = false;
+static bool ProSelecta_detail_func_return_type_is_double = false;
+static bool ProSelecta_detail_func_return_type_is_vect = false;
+
+template <typename T> void ProSelecta_detail_FillFuncReturnTypeDeductions(
+  std::enable_if_t<!std::is_same_v<T,void>,int>) {
+  ProSelecta_detail_func_return_type_is_int = std::is_same_v<T, int>;
+  ProSelecta_detail_func_return_type_is_double = std::is_same_v<T, double>;
+  ProSelecta_detail_func_return_type_is_vect = 
+    std::is_same_v<T, std::vector<double>>;
+}
+
+std::tuple<bool, bool, bool> 
+ProSelecta_detail_GetFuncReturnTypeDeductions() {
+  return {ProSelecta_detail_func_return_type_is_int, 
+    ProSelecta_detail_func_return_type_is_double, 
+    ProSelecta_detail_func_return_type_is_vect};
+}
+
+int ProSelecta_detail_test_int(){ return 1; }
+std::vector<double> ProSelecta_detail_test_vector_double(){ return {1,}; }
+
+      )");
+
+    type_check_helper = VoidToFunctionPtr<std::tuple<bool, bool, bool> (*)()>(
+        instance_->GetMangledNameWithPrototype(
+            "ProSelecta_detail_GetFuncReturnTypeDeductions", ""));
+    TInterpreter::EErrorCode cling_err = TInterpreter::EErrorCode::kNoError;
+    assert(returns_int("ProSelecta_detail_test_int", cling_err));
+    if (cling_err != TInterpreter::EErrorCode::kNoError) {
+      std::cerr << "ProSelecta self tests failed." << std::endl;
+      abort();
+    }
+    assert(returns_double("ProSelecta_detail_test_vector_double", cling_err));
+    if (cling_err != TInterpreter::EErrorCode::kNoError) {
+      std::cerr << "ProSelecta self tests failed." << std::endl;
+      abort();
+    }
   }
   return *instance_;
 }
@@ -114,8 +189,8 @@ ProSelecta::Interpreter ProSelecta::ResolveType(std::string const &fnname,
     return Interpreter::kCling;
   } else {
     std::stringstream ss("");
-    ss << "Function: " << fnname
-       << " was declared to neither cling nor python interpreter." << std::endl;
+    ss << "Function: " << fnname << " was not declared to cling interpreter."
+       << std::endl;
     throw std::runtime_error(ss.str());
   }
 }
@@ -129,8 +204,18 @@ ProSelecta_ftypes::sel ProSelecta::GetFilterFunction(std::string const &fnname,
 
   switch (itype) {
   case Interpreter::kCling: {
-    return FindClingSym<ProSelecta_ftypes::sel_p>(fnname,
-                                                  "HepMC3::GenEvent const &");
+    auto fsel = FindClingSym<ProSelecta_ftypes::sel_p>(
+        fnname, "HepMC3::GenEvent const &");
+    TInterpreter::EErrorCode cling_err = TInterpreter::EErrorCode::kNoError;
+    if (!returns_int(fnname, cling_err)) {
+      std::stringstream ss("");
+      ss << "Function: " << fnname
+         << " was requested as a filter function, but it does not return an "
+            "integer."
+         << std::endl;
+      throw std::runtime_error(ss.str());
+    }
+    return fsel;
   }
   default: {
     throw std::runtime_error("invalid interpreter type");
@@ -147,8 +232,19 @@ ProSelecta::GetProjectionFunction(std::string const &fnname,
 
   switch (itype) {
   case Interpreter::kCling: {
-    return FindClingSym<ProSelecta_ftypes::pro_p>(fnname,
-                                                  "HepMC3::GenEvent const &");
+
+    auto fsel = FindClingSym<ProSelecta_ftypes::pro_p>(
+        fnname, "HepMC3::GenEvent const &");
+    TInterpreter::EErrorCode cling_err = TInterpreter::EErrorCode::kNoError;
+    if (!returns_double(fnname, cling_err)) {
+      std::stringstream ss("");
+      ss << "Function: " << fnname
+         << " was requested as a projection function, but it does not return a "
+            "double."
+         << std::endl;
+      throw std::runtime_error(ss.str());
+    }
+    return fsel;
   }
   default: {
     throw std::runtime_error("invalid interpreter type");

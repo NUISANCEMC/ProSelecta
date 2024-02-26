@@ -16,7 +16,7 @@ private:
                                     std::string const &arglist);
 
   // Borrowed from Cling::utils
-  template <typename T> T VoidToFunctionPtr(void *ptr) {
+  template <typename T> static T VoidToFunctionPtr(void *ptr) {
     union {
       T f;
       void *v;

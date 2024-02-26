@@ -82,6 +82,6 @@ if [ -e ${Proselecta_ROOT}/lib64 ]; then
   add_to_LD_LIBRARY_PATH ${Proselecta_ROOT}/lib64
 fi
 
-if [ -e ${Proselecta_ROOT}/python/@Python_VERSION_MAJOR@.@Python_VERSION_MINOR@ ]; then
-  add_to_PYTHONPATH ${Proselecta_ROOT}/python/@Python_VERSION_MAJOR@.@Python_VERSION_MINOR@
+if [ -e ${Proselecta_ROOT}/python/@Python3_VERSION_MAJOR@.@Python3_VERSION_MINOR@ ]; then
+  add_to_PYTHONPATH ${Proselecta_ROOT}/python/@Python3_VERSION_MAJOR@.@Python3_VERSION_MINOR@
 fi
