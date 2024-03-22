@@ -56,4 +56,12 @@ public:
   ProSelecta_ftypes::wgt
   GetWeightFunction(std::string const &,
                     Interpreter itype = Interpreter::kAuto);
+
+
 };
+
+// PS putting these here for so we don't mess old methods
+// but C++ python styles should be either mapped or merged
+namespace ps {
+  void add_include_path(std::string path);
+}  // namespace ps
