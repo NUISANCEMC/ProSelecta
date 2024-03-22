@@ -18,7 +18,7 @@ namespace filter {
 
   // PLACEHOLDER!
   // proc_id : Process ID from HepMC3
-  int proc_id(HepMC3::GenEvent const &){
+  int proc_id(HepMC3::GenEvent const &ev){
     return NuHepMC::ER3::ReadProcessID(ev);
   }
 
