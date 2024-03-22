@@ -4,7 +4,7 @@
 #include "ProSelecta/ProSelecta.h"
 
 //#include "NuHepMC/EventUtils.hxx"
-//#include "NuHepMC/ReaderUtils.hxx"
+#include "NuHepMC/ReaderUtils.hxx"
 
 namespace ps {
 namespace filter {
@@ -19,7 +19,7 @@ namespace filter {
   // PLACEHOLDER!
   // proc_id : Process ID from HepMC3
   int proc_id(HepMC3::GenEvent const &){
-    return 1; //NuHepMC::ER3::ReadProcessID(ev);
+    return NuHepMC::ER3::ReadProcessID(ev);
   }
 
 }
