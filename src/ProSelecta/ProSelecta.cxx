@@ -298,3 +298,6 @@ ProSelecta_ftypes::wgt ProSelecta::GetWeightFunction(std::string const &fnname,
   }
   }
 }
+void ps::add_include_path(std::string path){
+  gInterpreter->AddIncludePath(path.c_str());
+}

@@ -67,16 +67,25 @@ PYBIND11_MODULE(pyProSelecta, m) {
                                ProSelecta::Interpreter::kCling);
   });
 
-  m.def("add_include_path", [](std::string analysis) {
-    ProSelecta::Get().AddIncludePath(analysis.c_str());
-  });
+  // PS Fix for global includes
+  m.def("add_include_path", &ps::add_include_path);
+  //[](std::string analysis) {
+  //    ProSelecta::Get().AddIncludePath(analysis.c_str());
+  //  });
 
   auto m_ps_filter = m.def_submodule("filter", "ProSelecta filter interface");
-  m_ps_filter.def("__getattr__", &GetFilterFunc);
+  m_ps_filter.def("get", &ps::filter::get);
+  m_ps_filter.def("proc_id", &ps::filter::proc_id);
 
   auto m_ps_project =
       m.def_submodule("project", "ProSelecta projection interface");
-  m_ps_project.def("__getattr__", &GetProjectionFunc);
+  m_ps_project.def("get", &ps::project::get);
+  m_ps_project.def("enu", &ps::project::enu);
+
+  auto m_ps_weight =
+      m.def_submodule("weight", "ProSelecta weight interface");
+  m_ps_weight.def("get", &ps::weight::get);
+  m_ps_weight.def("half_weight", &ps::weight::half_weight);
 
   // Selectors.h
   py::module sel = m.def_submodule("sel", "The Selector functions");
