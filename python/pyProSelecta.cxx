@@ -1,90 +1,36 @@
+#include "ProSelecta/ProSelecta_cling.h"
+#include "ProSelecta/env/env.h"
+
 #include "pybind11/functional.h"
 #include "pybind11/pybind11.h"
 #include "pybind11/stl.h"
 #include "pybind11/stl_bind.h"
 
-#include "ProSelecta/ProSelecta.h"
-#include "ProSelecta/env/env.h"
-#include "ProSelecta/ftypes.h"
-
 #include <string>
 
 namespace py = pybind11;
 
-auto GetProjectionFunc(std::string key) {
-  auto f = ProSelecta::Get().GetProjectionFunction(
-      key, ProSelecta::Interpreter::kCling);
-  if (!f) {
-    std::cerr << "[pyProSelecta]: Failed to find Projections function: " << key
-              << std::endl;
-    abort();
-  }
-  return f;
-}
-
-auto GetFilterFunc(std::string key) {
-  auto f =
-      ProSelecta::Get().GetFilterFunction(key, ProSelecta::Interpreter::kCling);
-  if (!f) {
-    std::cerr << "[pyProSelecta]: Failed to find Filter function: " << key
-              << std::endl;
-    abort();
-  }
-  return f;
-}
-
 PYBIND11_MODULE(pyProSelecta, m) {
   m.doc() = "ProSelecta implementation in python";
 
-  m.add_object("hm",py::module::import("pyHepMC3"));
+  m.add_object("hm", py::module::import("pyHepMC3"));
 
-  m.def("load_file", [](std::string analysis) {
-    return ProSelecta::Get().LoadFile(analysis.c_str(),
-                                      ProSelecta::Interpreter::kCling);
-  });
+  m.def("load_file", &ps::cling::load_file);
+  m.def("load_text", &ps::cling::load_text);
+  m.def("add_include_path", &ps::cling::add_include_path);
 
-  m.def("load_text", [](std::string analysis) {
-    return ProSelecta::Get().LoadText(analysis.c_str(),
-                                      ProSelecta::Interpreter::kCling);
-  });
-
-  // Heretic!
-  m.def("create_filter", [](std::string filter, std::string analysis) {
-    std::string filter_analysis =
-        "int " + filter + "(HepMC3::GenEvent const &ev) {";
-    filter_analysis += analysis;
-    filter_analysis += "}";
-    ProSelecta::Get().LoadText(filter_analysis.c_str(),
-                               ProSelecta::Interpreter::kCling);
-  });
-
-  m.def("create_projection", [](std::string projection, std::string analysis) {
-    std::string projection_analysis =
-        "double " + projection + "(HepMC3::GenEvent const &ev) {";
-    projection_analysis += analysis;
-    projection_analysis += "}";
-    ProSelecta::Get().LoadText(projection_analysis.c_str(),
-                               ProSelecta::Interpreter::kCling);
-  });
-
-  // PS Fix for global includes
-  m.def("add_include_path", &ps::add_include_path);
-  //[](std::string analysis) {
-  //    ProSelecta::Get().AddIncludePath(analysis.c_str());
-  //  });
-
-  auto m_ps_filter = m.def_submodule("filter", "ProSelecta filter interface");
-  m_ps_filter.def("get", &ps::filter::get);
-  m_ps_filter.def("proc_id", &ps::filter::proc_id);
+  auto m_ps_select = m.def_submodule("select", "ProSelecta select interface");
+  m_ps_select.def("get", &ps::cling::get_select_func);
+  m_ps_select.def("process_id_exact", &ps::select::process_id_exact);
+  m_ps_select.def("process_id_between", &ps::select::process_id_between);
 
   auto m_ps_project =
       m.def_submodule("project", "ProSelecta projection interface");
-  m_ps_project.def("get", &ps::project::get);
+  m_ps_project.def("get", &ps::cling::get_projection_func);
   m_ps_project.def("enu", &ps::project::enu);
 
-  auto m_ps_weight =
-      m.def_submodule("weight", "ProSelecta weight interface");
-  m_ps_weight.def("get", &ps::weight::get);
+  auto m_ps_weight = m.def_submodule("weight", "ProSelecta weight interface");
+  m_ps_weight.def("get", &ps::cling::get_weight_func);
   m_ps_weight.def("half_weight", &ps::weight::half_weight);
 
   // Selectors.h

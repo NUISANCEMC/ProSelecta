@@ -97,20 +97,20 @@ if ! type add_to_ProSelecta_INCLUDE_PATH &> /dev/null; then
 
 fi
 
-Proselecta_ROOT=@CMAKE_INSTALL_PREFIX@
+ProSelecta_ROOT=@CMAKE_INSTALL_PREFIX@
 
-add_to_PATH ${Proselecta_ROOT}/bin
-add_to_LD_LIBRARY_PATH ${Proselecta_ROOT}/lib
+add_to_PATH ${ProSelecta_ROOT}/bin
+add_to_LD_LIBRARY_PATH ${ProSelecta_ROOT}/lib
 
-add_to_ProSelecta_INCLUDE_PATH ${Proselecta_ROOT}/include
+add_to_ProSelecta_INCLUDE_PATH ${ProSelecta_ROOT}/include
 if [ ! -z "@HEPMC3_INCLUDE_DIR@" ] && [ -e "@HEPMC3_INCLUDE_DIR@" ]; then
   add_to_ProSelecta_INCLUDE_PATH @HEPMC3_INCLUDE_DIR@
 fi
 
-if [ -e ${Proselecta_ROOT}/lib64 ]; then
-  add_to_LD_LIBRARY_PATH ${Proselecta_ROOT}/lib64
+if [ -e ${ProSelecta_ROOT}/lib64 ]; then
+  add_to_LD_LIBRARY_PATH ${ProSelecta_ROOT}/lib64
 fi
 
-if [ -e ${Proselecta_ROOT}/python/@Python3_VERSION_MAJOR@.@Python3_VERSION_MINOR@ ]; then
-  add_to_PYTHONPATH ${Proselecta_ROOT}/python/@Python3_VERSION_MAJOR@.@Python3_VERSION_MINOR@
+if [ -e ${ProSelecta_ROOT}/python/@Python3_VERSION_MAJOR@.@Python3_VERSION_MINOR@ ]; then
+  add_to_PYTHONPATH ${ProSelecta_ROOT}/python/@Python3_VERSION_MAJOR@.@Python3_VERSION_MINOR@
 fi

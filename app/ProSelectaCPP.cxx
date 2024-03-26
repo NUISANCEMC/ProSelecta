@@ -1,3 +1,4 @@
+#include "ProSelecta/FuncTypes.h"
 #include "ProSelecta/ProSelecta.h"
 
 #include "HepMC3/Reader.h"
@@ -13,8 +14,6 @@
 std::vector<std::string> files_to_read;
 std::string filename;
 
-std::string annotate_symname;
-std::string analysis_symname;
 std::string sel_symname;
 std::vector<std::string> projection_symnames;
 std::vector<std::string> wgt_symnames;
@@ -23,7 +22,7 @@ std::vector<std::string> include_paths;
 
 std::string ProSelecta_env_dir;
 
-bool ProjectAll = false;
+using namespace ps;
 
 void SayUsage(char const *argv[]) {
   std::cout
@@ -33,21 +32,12 @@ void SayUsage(char const *argv[]) {
       << "\t-i <file.hepmc>      : Input HepMC3 file\n"
       << "\t-I <path>            : Path to include in the interpreter's search "
          "path\n"
-      << "  [One of]: \n"
-      << "\t--Analysis <symname> : A symbol to pass each event after reading.\n"
-      << "\t                       Can currently only be a cxx symbol."
-      << "\t--Filter <symname>   : Symbol to use for filtering\n"
-      << "  [Additional Hooks]: \n"
-      << "\t--Annotate <symname> : A symbol to pass each event directly after\n"
-      << "\t                       reading. Can be used to annotate with\n"
-      << "\t                       input-specific metadata.\n"
-      << "\t                       Can currently only be a cxx symbol."
+      << "  [Hooks]: \n"
+      << "\t--Select <symname>   : Symbol to use for selecting events\n"
       << "\t--Project <symname>  : Symbol to use for projection, can be passed "
          "more than once.\n"
       << "\t--Weight <symname>   : Symbol to use for weights, can be passed "
          "more than once.\n"
-      << "\t--ProjectAll         : Whether to run projection functions on cut "
-         "events."
       << std::endl;
 }
 
@@ -57,16 +47,10 @@ void handleOpts(int argc, char const *argv[]) {
     if (std::string(argv[opt]) == "-?" || std::string(argv[opt]) == "--help") {
       SayUsage(argv);
       exit(0);
-    } else if (std::string(argv[opt]) == "--ProjectAll") {
-      ProjectAll = true;
     } else if ((opt + 1) < argc) {
       if (std::string(argv[opt]) == "-f") {
         files_to_read.push_back(argv[++opt]);
-      } else if (std::string(argv[opt]) == "--Annotate") {
-        annotate_symname = argv[++opt];
-      } else if (std::string(argv[opt]) == "--Analysis") {
-        analysis_symname = argv[++opt];
-      } else if (std::string(argv[opt]) == "--Filter") {
+      } else if (std::string(argv[opt]) == "--Select") {
         sel_symname = argv[++opt];
       } else if (std::string(argv[opt]) == "--Project") {
         while (((opt + 1) < argc) && (argv[opt + 1][0] != '-')) {
@@ -89,9 +73,6 @@ void handleOpts(int argc, char const *argv[]) {
     opt++;
   }
 }
-
-using annotate_ftype = void (*)(HepMC3::GenEvent &);
-using analysis_ftype = void (*)(HepMC3::GenEvent const &);
 
 int main(int argc, char const *argv[]) {
 
@@ -140,33 +121,9 @@ int main(int argc, char const *argv[]) {
     }
   }
 
-  std::function<std::remove_pointer_t<annotate_ftype>> annotate_func{};
-  if (annotate_symname.length()) {
-    annotate_func = ProSelecta::Get().FindClingSym<annotate_ftype>(
-        annotate_symname, "HepMC3::GenEvent &");
-
-    if (!annotate_func) {
-      std::cout << "[ERROR]: Cling didn't find a function named: "
-                << annotate_symname << " in the input file." << std::endl;
-      return 1;
-    }
-  }
-
-  std::function<std::remove_pointer_t<analysis_ftype>> analysis_func{};
-  if (analysis_symname.length()) {
-    analysis_func =
-        ProSelecta::Get().FindClingSym<analysis_ftype>(analysis_symname);
-
-    if (!analysis_func) {
-      std::cout << "[ERROR]: Cling didn't find a function named: "
-                << analysis_symname << " in the input file." << std::endl;
-      return 1;
-    }
-  }
-
-  ProSelecta_ftypes::sel sel_func = nullptr;
+  ps::SelectFunc sel_func;
   if (sel_symname.length()) {
-    sel_func = ProSelecta::Get().GetFilterFunction(sel_symname);
+    sel_func = ProSelecta::Get().GetSelectFunction(sel_symname);
 
     if (!sel_func) {
       std::cout << "[ERROR]: Cling didn't find a function named: "
@@ -175,7 +132,7 @@ int main(int argc, char const *argv[]) {
     }
   }
 
-  std::vector<ProSelecta_ftypes::pro> proj_funcs;
+  std::vector<ps::ProjectionFunc> proj_funcs;
   std::vector<std::string> proj_funcnames;
   for (auto &proj_sym_name : projection_symnames) {
     auto proj_func = ProSelecta::Get().GetProjectionFunction(proj_sym_name);
@@ -189,7 +146,7 @@ int main(int argc, char const *argv[]) {
     }
   }
 
-  std::vector<ProSelecta_ftypes::wgt> wgt_funcs;
+  std::vector<ps::WeightFunc> wgt_funcs;
   std::vector<std::string> wgt_funcnames;
   for (auto &wgt_sym_name : wgt_symnames) {
     auto wgt_func = ProSelecta::Get().GetWeightFunction(wgt_sym_name);
@@ -221,7 +178,7 @@ int main(int argc, char const *argv[]) {
                 << (((i + 1) == proj_funcs.size()) ? "" : ", ");
     }
     std::cout << std::endl;
-  } // only print the header if we're running the filter
+  } // only print the header if we're running the selection
 
   while (!rdr->failed()) {
     HepMC3::GenEvent evt_in;
@@ -230,19 +187,11 @@ int main(int argc, char const *argv[]) {
       break;
     }
 
-    if (annotate_func) {
-      annotate_func(evt_in);
-    }
-
-    if (analysis_func) {
-      annotate_func(evt_in);
-    }
-
     if (sel_func) {
       std::cout << e_it << ", ";
-      bool filtered = sel_func(evt_in);
-      if (filtered || ProjectAll) {
-        std::cout << (filtered ? "pass, " : "cut, ");
+      bool selected = sel_func(evt_in);
+      if (selected) {
+        std::cout << (selected ? "pass, " : "cut, ");
         for (size_t i = 0; i < proj_funcs.size(); ++i) {
           std::cout << proj_funcs[i](evt_in)
                     << (((i + 1) == proj_funcs.size()) ? "" : ", ");
@@ -262,7 +211,7 @@ int main(int argc, char const *argv[]) {
         }
         std::cout << std::endl;
       }
-    } // end filter section
+    } // end selection section
     e_it++;
   }
 }

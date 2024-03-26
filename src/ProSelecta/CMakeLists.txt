@@ -1,8 +1,9 @@
 set(HEADERS 
-  ftypes.h 
-  ProSelecta.h)
+  FuncTypes.h
+  ProSelecta.h
+  ProSelecta_cling.h)
 
-add_library(ProSelectaInterpreter SHARED ProSelecta.cxx)
+add_library(ProSelectaInterpreter SHARED ProSelecta.cxx ProSelecta_cling.cxx)
 
 target_link_libraries(ProSelectaInterpreter PUBLIC 
   NuHepMC::CPPUtils
