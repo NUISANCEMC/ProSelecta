@@ -3,19 +3,21 @@
 #include "HepMC3/GenEvent.h"
 #include "HepMC3/GenParticle.h"
 
+#include "NuHepMC/Constants.hxx"
+
 #include <vector>
 
 namespace ProSelecta_detail {
 
-static const int kUndecayedPhysical = 1;
-static const int kBeam = 4;
-static const int kTarget = 11;
+constexpr int kUndecayedPhysical = NuHepMC::ParticleStatus::DecayedPhysical;
+constexpr int kBeam = NuHepMC::ParticleStatus::IncomingBeam;
+constexpr int kTarget = NuHepMC::ParticleStatus::Target;
 
-static const bool kFromPDGList = true;
-static const bool kNotFromPDGList = false;
+constexpr bool kFromPDGList = true;
+constexpr bool kNotFromPDGList = false;
 
-static const int kFirst = 0;
-static const int kHighestMomentum = 1;
+constexpr int kFirst = 0;
+constexpr int kHighestMomentum = 1;
 
 template <int status>
 std::vector<HepMC3::ConstGenParticlePtr>
@@ -74,7 +76,7 @@ std::vector<HepMC3::ConstGenParticlePtr> particles(HepMC3::GenEvent const &evt,
     if (part->status() != status) {
       continue;
     }
-    if(part->pid() == 2009900000){
+    if (part->pid() == 2009900000) {
       continue;
     }
 

@@ -10,3 +10,9 @@ target_link_libraries(FunctionTests PRIVATE Catch2::Catch2WithMain ProSelecta::I
 target_include_directories(FunctionTests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
 catch_discover_tests(FunctionTests)
+
+add_executable(EnvTests EnvTests.cxx)
+target_link_libraries(EnvTests PRIVATE Catch2::Catch2WithMain ProSelecta::Interpreter ROOT::MathCore HepMC3::All)
+target_include_directories(EnvTests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+
+catch_discover_tests(EnvTests)

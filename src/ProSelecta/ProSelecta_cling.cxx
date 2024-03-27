@@ -183,18 +183,21 @@ std::vector<double> ProSelecta_detail_test_vector_double(){ return {1,}; }
   assert(returns_int("ProSelecta_detail_test_int", cling_err));
   if (cling_err != TInterpreter::EErrorCode::kNoError) {
     std::cerr << "ProSelecta self tests failed." << std::endl;
-    abort();
+    throw std::runtime_error(
+        "ProSelecta_detail_test_int doesn't appear to return an int.");
   }
   assert(returns_double("ProSelecta_detail_test_double", cling_err));
   if (cling_err != TInterpreter::EErrorCode::kNoError) {
     std::cerr << "ProSelecta self tests failed." << std::endl;
-    abort();
+    throw std::runtime_error(
+        "ProSelecta_detail_test_double doesn't appear to return a double.");
   }
   assert(
       returns_vector_double("ProSelecta_detail_test_vector_double", cling_err));
   if (cling_err != TInterpreter::EErrorCode::kNoError) {
     std::cerr << "ProSelecta self tests failed." << std::endl;
-    abort();
+    throw std::runtime_error("ProSelecta_detail_test_vector_double doesn't "
+                             "appear to return a vector<double>.");
   }
 
   std::string paths = std::getenv("ProSelecta_INCLUDE_PATH");
@@ -209,9 +212,34 @@ std::vector<double> ProSelecta_detail_test_vector_double(){ return {1,}; }
     gInterpreter->AddIncludePath(path.native().c_str());
   }
 
+  if (!gInterpreter->LoadText(R"(#include "HepMC3/GenEvent.h")")) {
+    std::cerr << "ProSelecta environment initialization failed." << std::endl;
+    throw std::runtime_error(
+        "cling returned false when asked to include the "
+        "HepMC3/GenEvent.h. Check that the ProSelecta_INCLUDE_PATH environment "
+        "variable points to a HepMC3 distribution.");
+  }
+
+  if (!gInterpreter->LoadText(R"(#include "NuHepMC/Constants.hxx")")) {
+    std::cerr << "ProSelecta environment initialization failed." << std::endl;
+    throw std::runtime_error("cling returned false when asked to include the "
+                             "NuHepMC/Constants.hxx. Check that the "
+                             "ProSelecta_INCLUDE_PATH environment "
+                             "variable points to a NuHepMC distribution.");
+  }
+
+  if (!gInterpreter->LoadText(R"(#include "Eigen/Dense")")) {
+    std::cerr << "ProSelecta environment initialization failed." << std::endl;
+    throw std::runtime_error(
+        "cling returned false when asked to include the "
+        "Eigen/Dense. Check that the ProSelecta_INCLUDE_PATH environment "
+        "variable points to a Eigen3 distribution.");
+  }
+
   if (!gInterpreter->LoadText(R"(#include "ProSelecta/env/env.h")")) {
     std::cerr << "ProSelecta environment initialization failed." << std::endl;
-    abort();
+    throw std::runtime_error("cling returned false when asked to include the "
+                             "ProSelecta/env.h.");
   }
 
   cling_env_initialized = true;

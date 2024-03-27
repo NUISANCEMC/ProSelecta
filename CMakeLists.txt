@@ -8,6 +8,8 @@ project(ProSelecta VERSION ${ProSelecta_VERSION} LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 
+option(ProSelecta_ENABLE_TESTS "Whether to enable test suite" OFF)
+
 #Changes default install path to be a subdirectory of the build dir.
 #Can set build dir at configure time with -DCMAKE_INSTALL_PREFIX=/install/path
 if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
@@ -58,16 +60,29 @@ find_package(ROOT ${ROOT_MIN_VERSION} REQUIRED)
 LIST(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules)
 include(CPM)
 
-CPMFindPackage(
-    NAME NuHepMC_CPPUtils
-    GIT_TAG main
-    GIT_REPOSITORY "https://github.com/NuHepMC/cpputils.git"
-    OPTIONS "BUILTIN_HEPMC3 ON"
-)
+find_package(NuHepMC_CPPUtils REQUIRED)
 
-if(NOT DEFINED HEPMC3_INCLUDE_DIR OR "${HEPMC3_INCLUDE_DIR}x" STREQUAL "x")
-  get_target_property(HEPMC3_INCLUDE_DIR HepMC3::HepMC3 INTERFACE_INCLUDE_DIRECTORIES)
+if(TARGET HepMC3::HepMC3)
+  get_target_property(ProSelecta_HEPMC3_INCLUDE_DIR HepMC3::HepMC3 INTERFACE_INCLUDE_DIRECTORIES)
+elseif(DEFINED HEPMC3_INCLUDE_DIR AND NOT "${HEPMC3_INCLUDE_DIR}x" STREQUAL "x")
+  set(ProSelecta_HEPMC3_INCLUDE_DIR ${HEPMC3_INCLUDE_DIR})
+else()
+  message(FATAL_ERROR "Could not determine value for ProSelecta_HEPMC3_INCLUDE_DIR required for ProSelecta runtime installation.")
 endif()
+
+if(TARGET Eigen3::Eigen)
+  get_target_property(ProSelecta_Eigen3_INCLUDE_DIR Eigen3::Eigen INTERFACE_INCLUDE_DIRECTORIES)
+elseif(DEFINED EIGEN3_INCLUDE_DIR AND NOT "${EIGEN3_INCLUDE_DIR}x" STREQUAL "x")
+  set(ProSelecta_Eigen3_INCLUDE_DIR ${EIGEN3_INCLUDE_DIR})
+else()
+  message(FATAL_ERROR "Could not determine value for ProSelecta_Eigen3_INCLUDE_DIR required for ProSelecta runtime installation.")
+endif()
+
+get_target_property(ProSelecta_NuHepMC_CPPUtils_INCLUDE_DIR NuHepMC::Options INTERFACE_INCLUDE_DIRECTORIES)
+
+message("ProSelecta_HEPMC3_INCLUDE_DIR: ${ProSelecta_HEPMC3_INCLUDE_DIR}")
+message("ProSelecta_NuHepMC_CPPUtils_INCLUDE_DIR: ${ProSelecta_NuHepMC_CPPUtils_INCLUDE_DIR}")
+message("ProSelecta_Eigen3_INCLUDE_DIR: ${ProSelecta_Eigen3_INCLUDE_DIR}")
 
 add_subdirectory(src/ProSelecta)
 add_subdirectory(app)
@@ -83,7 +98,7 @@ set(ProSelecta_PYTHONPATH "python/${Python3_VERSION_MAJOR}.${Python3_VERSION_MIN
 
 add_subdirectory(python)
 
-if(ProSelecta_TESTS_ENABLED)
+if(ProSelecta_ENABLE_TESTS)
   add_subdirectory(test)
 endif()
 
