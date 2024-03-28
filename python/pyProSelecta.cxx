@@ -27,6 +27,7 @@ PYBIND11_MODULE(pyProSelecta, m) {
   auto m_ps_project =
       m.def_submodule("project", "ProSelecta projection interface");
   m_ps_project.def("get", &ps::cling::get_projection_func);
+  m_ps_project.def("get_vect", &ps::cling::get_projections_func);
   m_ps_project.def("enu", &ps::project::enu);
 
   auto m_ps_weight = m.def_submodule("weight", "ProSelecta weight interface");
@@ -44,6 +45,7 @@ PYBIND11_MODULE(pyProSelecta, m) {
   sel.def("BeamsAny", &ps::sel::BeamsAny, "");
   sel.def("Target", &ps::sel::Target, "");
   sel.def("OutPartFirst", &ps::sel::OutPartFirst, "");
+  sel.def("PrimaryCCLepForNu", &ps::sel::PrimaryCCLepForNu, "");
   sel.def("OutPartFirstAny", &ps::sel::OutPartFirstAny, "");
   sel.def("OutPartHM", &ps::sel::OutPartHM, "");
   sel.def("OutPartHMAny", &ps::sel::OutPartHMAny, "");

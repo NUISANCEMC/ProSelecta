@@ -59,6 +59,25 @@ HepMC3::ConstGenParticlePtr OutPartHM(HepMC3::GenEvent const &ev, int PID) {
       ev, PID);
 }
 
+HepMC3::ConstGenParticlePtr
+PrimaryCCLepForNu(HepMC3::GenEvent const &ev,
+                  HepMC3::ConstGenParticlePtr beam) {
+  if (!beam) {
+    return beam;
+  }
+  auto beam_pid = beam->pid();
+  auto cc_lep_pid = (beam_pid > 0) ? (beam_pid - 1) : (beam_pid + 1);
+
+  auto pvtx = NuHepMC::Event::GetPrimaryVertex(ev);
+  auto leps = NuHepMC::Vertex::GetParticlesOut_All(pvtx, cc_lep_pid);
+
+  if (!leps.size()) {
+    return nullptr;
+  }
+
+  return leps.front();
+}
+
 // OutPartHMAny(event, list<PID>) -> particle
 HepMC3::ConstGenParticlePtr OutPartHMAny(HepMC3::GenEvent const &ev,
                                          std::vector<int> const &PIDs) {

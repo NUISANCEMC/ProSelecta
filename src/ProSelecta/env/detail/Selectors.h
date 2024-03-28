@@ -4,12 +4,13 @@
 #include "HepMC3/GenParticle.h"
 
 #include "NuHepMC/Constants.hxx"
+#include "NuHepMC/EventUtils.hxx"
 
 #include <vector>
 
 namespace ProSelecta_detail {
 
-constexpr int kUndecayedPhysical = NuHepMC::ParticleStatus::DecayedPhysical;
+constexpr int kUndecayedPhysical = NuHepMC::ParticleStatus::UndecayedPhysical;
 constexpr int kBeam = NuHepMC::ParticleStatus::IncomingBeam;
 constexpr int kTarget = NuHepMC::ParticleStatus::Target;
 
