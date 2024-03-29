@@ -46,6 +46,8 @@ PYBIND11_MODULE(pyProSelecta, m) {
   sel.def("Target", &ps::sel::Target, "");
   sel.def("OutPartFirst", &ps::sel::OutPartFirst, "");
   sel.def("PrimaryCCLepForNu", &ps::sel::PrimaryCCLepForNu, "");
+  sel.def("HMRealFinalStateCCLepForNu", &ps::sel::HMRealFinalStateCCLepForNu,
+          "");
   sel.def("OutPartFirstAny", &ps::sel::OutPartFirstAny, "");
   sel.def("OutPartHM", &ps::sel::OutPartHM, "");
   sel.def("OutPartHMAny", &ps::sel::OutPartHMAny, "");

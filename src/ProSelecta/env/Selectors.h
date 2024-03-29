@@ -69,13 +69,34 @@ PrimaryCCLepForNu(HepMC3::GenEvent const &ev,
   auto cc_lep_pid = (beam_pid > 0) ? (beam_pid - 1) : (beam_pid + 1);
 
   auto pvtx = NuHepMC::Event::GetPrimaryVertex(ev);
-  auto leps = NuHepMC::Vertex::GetParticlesOut_All(pvtx, cc_lep_pid);
+  auto leps =
+      NuHepMC::Vertex::GetParticlesOut_All(pvtx, NuHepMC::ParticleStatus::Any,
+                                           {
+                                               cc_lep_pid,
+                                           });
 
   if (!leps.size()) {
     return nullptr;
   }
 
   return leps.front();
+}
+
+HepMC3::ConstGenParticlePtr
+HMRealFinalStateCCLepForNu(HepMC3::GenEvent const &ev,
+                           HepMC3::ConstGenParticlePtr beam) {
+  if (!beam) {
+    return beam;
+  }
+  auto beam_pid = beam->pid();
+  auto cc_lep_pid = (beam_pid > 0) ? (beam_pid - 1) : (beam_pid + 1);
+
+  auto lep = NuHepMC::Event::GetParticle_HighestMomentumRealFinalState(
+      ev, {
+              cc_lep_pid,
+          });
+
+  return lep;
 }
 
 // OutPartHMAny(event, list<PID>) -> particle
