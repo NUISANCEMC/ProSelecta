@@ -14,6 +14,7 @@ void add_include_path(std::string const &);
 bool func_is_defined(std::string const &fnname, std::string const &arglist);
 
 SelectFunc get_select_func(std::string const &);
+SelectsFunc get_selects_func(std::string const &);
 ProjectionFunc get_projection_func(std::string const &);
 ProjectionsFunc get_projections_func(std::string const &);
 WeightFunc get_weight_func(std::string const &);

@@ -21,6 +21,7 @@ PYBIND11_MODULE(pyProSelecta, m) {
 
   auto m_ps_select = m.def_submodule("select", "ProSelecta select interface");
   m_ps_select.def("get", &ps::cling::get_select_func);
+  m_ps_select.def("get_vect", &ps::cling::get_selects_func);
   m_ps_select.def("process_id_exact", &ps::select::process_id_exact);
   m_ps_select.def("process_id_between", &ps::select::process_id_between);
 
