@@ -22,17 +22,17 @@ public:
   Interpreter ResolveType(std::string const &fnname,
                           std::string const &arglist = "");
 
-  bool LoadFile(std::string const &, Interpreter itype = Interpreter::kAuto);
-  bool LoadText(std::string const &, Interpreter itype = Interpreter::kAuto);
+  bool LoadFile(std::string const &, Interpreter itype = Interpreter::kCling);
+  bool LoadText(std::string const &, Interpreter itype = Interpreter::kCling);
   void AddIncludePath(std::string const &,
-                      Interpreter itype = Interpreter::kAuto);
+                      Interpreter itype = Interpreter::kCling);
 
   SelectFunc GetSelectFunction(std::string const &,
-                                  Interpreter itype = Interpreter::kAuto);
+                               Interpreter itype = Interpreter::kCling);
   ProjectionFunc GetProjectionFunction(std::string const &,
-                                       Interpreter itype = Interpreter::kAuto);
+                                       Interpreter itype = Interpreter::kCling);
   WeightFunc GetWeightFunction(std::string const &,
-                               Interpreter itype = Interpreter::kAuto);
+                               Interpreter itype = Interpreter::kCling);
 };
 
 } // namespace ps
