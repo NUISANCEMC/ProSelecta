@@ -177,7 +177,7 @@ template <typename T> void ProSelecta_detail_FillFuncReturnTypeDeductions() {
     std::is_same_v<T, std::vector<double>>;
 }
 
-std::tuple<bool, bool, bool> 
+std::tuple<bool, bool, bool, bool> 
 ProSelecta_detail_GetFuncReturnTypeDeductions() {
   return {ProSelecta_detail_func_return_type_is_int, 
           ProSelecta_detail_func_return_type_is_vect_int, 
