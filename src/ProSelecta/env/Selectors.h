@@ -34,7 +34,7 @@ BeamsAny(HepMC3::GenEvent const &ev, std::vector<int> const &PIDs) {
                                                                        PIDs);
 }
 
-// Tar(event) -> particle
+// Target(event) -> particle
 HepMC3::ConstGenParticlePtr Target(HepMC3::GenEvent const &ev) {
   return ProSelecta_detail::particle_any<ProSelecta_detail::kTarget,
                                          ProSelecta_detail::kFirst>(ev);
@@ -135,6 +135,27 @@ OutPartsExceptAny(HepMC3::GenEvent const &ev, std::vector<int> const &PIDs) {
   return ProSelecta_detail::particles<ProSelecta_detail::kUndecayedPhysical,
                                       ProSelecta_detail::kNotFromPDGList>(ev,
                                                                           PIDs);
+}
+
+// FilterByMomentum(list<particles>, real, real) -> list<particles>
+std::vector<HepMC3::ConstGenParticlePtr>
+FilterBy3Mom(std::vector<HepMC3::ConstGenParticlePtr> parts, double low_3mom,
+             double high_3mom) {
+  parts.erase(std::remove_if(parts.begin(), parts.end(),
+                             [&](auto const &p) {
+                               double p3mod = p->momentum().p3mod();
+                               return (p3mod < low_3mom) ||
+                                      (p3mod >= high_3mom);
+                             }),
+              parts.end());
+  return parts;
+}
+
+// OutNuclearParts(event) -> list<particles>
+std::vector<HepMC3::ConstGenParticlePtr>
+OutNuclearParts(HepMC3::GenEvent const &ev) {
+  return ProSelecta_detail::nuclear_particles<
+      ProSelecta_detail::kUndecayedPhysical>(ev);
 }
 
 } // namespace sel

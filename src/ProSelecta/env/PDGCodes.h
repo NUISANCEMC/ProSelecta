@@ -5,29 +5,31 @@
 namespace ps {
 
 namespace pdg {
-static int const kNuE = 12;
-static int const kANuE = -12;
+constexpr static int kNuE = 12;
+constexpr static int kANuE = -12;
 
-static int const kNuMu = 14;
-static int const kANuMu = -14;
+constexpr static int kNuMu = 14;
+constexpr static int kANuMu = -14;
 
-static int const kElectron = 11;
-static int const kAElectron = -11;
+constexpr static int kElectron = 11;
+constexpr static int kAElectron = -11;
 
-static int const kMuon = 13;
-static int const kAMuon = -13;
+constexpr static int kMuon = 13;
+constexpr static int kAMuon = -13;
 
-static int const kPiPlus = 211;
-static int const kPiZero = 111;
-static int const kPiMinus = -211;
+constexpr static int kPiPlus = 211;
+constexpr static int kPiZero = 111;
+constexpr static int kPiMinus = -211;
 
-static int const kProton = 2212;
-static int const kAProton = -2212;
+constexpr static int kProton = 2212;
+constexpr static int kAProton = -2212;
 
-static int const kNeutron = 2112;
-static int const kANeutron = -2112;
+constexpr static int kNeutron = 2112;
+constexpr static int kANeutron = -2112;
 
-static int const kGamma = 22;
+constexpr static int kGamma = 22;
+
+constexpr static int kNuclearPDGBoundary = 1000000000;
 
 namespace groups {
 

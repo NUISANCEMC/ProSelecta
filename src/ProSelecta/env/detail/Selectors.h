@@ -30,6 +30,11 @@ particles_any(HepMC3::GenEvent const &evt) {
     if (part->status() != status) {
       continue;
     }
+    if constexpr (status == kUndecayedPhysical) {
+      if (part->pid() >= ps::pdg::kNuclearPDGBoundary) {
+        continue;
+      }
+    }
 
     selected_parts.push_back(part);
   }
@@ -51,6 +56,11 @@ HepMC3::ConstGenParticlePtr particle_any(HepMC3::GenEvent const &evt) {
   for (auto const &part : evt.particles()) {
     if (part->status() != status) {
       continue;
+    }
+    if constexpr (status == kUndecayedPhysical) {
+      if (part->pid() >= ps::pdg::kNuclearPDGBoundary) {
+        continue;
+      }
     }
 
     if constexpr (selection_strategy == kHighestMomentum) {
@@ -77,8 +87,10 @@ std::vector<HepMC3::ConstGenParticlePtr> particles(HepMC3::GenEvent const &evt,
     if (part->status() != status) {
       continue;
     }
-    if (part->pid() == 2009900000) {
-      continue;
+    if constexpr (status == kUndecayedPhysical) {
+      if (part->pid() >= ps::pdg::kNuclearPDGBoundary) {
+        continue;
+      }
     }
 
     if (!pdgs.size() || ((std::find(pdgs.begin(), pdgs.end(), part->pid()) !=
@@ -105,6 +117,11 @@ HepMC3::ConstGenParticlePtr particle(HepMC3::GenEvent const &evt,
   for (auto const &part : evt.particles()) {
     if (part->status() != status) {
       continue;
+    }
+    if constexpr (status == kUndecayedPhysical) {
+      if (part->pid() >= ps::pdg::kNuclearPDGBoundary) {
+        continue;
+      }
     }
 
     if (!pdgs.size() ||
@@ -141,6 +158,25 @@ HepMC3::ConstGenParticlePtr particle_1pdg(HepMC3::GenEvent const &evt,
   return particle<status, selection_strategy>(evt, {
                                                        pdg,
                                                    });
+}
+
+template <int status>
+std::vector<HepMC3::ConstGenParticlePtr>
+nuclear_particles(HepMC3::GenEvent const &evt) {
+
+  std::vector<HepMC3::ConstGenParticlePtr> selected_parts = {};
+
+  for (auto const &part : evt.particles()) {
+    if (part->status() != status) {
+      continue;
+    }
+    if (part->pid() < ps::pdg::kNuclearPDGBoundary) {
+      continue;
+    }
+
+    selected_parts.push_back(part);
+  }
+  return selected_parts;
 }
 
 } // namespace ProSelecta_detail

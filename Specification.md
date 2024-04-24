@@ -82,6 +82,9 @@ GetOutPartsAny(event, list<PID>) -> list<particles>
 
 GetOutPartsExcept(event, PID) -> list<particles>
 GetOutPartsExceptAny(event, list<PID>) -> list<particles>
+
+FilterByMomentum(list<particles>, real, real) -> list<particles>
+OutNuclearParts(event) -> list<particles>
 ```
 
 ## Hard-Scatter Channels
