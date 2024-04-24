@@ -46,9 +46,7 @@ PYBIND11_MODULE(pyProSelecta, m) {
   sel.def("BeamsAny", &ps::sel::BeamsAny, "");
   sel.def("Target", &ps::sel::Target, "");
   sel.def("OutPartFirst", &ps::sel::OutPartFirst, "");
-  sel.def("PrimaryCCLepForNu", &ps::sel::PrimaryCCLepForNu, "");
-  sel.def("HMRealFinalStateCCLepForNu", &ps::sel::HMRealFinalStateCCLepForNu,
-          "");
+  sel.def("PrimaryLeptonsForNuCC", &ps::sel::PrimaryLeptonsForNuCC, "");
   sel.def("OutPartFirstAny", &ps::sel::OutPartFirstAny, "");
   sel.def("OutPartHM", &ps::sel::OutPartHM, "");
   sel.def("OutPartHMAny", &ps::sel::OutPartHMAny, "");
@@ -56,6 +54,8 @@ PYBIND11_MODULE(pyProSelecta, m) {
   sel.def("OutPartsAny", &ps::sel::OutPartsAny, "");
   sel.def("OutPartsExcept", &ps::sel::OutPartsExcept, "");
   sel.def("OutPartsExceptAny", &ps::sel::OutPartsExceptAny, "");
+  sel.def("FilterBy3Mom", &ps::sel::FilterBy3Mom, "");
+  sel.def("OutNuclearParts", &ps::sel::OutNuclearParts, "");
 
   // Projectors.h
   py::module proj = m.def_submodule("proj", "The Projector functions");

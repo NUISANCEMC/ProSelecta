@@ -49,6 +49,7 @@ The ProSelecta type system is defined below:
 * `particle`
 * `event`
 * `list<T>`: A generic container of a single, specified type, _e.g._ `list<particle>`.
+* `tuple<T1,T2,...>`: A fixed-length container of multiple, possible heterogenous, specified types, _e.g._ `tuple<particle,4vec>`.
 
 ### Function Declarations
 

@@ -59,14 +59,14 @@ HepMC3::ConstGenParticlePtr OutPartHM(HepMC3::GenEvent const &ev, int PID) {
       ev, PID);
 }
 
-HepMC3::ConstGenParticlePtr
-PrimaryCCLepForNu(HepMC3::GenEvent const &ev,
-                  HepMC3::ConstGenParticlePtr beam) {
+// PrimaryLeptonsForNuCC(event, PID) -> tuple<particle,particle>
+std::tuple<HepMC3::ConstGenParticlePtr, HepMC3::ConstGenParticlePtr>
+PrimaryLeptonsForNuCC(HepMC3::GenEvent const &ev, int PID) {
+  auto beam = ps::sel::Beam(ev, PID);
   if (!beam) {
-    return beam;
+    return {nullptr, nullptr};
   }
-  auto beam_pid = beam->pid();
-  auto cc_lep_pid = (beam_pid > 0) ? (beam_pid - 1) : (beam_pid + 1);
+  auto cc_lep_pid = (PID > 0) ? (PID - 1) : (PID + 1);
 
   auto pvtx = NuHepMC::Event::GetPrimaryVertex(ev);
   auto leps =
@@ -76,27 +76,10 @@ PrimaryCCLepForNu(HepMC3::GenEvent const &ev,
                                            });
 
   if (!leps.size()) {
-    return nullptr;
+    return {nullptr, nullptr};
   }
 
-  return leps.front();
-}
-
-HepMC3::ConstGenParticlePtr
-HMRealFinalStateCCLepForNu(HepMC3::GenEvent const &ev,
-                           HepMC3::ConstGenParticlePtr beam) {
-  if (!beam) {
-    return beam;
-  }
-  auto beam_pid = beam->pid();
-  auto cc_lep_pid = (beam_pid > 0) ? (beam_pid - 1) : (beam_pid + 1);
-
-  auto lep = NuHepMC::Event::GetParticle_HighestMomentumRealFinalState(
-      ev, {
-              cc_lep_pid,
-          });
-
-  return lep;
+  return {beam, leps.front()};
 }
 
 // OutPartHMAny(event, list<PID>) -> particle
