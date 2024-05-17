@@ -2,6 +2,8 @@
 
 #include "PDGCodes.h"
 #include "Selectors.h"
+#include "Vectors.h"
+#include "MissingDatum.h"
 
 namespace ps {
 
@@ -11,7 +13,7 @@ namespace parts {
 // parts::q0(particle, particle) -> real
 double q0(HepMC3::ConstGenParticlePtr pin, HepMC3::ConstGenParticlePtr pout) {
   if (!pin || !pout) {
-    return 0xdeadbeef;
+    return ps::kMissingDatum<double>;
   }
 
   return (pin->momentum() - pout->momentum()).e();
@@ -20,7 +22,7 @@ double q0(HepMC3::ConstGenParticlePtr pin, HepMC3::ConstGenParticlePtr pout) {
 // parts::q3(particle, particle) -> real
 double q3(HepMC3::ConstGenParticlePtr pin, HepMC3::ConstGenParticlePtr pout) {
   if (!pin || !pout) {
-    return 0xdeadbeef;
+    return ps::kMissingDatum<double>;
   }
 
   return (pin->momentum() - pout->momentum()).p3mod();
@@ -30,7 +32,7 @@ double q3(HepMC3::ConstGenParticlePtr pin, HepMC3::ConstGenParticlePtr pout) {
 double Q2(HepMC3::ConstGenParticlePtr pin,
              HepMC3::ConstGenParticlePtr pout) {
   if (!pin || !pout) {
-    return 0xdeadbeef;
+    return ps::kMissingDatum<double>;
   }
 
   return -(pin->momentum() - pout->momentum()).m2();
@@ -40,25 +42,19 @@ double Q2(HepMC3::ConstGenParticlePtr pin,
 double CosTheta(HepMC3::ConstGenParticlePtr p1,
                 HepMC3::ConstGenParticlePtr p2) {
   if (!p1 || !p2) {
-    return 0xdeadbeef;
+    return ps::kMissingDatum<double>;
   }
 
-  auto const &p1mom = p1->momentum();
-  auto const &p2mom = p2->momentum();
-
-  double dotp =
-      p1mom.x() * p2mom.x() + p1mom.y() * p2mom.y() + p1mom.z() * p2mom.z();
-
-  return dotp / (p1mom.p3mod() * p2mom.p3mod());
+  return cos(ps::vect::angle(p1->momentum(), p2->momentum()));
 }
 
 // parts::Theta(particle, particle) -> real
 double Theta(HepMC3::ConstGenParticlePtr p1, HepMC3::ConstGenParticlePtr p2) {
   if (!p1 || !p2) {
-    return 0xdeadbeef;
+    return ps::kMissingDatum<double>;
   }
-
-  return std::acos(CosTheta(p1, p2));
+  
+  return (ps::vect::angle(p1->momentum(), p2->momentum()));
 }
 
 // parts::W(list<particles>) -> real
@@ -67,7 +63,7 @@ double W(std::vector<HepMC3::ConstGenParticlePtr> parts) {
 
   for (auto &p : parts) {
     if (!p) {
-      return 0xdeadbeef;
+      return ps::kMissingDatum<double>;
     }
     fv += p->momentum();
   }
@@ -82,14 +78,14 @@ HepMC3::FourVector EPmiss(std::vector<HepMC3::ConstGenParticlePtr> parts_in,
 
   for (auto &p : parts_in) {
     if (!p) {
-      return HepMC3::FourVector{0xdeadbeef, 0, 0, 0};
+      return HepMC3::FourVector{ps::kMissingDatum<double>, 0, 0, 0};
     }
     fv_in += p->momentum();
   }
 
   for (auto &p : parts_out) {
     if (!p) {
-      return HepMC3::FourVector{0xdeadbeef, 0, 0, 0};
+      return HepMC3::FourVector{ps::kMissingDatum<double>, 0, 0, 0};
     }
     fv_out += p->momentum();
   }
@@ -103,7 +99,7 @@ double Pt(std::vector<HepMC3::ConstGenParticlePtr> parts) {
 
   for (auto &p : parts) {
     if (!p) {
-      return 0xdeadbeef;
+      return ps::kMissingDatum<double>;
     }
     fv_tot += p->momentum();
   }
@@ -121,7 +117,7 @@ double q0(HepMC3::GenEvent const &ev) {
   auto pin = ps::sel::BeamAny(ev, pdg::groups::kNeutralLeptons);
 
   if (!pin) {
-    return 0xdeadbeef;
+    return ps::kMissingDatum<double>;
   }
 
   int nupid = pin->pid();
@@ -138,7 +134,7 @@ double q3(HepMC3::GenEvent const &ev) {
   auto pin = ps::sel::BeamAny(ev, pdg::groups::kNeutralLeptons);
 
   if (!pin) {
-    return 0xdeadbeef;
+    return ps::kMissingDatum<double>;
   }
 
   int nupid = pin->pid();
@@ -155,7 +151,7 @@ double Q2Lep(HepMC3::GenEvent const &ev) {
   auto pin = ps::sel::BeamAny(ev, pdg::groups::kNeutralLeptons);
 
   if (!pin) {
-    return 0xdeadbeef;
+    return ps::kMissingDatum<double>;
   }
 
   int nupid = pin->pid();
@@ -172,7 +168,7 @@ double CosThetaLep(HepMC3::GenEvent const &ev) {
   auto pin = ps::sel::BeamAny(ev, pdg::groups::kNeutralLeptons);
 
   if (!pin) {
-    return 0xdeadbeef;
+    return ps::kMissingDatum<double>;
   }
 
   int nupid = pin->pid();
@@ -189,7 +185,7 @@ double ThetaLep(HepMC3::GenEvent const &ev) {
   auto pin = ps::sel::BeamAny(ev, pdg::groups::kNeutralLeptons);
 
   if (!pin) {
-    return 0xdeadbeef;
+    return ps::kMissingDatum<double>;
   }
 
   int nupid = pin->pid();
