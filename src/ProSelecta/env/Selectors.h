@@ -5,6 +5,19 @@
 namespace ps {
 namespace sel {
 
+//[Has, HasAtLeast, HasExact, Num, NumExcept, All, AllExcept, HM][Out,Beam,Target]Part
+
+bool HasOutPart(HepMC3::GenEvent const &ev, std::vector<int> PIDs){
+
+}
+
+}
+}
+
+
+namespace ps {
+namespace sel {
+
 // Beam(event, PID) -> particle
 HepMC3::ConstGenParticlePtr Beam(HepMC3::GenEvent const &ev, int PID) {
   return ProSelecta_detail::particle_1pdg<ProSelecta_detail::kBeam,
