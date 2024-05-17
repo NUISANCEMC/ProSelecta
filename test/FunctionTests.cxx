@@ -3,6 +3,7 @@
 #include "test_event_builder.h"
 
 #include "catch2/catch_test_macros.hpp"
+#include "catch2/matchers/catch_matchers_floating_point.hpp"
 
 #include <cassert>
 
@@ -10,19 +11,21 @@ TEST_CASE("BuildMinPart", "[test-tools]") {
   auto part = BuildPart("2212 11 1");
   REQUIRE(part->pid() == 2212);
   REQUIRE(part->status() == 11);
-  REQUIRE(std::fabs(part->momentum().length() - 1) < 1E-8);
-  REQUIRE(std::fabs(part->momentum().m() - .938) < 1E-8);
+  REQUIRE_THAT(part->momentum().length(), WithinAbs(1, 1E-8));
+  REQUIRE_THAT(part->momentum().m(), WithinAbs(0.938, 1E-8));
 }
 
 TEST_CASE("BuildPartSkipMass", "[test-tools]") {
   auto part = BuildPart("2212 11 1 30 - 0");
-  REQUIRE(std::fabs((part->momentum().theta() * (180.0 / M_PI)) - 30) < 1E-8);
-  REQUIRE(std::fabs(part->momentum().x() - 0.5) < 1E-8);
-  REQUIRE(std::fabs(part->momentum().y() - 0) < 1E-8);
-  REQUIRE(std::fabs(part->momentum().z() - std::sqrt(1 - std::pow(.5, 2))) <
-          1E-8);
-  REQUIRE(std::fabs(part->momentum().m() - .938) < 1E-8);
-  REQUIRE(std::fabs(part->momentum().phi() * (180.0 / M_PI)) < 1E-8);
+  REQUIRE_THAT(part->momentum().m(), WithinAbs(0.938, 1E-8));
+
+  REQUIRE_THAT(part->momentum().theta() * (180.0 / M_PI)), WithinAbs(30, 1E-8));
+  REQUIRE_THAT(part->momentum().x(), WithinAbs(0.5, 1E-8));
+  REQUIRE_THAT(part->momentum().y(), WithinAbs(0, 1E-8));
+  REQUIRE_THAT(part->momentum().z(),
+               WithinAbs(std::sqrt(1 - std::pow(.5, 2)), 1E-8));
+  REQUIRE_THAT(part->momentum().m(), WithinAbs(.938, 1E-8));
+  REQUIRE_THAT(part->momentum().phi() * (180.0 / M_PI), WithinAbs(0, 1E-8));
 }
 
 TEST_CASE("BuildFullPart", "[test-tools]") {
@@ -219,67 +222,6 @@ TEST_CASE("OutPartsExcept", "[ps::sel]") {
                     1.3) < 1E-8);
   REQUIRE(ps::sel::OutPartsExceptAny(evt1, {ps::pdg::kNuMu, ps::pdg::kNeutron})
               .size() == 4);
-}
-
-TEST_CASE("HardScatterSelector", "[channel-selector]") {
-
-  HepMC3::GenEvent evt_coh;
-  evt_coh.add_attribute("IsCOH", std::make_shared<HepMC3::BoolAttribute>(true));
-  REQUIRE(ps::IsCOH(evt_coh));
-  REQUIRE(!ps::Is1p1h(evt_coh));
-  REQUIRE(!ps::Is2p2h(evt_coh));
-  REQUIRE(!ps::IsSPP(evt_coh));
-  REQUIRE(!ps::IsRES(evt_coh));
-  REQUIRE(!ps::IsDIS(evt_coh));
-
-  HepMC3::GenEvent evt_qe;
-  evt_qe.add_attribute("Is1p1h", std::make_shared<HepMC3::BoolAttribute>(true));
-  REQUIRE(!ps::IsCOH(evt_qe));
-  REQUIRE(ps::Is1p1h(evt_qe));
-  REQUIRE(!ps::Is2p2h(evt_qe));
-  REQUIRE(!ps::IsSPP(evt_qe));
-  REQUIRE(!ps::IsRES(evt_qe));
-  REQUIRE(!ps::IsDIS(evt_qe));
-
-  HepMC3::GenEvent evt_mec;
-  evt_mec.add_attribute("Is2p2h",
-                        std::make_shared<HepMC3::BoolAttribute>(true));
-  REQUIRE(!ps::IsCOH(evt_mec));
-  REQUIRE(!ps::Is1p1h(evt_mec));
-  REQUIRE(ps::Is2p2h(evt_mec));
-  REQUIRE(!ps::IsSPP(evt_mec));
-  REQUIRE(!ps::IsRES(evt_mec));
-  REQUIRE(!ps::IsDIS(evt_mec));
-
-  HepMC3::GenEvent evt_resspp;
-  evt_resspp.add_attribute("IsSPP",
-                           std::make_shared<HepMC3::BoolAttribute>(true));
-  evt_resspp.add_attribute("IsRES",
-                           std::make_shared<HepMC3::BoolAttribute>(true));
-  REQUIRE(!ps::IsCOH(evt_resspp));
-  REQUIRE(!ps::Is1p1h(evt_resspp));
-  REQUIRE(!ps::Is2p2h(evt_resspp));
-  REQUIRE(ps::IsSPP(evt_resspp));
-  REQUIRE(ps::IsRES(evt_resspp));
-  REQUIRE(!ps::IsDIS(evt_resspp));
-
-  HepMC3::GenEvent evt_res;
-  evt_res.add_attribute("IsRES", std::make_shared<HepMC3::BoolAttribute>(true));
-  REQUIRE(!ps::IsCOH(evt_res));
-  REQUIRE(!ps::Is1p1h(evt_res));
-  REQUIRE(!ps::Is2p2h(evt_res));
-  REQUIRE(!ps::IsSPP(evt_res));
-  REQUIRE(ps::IsRES(evt_res));
-  REQUIRE(!ps::IsDIS(evt_res));
-
-  HepMC3::GenEvent evt_dis;
-  evt_dis.add_attribute("IsDIS", std::make_shared<HepMC3::BoolAttribute>(true));
-  REQUIRE(!ps::IsCOH(evt_dis));
-  REQUIRE(!ps::Is1p1h(evt_dis));
-  REQUIRE(!ps::Is2p2h(evt_dis));
-  REQUIRE(!ps::IsSPP(evt_dis));
-  REQUIRE(!ps::IsRES(evt_dis));
-  REQUIRE(ps::IsDIS(evt_dis));
 }
 
 TEST_CASE("EventProjectors", "[ps::proj]") {

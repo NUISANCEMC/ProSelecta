@@ -12,40 +12,10 @@ namespace ProSelecta_detail {
 
 constexpr int kUndecayedPhysical = NuHepMC::ParticleStatus::UndecayedPhysical;
 constexpr int kBeam = NuHepMC::ParticleStatus::IncomingBeam;
-constexpr int kIncomingBeam = NuHepMC::ParticleStatus::IncomingBeam;
 constexpr int kTarget = NuHepMC::ParticleStatus::Target;
-
-constexpr int kDecayedPhysical = NuHepMC::ParticleStatus::DecayedPhysical;
-constexpr int kBoundNucleon =  NuHepMC::ParticleStatus::StruckNucleon;
-constexpr int kStruckNucleon =  NuHepMC::ParticleStatus::StruckNucleon;
-
-constexpr int kPrimaryVertex = NuHepMC::VertexStatus::Primary;
-constexpr int kFSIVertex = NuHepMC::VertexStatus::FSISummary;
-constexpr int kNucleonSeparation = NuHepMC::VertexStatus::NucleonSeparation;
 
 constexpr bool kFromPDGList = true;
 constexpr bool kNotFromPDGList = false;
-
-template <int status>
-std::vector<HepMC3::ConstGenParticlePtr>
-particles_any(HepMC3::GenEvent const &evt) {
-
-  std::vector<HepMC3::ConstGenParticlePtr> selected_parts = {};
-
-  for (auto const &part : evt.particles()) {
-    if (part->status() != status) {
-      continue;
-    }
-    if constexpr (status == kUndecayedPhysical) {
-      if (part->pid() >= ps::pdg::kNuclearPDGBoundary) {
-        continue;
-      }
-    }
-
-    selected_parts.push_back(part);
-  }
-  return selected_parts;
-}
 
 template <int status, bool select_from_pdg_list = true>
 std::vector<HepMC3::ConstGenParticlePtr> particles(HepMC3::GenEvent const &evt,
@@ -72,9 +42,8 @@ std::vector<HepMC3::ConstGenParticlePtr> particles(HepMC3::GenEvent const &evt,
 }
 
 template <int status>
-HepMC3::ConstGenParticlePtr particle(HepMC3::GenEvent const &evt,
-                                     std::vector<int> pdgs) {
-
+HepMC3::ConstGenParticlePtr hmparticle(HepMC3::GenEvent const &evt,
+                                       std::vector<int> pdgs) {
   HepMC3::ConstGenParticlePtr hmpart = nullptr;
   double hmmom2 = 0;
 
@@ -102,22 +71,36 @@ HepMC3::ConstGenParticlePtr particle(HepMC3::GenEvent const &evt,
   return hmpart;
 }
 
-// Provides a convenience overload for selecting on a single pdg
-template <int status, bool select_from_pdg_list = true>
-std::vector<HepMC3::ConstGenParticlePtr>
-particles_1pdg(HepMC3::GenEvent const &evt, int pdg) {
-  return particles<status, select_from_pdg_list>(evt, {
-                                                          pdg,
-                                                      });
+template <int status, size_t N>
+bool has_particles(HepMC3::GenEvent const &ev, std::array<int, N> const &PIDs) {
+  bool hasall = true;
+
+  for (auto id : PIDs) {
+    hasall = hasall && bool(particles(ev,
+                                      {
+                                          id,
+                                      })
+                                .size());
+  }
+
+  return hasall;
 }
 
-// Provides a convenience overload for selecting on a single pdg
-template <int status>
-HepMC3::ConstGenParticlePtr particle_1pdg(HepMC3::GenEvent const &evt,
-                                          int pdg) {
-  return particle<status>(evt, {
-                                   pdg,
-                               });
+template <int status, size_t N>
+bool has_particles_atleast(HepMC3::GenEvent const &ev,
+                           std::array<int, N> const &PIDs,
+                           std::array<int, N> const &counts) {
+  bool hasall = true;
+
+  for (size_t i = 0; i < PIDs.size(); ++i) {
+    hasall = hasall && bool(particles(ev,
+                                      {
+                                          PIDs[i],
+                                      })
+                                .size() >= counts[i]);
+  }
+
+  return hasall;
 }
 
 template <int status>
