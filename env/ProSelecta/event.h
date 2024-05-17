@@ -1,9 +1,10 @@
 #pragma once
 
-#include "detail/Selectors.h"
+#include "ProSelecta/details.h"
+#include "ProSelecta/part.h"
 
 namespace ps {
-namespace sel {
+namespace event {
 
 // Beam(event, PID) -> particle
 HepMC3::ConstGenParticlePtr Beam(HepMC3::GenEvent const &ev, int PID) {
@@ -62,7 +63,7 @@ HepMC3::ConstGenParticlePtr OutPartHM(HepMC3::GenEvent const &ev, int PID) {
 // PrimaryLeptonsForNuCC(event, PID) -> tuple<particle,particle>
 std::tuple<HepMC3::ConstGenParticlePtr, HepMC3::ConstGenParticlePtr>
 PrimaryLeptonsForNuCC(HepMC3::GenEvent const &ev, int PID) {
-  auto beam = ps::sel::Beam(ev, PID);
+  auto beam = ps::event::Beam(ev, PID);
   if (!beam) {
     return {nullptr, nullptr};
   }
@@ -140,6 +141,95 @@ OutNuclearParts(HepMC3::GenEvent const &ev) {
   return ProSelecta_detail::nuclear_particles<
       ProSelecta_detail::kUndecayedPhysical>(ev);
 }
+
+
+
+// event::q0(event) -> real
+double q0(HepMC3::GenEvent const &ev) {
+
+  auto pin = ps::event::BeamAny(ev, pdg::kNeutralLeptons);
+
+  if (!pin) {
+    return ps::kMissingDatum<double>;
+  }
+
+  int nupid = pin->pid();
+  int ccpid = nupid > 0 ? (nupid - 1) : (nupid + 1);
+
+  auto pout = ps::event::OutPartFirstAny(ev, {ccpid, nupid});
+
+  return ps::part::q0(pin, pout);
+}
+
+// event::q3(event) -> real
+double q3(HepMC3::GenEvent const &ev) {
+
+  auto pin = ps::event::BeamAny(ev, pdg::kNeutralLeptons);
+
+  if (!pin) {
+    return ps::kMissingDatum<double>;
+  }
+
+  int nupid = pin->pid();
+  int ccpid = nupid > 0 ? (nupid - 1) : (nupid + 1);
+
+  auto pout = ps::event::OutPartFirstAny(ev, {ccpid, nupid});
+
+  return ps::part::q3(pin, pout);
+}
+
+// event::Q2Lep(event) -> real
+double Q2Lep(HepMC3::GenEvent const &ev) {
+
+  auto pin = ps::event::BeamAny(ev, pdg::kNeutralLeptons);
+
+  if (!pin) {
+    return ps::kMissingDatum<double>;
+  }
+
+  int nupid = pin->pid();
+  int ccpid = nupid > 0 ? (nupid - 1) : (nupid + 1);
+
+  auto pout = ps::event::OutPartFirstAny(ev, {ccpid, nupid});
+
+  return ps::part::Q2(pin, pout);
+}
+
+// event::CosThetaLep(event) -> real
+double CosThetaLep(HepMC3::GenEvent const &ev) {
+
+  auto pin = ps::event::BeamAny(ev, pdg::kNeutralLeptons);
+
+  if (!pin) {
+    return ps::kMissingDatum<double>;
+  }
+
+  int nupid = pin->pid();
+  int ccpid = nupid > 0 ? (nupid - 1) : (nupid + 1);
+
+  auto pout = ps::event::OutPartFirstAny(ev, {ccpid, nupid});
+
+  return ps::part::CosTheta(pin, pout);
+}
+
+// event::ThetaLep(event) -> real
+double ThetaLep(HepMC3::GenEvent const &ev) {
+
+  auto pin = ps::event::BeamAny(ev, pdg::kNeutralLeptons);
+
+  if (!pin) {
+    return ps::kMissingDatum<double>;
+  }
+
+  int nupid = pin->pid();
+  int ccpid = nupid > 0 ? (nupid - 1) : (nupid + 1);
+
+  auto pout = ps::event::OutPartFirstAny(ev, {ccpid, nupid});
+
+  return ps::part::Theta(pin, pout);
+}
+
+
 
 } // namespace sel
 } // namespace ps

@@ -1,5 +1,5 @@
-#include "ProSelecta/MissingDatum.h"
-#include "ProSelecta/Units.h"
+#include "ProSelecta/missing_datum.h"
+#include "ProSelecta/unit.h"
 
 namespace ps {
 

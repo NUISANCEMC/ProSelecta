@@ -1,8 +1,5 @@
 #pragma once
 
-#include "PDGCodes.h"
-#include "Selectors.h"
-
 namespace ps {
 namespace vect {
 

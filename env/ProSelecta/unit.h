@@ -3,7 +3,7 @@
 #include <cmath>
 
 namespace ps {
-namespace units {
+namespace unit {
 
 constexpr double const missing_data = 0xdeadbeef;
 
