@@ -131,3 +131,5 @@ install(FILES
     ${CMAKE_CURRENT_BINARY_DIR}/ProSelectaConfigVersion.cmake 
   DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/cmake/ProSelecta)
 
+
+install(DIRECTORY env DESTINATION env)

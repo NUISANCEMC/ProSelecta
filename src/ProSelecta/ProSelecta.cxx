@@ -67,6 +67,24 @@ bool ProSelecta::LoadFile(std::string const &file_to_read,
   }
 }
 
+
+bool ProSelecta::LoadAnalysis(std::string const &file_to_read,
+  std::string const &path,
+                          ProSelecta::Interpreter itype) {
+
+  if (itype == Interpreter::kAuto) {
+    itype = GuessInterpreter(file_to_read);
+  }
+  switch (itype) {
+  case Interpreter::kCling: {
+    return cling::load_analysis(file_to_read, path);
+  }
+  default: {
+    throw std::runtime_error("invalid interpreter type");
+  }
+  }
+}
+
 void ProSelecta::AddIncludePath(std::string const &path,
                                 ProSelecta::Interpreter itype) {
   switch (itype) {

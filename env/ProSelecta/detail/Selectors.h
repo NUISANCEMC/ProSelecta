@@ -12,7 +12,16 @@ namespace ProSelecta_detail {
 
 constexpr int kUndecayedPhysical = NuHepMC::ParticleStatus::UndecayedPhysical;
 constexpr int kBeam = NuHepMC::ParticleStatus::IncomingBeam;
+constexpr int kIncomingBeam = NuHepMC::ParticleStatus::IncomingBeam;
 constexpr int kTarget = NuHepMC::ParticleStatus::Target;
+
+constexpr int kDecayedPhysical = NuHepMC::ParticleStatus::DecayedPhysical;
+constexpr int kBoundNucleon =  NuHepMC::ParticleStatus::StruckNucleon;
+constexpr int kStruckNucleon =  NuHepMC::ParticleStatus::StruckNucleon;
+
+constexpr int kPrimaryVertex = NuHepMC::VertexStatus::Primary;
+constexpr int kFSIVertex = NuHepMC::VertexStatus::FSISummary;
+constexpr int kNucleonSeparation = NuHepMC::VertexStatus::NucleonSeparation;
 
 constexpr bool kFromPDGList = true;
 constexpr bool kNotFromPDGList = false;
