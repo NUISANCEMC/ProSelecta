@@ -3,6 +3,7 @@
 #include <cmath>
 
 namespace ps {
+namespace units {
 
 constexpr double const missing_data = 0xdeadbeef;
 
@@ -34,4 +35,5 @@ constexpr double const fm = 1E-15*m;
 constexpr double const rad = 1;
 constexpr double const deg = M_PI / 180.0;
 
+} // namespace units
 } // namespace ps

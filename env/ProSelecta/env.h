@@ -6,6 +6,6 @@
 #include "Projectors.h"
 #include "Units.h"
 
-#include "SelectBook.h"
-#include "ProjectionBook.h"
-#include "WeightBook.h"
+#include "ProSelecta/functions/SelectFunctions.h"
+// #include "ProSelecta/functions/ProjectionFunctions.h"
+// #include "ProSelecta/functions/WeightFunctions.h"

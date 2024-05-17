@@ -17,23 +17,24 @@ PYBIND11_MODULE(pyProSelecta, m) {
 
   m.def("load_file", &ps::cling::load_file);
   m.def("load_text", &ps::cling::load_text);
+  m.def("load_analysis", &ps::cling::load_analysis);
   m.def("add_include_path", &ps::cling::add_include_path);
 
-  auto m_ps_select = m.def_submodule("select", "ProSelecta select interface");
-  m_ps_select.def("get", &ps::cling::get_select_func);
-  m_ps_select.def("get_vect", &ps::cling::get_selects_func);
-  m_ps_select.def("process_id_exact", &ps::select::process_id_exact);
-  m_ps_select.def("process_id_between", &ps::select::process_id_between);
+//   auto m_ps_select = m.def_submodule("select", "ProSelecta select interface");
+//   m_ps_select.def("get", &ps::cling::get_select_func);
+//   m_ps_select.def("get_vect", &ps::cling::get_selects_func);
+//   m_ps_select.def("process_id_exact", &ps::select::process_id_exact);
+//   m_ps_select.def("process_id_between", &ps::select::process_id_between);
 
-  auto m_ps_project =
-      m.def_submodule("project", "ProSelecta projection interface");
-  m_ps_project.def("get", &ps::cling::get_projection_func);
-  m_ps_project.def("get_vect", &ps::cling::get_projections_func);
-  m_ps_project.def("enu", &ps::project::enu);
+//   auto m_ps_project =
+//       m.def_submodule("project", "ProSelecta projection interface");
+//   m_ps_project.def("get", &ps::cling::get_projection_func);
+//   m_ps_project.def("get_vect", &ps::cling::get_projections_func);
+//   m_ps_project.def("enu", &ps::project::enu);
 
-  auto m_ps_weight = m.def_submodule("weight", "ProSelecta weight interface");
-  m_ps_weight.def("get", &ps::cling::get_weight_func);
-  m_ps_weight.def("half_weight", &ps::weight::half_weight);
+//   auto m_ps_weight = m.def_submodule("weight", "ProSelecta weight interface");
+//   m_ps_weight.def("get", &ps::cling::get_weight_func);
+//   m_ps_weight.def("half_weight", &ps::weight::half_weight);
 
   // Selectors.h
   py::module sel = m.def_submodule("sel", "The Selector functions");
@@ -78,14 +79,14 @@ PYBIND11_MODULE(pyProSelecta, m) {
 
   // Units.h
   py::module units = m.def_submodule("units", "Units constants");
-  units.attr("GeV") = ps::GeV;
-  units.attr("MeV") = ps::MeV;
-  units.attr("GeV2") = ps::GeV2;
-  units.attr("MeV2") = ps::MeV2;
-  units.attr("GeV_c2") = ps::GeV_c2;
-  units.attr("MeV_c2") = ps::MeV_c2;
-  units.attr("rad") = ps::rad;
-  units.attr("deg") = ps::deg;
+  units.attr("GeV") = ps::units::GeV;
+  units.attr("MeV") =  ps::units::MeV;
+  units.attr("GeV2") =  ps::units::GeV2;
+  units.attr("MeV2") =  ps::units::MeV2;
+  units.attr("GeV_c2") =  ps::units::GeV_c2;
+  units.attr("MeV_c2") =  ps::units::MeV_c2;
+  units.attr("rad") =  ps::units::rad;
+  units.attr("deg") =  ps::units::deg;
 
   // PDGCodes.h
   py::module pdg = m.def_submodule("pdg", "pdg constants");

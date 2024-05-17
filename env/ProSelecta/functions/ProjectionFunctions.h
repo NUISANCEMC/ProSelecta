@@ -1,7 +1,8 @@
-#include "MissingDatum.h"
-#include "Units.h"
+#include "ProSelecta/MissingDatum.h"
+#include "ProSelecta/Units.h"
 
 namespace ps {
+namespace func{
 namespace project {
 
 // enu : True Enu Estimate : units (HepMC3 default)
@@ -12,6 +13,6 @@ double enu(HepMC3::GenEvent const &ev) {
   }
   return kMissingDatum<double>;
 }
-
 } // namespace project
+} // namespace func
 } // namespace ps
