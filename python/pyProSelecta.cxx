@@ -1,5 +1,5 @@
 #include "ProSelecta/ProSelecta_cling.h"
-#include "ProSelecta/env/env.h"
+#include "ProSelecta/env.h"
 
 #include "pybind11/functional.h"
 #include "pybind11/pybind11.h"

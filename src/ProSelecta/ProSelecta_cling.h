@@ -9,6 +9,8 @@ void initialize_environment();
 
 bool load_file(std::string const &);
 bool load_text(std::string const &);
+bool load_analysis(std::string const &file_to_read, std::string location);
+
 void add_include_path(std::string const &);
 
 bool func_is_defined(std::string const &fnname, std::string const &arglist);

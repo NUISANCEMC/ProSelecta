@@ -67,6 +67,20 @@ bool load_file(std::string const &file_to_read) {
   ps::cling::initialize_environment();
   return !bool(gInterpreter->LoadFile(file_to_read.c_str()));
 }
+
+std::vector<std::string> analyses;
+bool load_analysis(std::string const &file_to_read, std::string location) {
+  ps::cling::initialize_environment();
+  if (std::find(ps::cling::analyses.begin(),
+                ps::cling::analyses.end(),
+                location + file_to_read) != ps::cling::analyses.end()) {
+                  return true;
+                }
+  ps::cling::add_include_path(location);
+  ps::cling::analyses.push_back(location + file_to_read);
+  return !bool(gInterpreter->LoadFile(file_to_read.c_str()));
+}
+
 bool load_text(std::string const &txt) {
   ps::cling::initialize_environment();
   return bool(gInterpreter->LoadText(txt.c_str()));
