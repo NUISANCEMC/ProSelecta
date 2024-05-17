@@ -1,4 +1,5 @@
 #pragma once
+#include "ProSelecta/pdg.h"
 
 #include "HepMC3/GenEvent.h"
 #include "HepMC3/GenParticle.h"
@@ -6,6 +7,7 @@
 #include "NuHepMC/Constants.hxx"
 #include "NuHepMC/EventUtils.hxx"
 
+#include <string>
 #include <vector>
 
 namespace ProSelecta_detail {
@@ -120,6 +122,11 @@ nuclear_particles(HepMC3::GenEvent const &evt) {
     selected_parts.push_back(part);
   }
   return selected_parts;
+}
+
+bool IsChannel(HepMC3::GenEvent const &ev, std::string const &chan_attr) {
+  auto attr = ev.attribute<HepMC3::BoolAttribute>(chan_attr);
+  return attr && attr->value();
 }
 
 } // namespace ProSelecta_detail

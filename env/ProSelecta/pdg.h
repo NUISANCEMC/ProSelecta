@@ -3,7 +3,6 @@
 #include <vector>
 
 namespace ps {
-
 namespace pdg {
 constexpr static int kNuE = 12;
 constexpr static int kANuE = -12;
@@ -31,8 +30,6 @@ constexpr static int kGamma = 22;
 
 constexpr static int kNuclearPDGBoundary = 1000000000;
 
-namespace groups {
-
 static std::vector<int> kChargedLeptons = {kElectron, kAElectron, kMuon,
                                            kAMuon};
 static std::vector<int> kChargedLeptons_matter = {kElectron, kMuon};
@@ -45,8 +42,5 @@ static std::vector<int> kNeutralLeptons_amatter = {kANuE, kANuMu};
 static std::vector<int> kLeptons = {kElectron, kAElectron, kMuon, kAMuon,
                                     kNuE,      kANuE,      kNuMu, kANuMu};
 
-} // namespace groups
-
 } // namespace pdg
-
 } // namespace ps

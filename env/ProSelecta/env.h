@@ -1,11 +1,13 @@
 #pragma once
 
-#include "HardScatterSelector.h"
-#include "MissingDatum.h"
-#include "PDGCodes.h"
-#include "Projectors.h"
-#include "Units.h"
+#include "details.h"
+#include "missing_datum.h"
+#include "pdg.h"
+#include "event.h"
+#include "part.h"
+#include "vect.h"
+#include "unit.h"
 
-#include "SelectBook.h"
-#include "ProjectionBook.h"
-#include "WeightBook.h"
+#include "ext/scatter.h"
+
+#include "function_project.h"

@@ -1,9 +1,10 @@
-#include "Units.h"
-#include "MissingDatum.h"
+#include "ProSelecta/missing_datum.h"
+#include "ProSelecta/unit.h"
 
 namespace ps {
 
 // Phone book of different weight functions
+namespace func {
 namespace weight {
 
   // Testing function

@@ -1,8 +1,11 @@
 #pragma once
 
-#include "detail/HardScatterSelector.h"
+#include "ProSelecta/details.h"
 
 namespace ps {
+namespace ext {
+namespace scatter {
+
 // IsCC(event) -> bool
 bool IsCC(HepMC3::GenEvent const &) {
   return true;
@@ -31,4 +34,7 @@ bool IsRES(HepMC3::GenEvent const &ev) {
 bool IsDIS(HepMC3::GenEvent const &ev) {
   return ProSelecta_detail::IsChannel(ev, "IsDIS");
 }
+
+} // namespace scatter
+} // namespace ext
 } // namespace ps

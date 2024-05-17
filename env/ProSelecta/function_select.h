@@ -1,9 +1,10 @@
-#include "MissingDatum.h"
-#include "Units.h"
+#include "ProSelecta/missing_datum.h"
+#include "ProSelecta/unit.h"
 
 #include "NuHepMC/ReaderUtils.hxx"
 
 namespace ps {
+namespace func {
 namespace select {
 
 std::function<int(HepMC3::GenEvent const &ev)>
@@ -20,6 +21,6 @@ process_id_between(int procid_min, int procid_max) {
     return (procid_min <= proc_id) && (proc_id < procid_max);
   };
 }
-
 } // namespace select
+} // namespace func
 } // namespace ps
