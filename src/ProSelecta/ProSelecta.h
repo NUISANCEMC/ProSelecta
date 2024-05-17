@@ -24,6 +24,8 @@ public:
 
   bool LoadFile(std::string const &, Interpreter itype = Interpreter::kCling);
   bool LoadText(std::string const &, Interpreter itype = Interpreter::kCling);
+  bool LoadAnalysis(std::string const &, std::string const &, Interpreter itype = Interpreter::kCling);
+
   void AddIncludePath(std::string const &,
                       Interpreter itype = Interpreter::kCling);
 
