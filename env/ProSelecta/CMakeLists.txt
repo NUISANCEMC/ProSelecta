@@ -24,3 +24,5 @@ install(TARGETS ProSelectaInterpreter
     PUBLIC_HEADER DESTINATION include/ProSelecta)
 
 add_library(ProSelecta::Interpreter ALIAS ProSelectaInterpreter)
+
+install(DIRECTORY env DESTINATION include/ProSelecta)
