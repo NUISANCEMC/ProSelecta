@@ -1,12 +1,54 @@
 #pragma once
 
-#include "ProSelecta/pdg.h"
-#include "ProSelecta/vect.h"
-#include "ProSelecta/unit.h"
 #include "ProSelecta/missing_datum.h"
+#include "ProSelecta/pdg.h"
+#include "ProSelecta/unit.h"
+#include "ProSelecta/vect.h"
 
 namespace ps {
+
 namespace part {
+
+struct EmptyParticleList : public ProSelecta_detail::exception {
+  using ProSelecta_detail::exception::exception;
+};
+
+template <typename T>
+auto sortascendingby(T const &projector,
+                     std::vector<HepMC3::ConstGenParticlePtr> parts) {
+  if (!parts.size()) {
+    throw EmptyParticleList("sort: no particles");
+  }
+  std::sort(parts.begin(), parts.end(),
+            [=](HepMC3::ConstGenParticlePtr a, HepMC3::ConstGenParticlePtr b) {
+              return projector(a) < projector(b);
+            });
+  return parts;
+}
+
+template <typename T>
+auto highest(T const &projector,
+             std::vector<HepMC3::ConstGenParticlePtr> parts) {
+  if (!parts.size()) {
+    throw EmptyParticleList("highest: no particles");
+  }
+  return sortascendingby(projector, parts).back();
+}
+
+template <typename T>
+auto lowest(T const &projector,
+            std::vector<HepMC3::ConstGenParticlePtr> parts) {
+  if (!parts.size()) {
+    throw EmptyParticleList("lowest: no particles");
+  }
+  return sortascendingby(projector, parts).front();
+}
+
+auto filter(cuts const &c, std::vector<HepMC3::ConstGenParticlePtr> parts) {
+  parts.erase(std::remove_if(parts.begin(), parts.end(), std::not1(c)),
+              parts.end());
+  return parts;
+}
 
 // parts::q0(particle, particle) -> real
 double q0(HepMC3::ConstGenParticlePtr pin, HepMC3::ConstGenParticlePtr pout) {
@@ -27,8 +69,7 @@ double q3(HepMC3::ConstGenParticlePtr pin, HepMC3::ConstGenParticlePtr pout) {
 }
 
 // parts::Q2(particle, particle) -> real
-double Q2(HepMC3::ConstGenParticlePtr pin,
-             HepMC3::ConstGenParticlePtr pout) {
+double Q2(HepMC3::ConstGenParticlePtr pin, HepMC3::ConstGenParticlePtr pout) {
   if (!pin || !pout) {
     return ps::kMissingDatum<double>;
   }
@@ -51,7 +92,7 @@ double Theta(HepMC3::ConstGenParticlePtr p1, HepMC3::ConstGenParticlePtr p2) {
   if (!p1 || !p2) {
     return ps::kMissingDatum<double>;
   }
-  
+
   return (ps::vect::angle(p1->momentum(), p2->momentum()));
 }
 

@@ -15,7 +15,9 @@ set_target_properties(ProSelectaInterpreter PROPERTIES
 
 target_include_directories(ProSelectaInterpreter PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/..>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/../../env>
   $<INSTALL_INTERFACE:include>
+  $<INSTALL_INTERFACE:env>
 )
 
 install(TARGETS ProSelectaInterpreter

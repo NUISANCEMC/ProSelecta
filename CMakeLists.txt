@@ -70,19 +70,7 @@ else()
   message(FATAL_ERROR "Could not determine value for ProSelecta_HEPMC3_INCLUDE_DIR required for ProSelecta runtime installation.")
 endif()
 
-if(TARGET Eigen3::Eigen)
-  get_target_property(ProSelecta_Eigen3_INCLUDE_DIR Eigen3::Eigen INTERFACE_INCLUDE_DIRECTORIES)
-elseif(DEFINED EIGEN3_INCLUDE_DIR AND NOT "${EIGEN3_INCLUDE_DIR}x" STREQUAL "x")
-  set(ProSelecta_Eigen3_INCLUDE_DIR ${EIGEN3_INCLUDE_DIR})
-else()
-  message(FATAL_ERROR "Could not determine value for ProSelecta_Eigen3_INCLUDE_DIR required for ProSelecta runtime installation.")
-endif()
-
-get_target_property(ProSelecta_NuHepMC_CPPUtils_INCLUDE_DIR NuHepMC::Options INTERFACE_INCLUDE_DIRECTORIES)
-
 message("ProSelecta_HEPMC3_INCLUDE_DIR: ${ProSelecta_HEPMC3_INCLUDE_DIR}")
-message("ProSelecta_NuHepMC_CPPUtils_INCLUDE_DIR: ${ProSelecta_NuHepMC_CPPUtils_INCLUDE_DIR}")
-message("ProSelecta_Eigen3_INCLUDE_DIR: ${ProSelecta_Eigen3_INCLUDE_DIR}")
 
 add_subdirectory(src/ProSelecta)
 add_subdirectory(app)
@@ -96,7 +84,7 @@ CPMFindPackage(
 set(ProSelecta_PYSITEARCH "${Python3_VERSION_MAJOR}${Python3_VERSION_MINOR}")
 set(ProSelecta_PYTHONPATH "python/${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}")
 
-add_subdirectory(python)
+# add_subdirectory(python)
 
 if(ProSelecta_ENABLE_TESTS)
   add_subdirectory(test)
@@ -130,6 +118,5 @@ install(FILES
     ${CMAKE_CURRENT_BINARY_DIR}/ProSelectaConfig.cmake 
     ${CMAKE_CURRENT_BINARY_DIR}/ProSelectaConfigVersion.cmake 
   DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/cmake/ProSelecta)
-
 
 install(DIRECTORY env DESTINATION ${CMAKE_INSTALL_PREFIX})

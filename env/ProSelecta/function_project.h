@@ -2,17 +2,17 @@
 #include "ProSelecta/unit.h"
 
 namespace ps {
-namespace func{
+namespace func {
 namespace project {
 
 // enu : True Enu Estimate : units (HepMC3 default)
 double enu(HepMC3::GenEvent const &ev) {
-  auto bpart = ps::event::Beam(ev, 14);
-  if (bpart) {
-    return bpart->momentum().e();
+  if (!event::HasBeamPart(ev, 14)) {
+    return kMissingDatum<double>;
   }
-  return kMissingDatum<double>;
+  return event::BeamPart(ev, 14)->momentum().e();
 }
+
 } // namespace project
 } // namespace func
 } // namespace ps

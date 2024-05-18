@@ -12,7 +12,7 @@ set(ProSelecta_CXX_STANDARD 17)
 find_package(Python3 @Python3_MIN_VERSION@ REQUIRED COMPONENTS Interpreter Development)
 find_package(ROOT @ROOT_MIN_VERSION@ REQUIRED)
 
-find_package(NuHepMC_CPPUtils REQUIRED)
+find_package(HepMC3 REQUIRED)
 
 set(ProSelecta_FOUND TRUE)
 include(${CMAKE_CURRENT_LIST_DIR}/ProSelectaTargets.cmake)

@@ -105,8 +105,6 @@ add_to_LD_LIBRARY_PATH ${ProSelecta_ROOT}/lib
 add_to_ProSelecta_INCLUDE_PATH ${ProSelecta_ROOT}/include
 
 add_to_ProSelecta_INCLUDE_PATH @ProSelecta_HEPMC3_INCLUDE_DIR@
-add_to_ProSelecta_INCLUDE_PATH @ProSelecta_NuHepMC_CPPUtils_INCLUDE_DIR@
-add_to_ProSelecta_INCLUDE_PATH @ProSelecta_Eigen3_INCLUDE_DIR@
 
 if [ -e ${ProSelecta_ROOT}/lib64 ]; then
   add_to_LD_LIBRARY_PATH ${ProSelecta_ROOT}/lib64
