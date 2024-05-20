@@ -13,6 +13,13 @@ struct EmptyParticleList : public ProSelecta_detail::exception {
   using ProSelecta_detail::exception::exception;
 };
 
+struct NoParts : public ProSelecta_detail::exception {
+  using ProSelecta_detail::exception::exception;
+};
+struct TooManyParts : public ProSelecta_detail::exception {
+  using ProSelecta_detail::exception::exception;
+};
+
 template <typename T>
 auto sortascendingby(T const &projector,
                      std::vector<HepMC3::ConstGenParticlePtr> parts) {
@@ -48,6 +55,40 @@ auto filter(cuts const &c, std::vector<HepMC3::ConstGenParticlePtr> parts) {
   parts.erase(std::remove_if(parts.begin(), parts.end(), std::not1(c)),
               parts.end());
   return parts;
+}
+
+auto one(std::vector<HepMC3::ConstGenParticlePtr> parts) {
+  if (!parts.size()) {
+    throw NoParts("ps::part::one passed an empty vector");
+  }
+  if (parts.size() > 1) {
+    throw TooManyParts("ps::part::one passed more than one particle");
+  }
+  return parts.front();
+}
+
+template <size_t N> auto one(std::array<HepMC3::ConstGenParticlePtr, N> parts) {
+
+  HepMC3::ConstGenParticlePtr part = nullptr;
+  for (auto const &arr : parts) {
+    if (arr.size() > 1) {
+      throw TooManyParts(
+          "ps::part::one passed an array with more than one particle");
+    } else if (arr.size() == 1) {
+      if (!part) {
+        part = arr.front();
+      } else {
+        throw TooManyParts(
+            "ps::part::one passed an array with more than one particle");
+      }
+    }
+  }
+
+  if (part) {
+    throw NoParts("ps::part::one passed an empty array of vectors");
+  }
+
+  return part;
 }
 
 // parts::q0(particle, particle) -> real

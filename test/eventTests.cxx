@@ -20,10 +20,14 @@ TEST_CASE("BeamPart", "[ps::event]") {
   REQUIRE(ps::event::HasBeamPart(evt1, ps::pdg::kNuMu));
   REQUIRE(!ps::event::HasBeamPart(evt1, ps::pdg::kNuE));
   REQUIRE(!ps::event::HasBeamPart(evt1, ps::pdg::kANuMu));
+  REQUIRE(ps::event::HasBeamPart(evt1, ps::pdg::kNeutralLeptons));
 
   REQUIRE(ps::event::BeamPart(evt1, ps::pdg::kNuMu)->pid() == ps::pdg::kNuMu);
   REQUIRE_THAT(ps::event::BeamPart(evt1, ps::pdg::kNuMu)->momentum().length(),
                WithinAbs(1, 1E-8));
+
+  REQUIRE(ps::event::BeamPart(evt1, ps::pdg::kNeutralLeptons)->pid() ==
+          ps::pdg::kNuMu);
 }
 
 TEST_CASE("TargetPart", "[ps::event]") {
@@ -52,8 +56,8 @@ TEST_CASE("HasOutPart", "[ps::event]") {
   REQUIRE(ps::event::HasOutPart(evt1, -13));
   REQUIRE(!ps::event::HasOutPart(evt1, 14));
 
-  REQUIRE(ps::event::HasOutPart(evt1, {2212, 13, -13}));
-  REQUIRE(!ps::event::HasOutPart(evt1, {2212, 13, -13, 14}));
+  REQUIRE(ps::event::HasOutPart(evt1, ps::pids{2212, 13, -13}));
+  REQUIRE(!ps::event::HasOutPart(evt1, ps::pids{2212, 13, -13, 14}));
 }
 
 TEST_CASE("HasAtLeastOutPart", "[ps::event]") {
@@ -68,8 +72,10 @@ TEST_CASE("HasAtLeastOutPart", "[ps::event]") {
   REQUIRE(ps::event::HasAtLeastOutPart(evt1, 13, 2));
   REQUIRE(!ps::event::HasAtLeastOutPart(evt1, 13, 3));
 
-  REQUIRE(ps::event::HasAtLeastOutPart(evt1, {2212, 13, -13}, {1, 2, 1}));
-  REQUIRE(!ps::event::HasAtLeastOutPart(evt1, {2212, 13, -13}, {1, 2, 2}));
+  REQUIRE(
+      ps::event::HasAtLeastOutPart(evt1, ps::pids{2212, 13, -13}, {1, 2, 1}));
+  REQUIRE(
+      !ps::event::HasAtLeastOutPart(evt1, ps::pids{2212, 13, -13}, {1, 2, 2}));
 }
 
 TEST_CASE("NumOutPart", "[ps::event]") {
@@ -83,7 +89,7 @@ TEST_CASE("NumOutPart", "[ps::event]") {
   REQUIRE(ps::event::NumOutPart(evt1, 14) == 0);
 
   auto const &[nprot, nmu, nmubar, nnumu] =
-      ps::event::NumOutPart(evt1, 2212, 13, -13, 14);
+      ps::event::NumOutPart(evt1, ps::pids{2212, 13, -13, 14});
   REQUIRE(nprot == 1);
   REQUIRE(nmu == 2);
   REQUIRE(nmubar == 1);
@@ -99,7 +105,7 @@ TEST_CASE("NumOutPartExcept", "[ps::event]") {
   REQUIRE(ps::event::NumOutPartExcept(evt1, 2212) == 3);
   REQUIRE(ps::event::NumOutPartExcept(evt1, 13) == 2);
   REQUIRE(ps::event::NumOutPartExcept(evt1, 14) == 4);
-  REQUIRE(ps::event::NumOutPartExcept(evt1, 2212, 13, -13) == 0);
+  REQUIRE(ps::event::NumOutPartExcept(evt1, ps::pids{2212, 13, -13}) == 0);
 }
 
 TEST_CASE("AllOutPart", "[ps::event]") {
@@ -114,7 +120,8 @@ TEST_CASE("AllOutPart", "[ps::event]") {
   REQUIRE_THAT(protons.front()->momentum().length(), WithinAbs(0.15, 1E-8));
   REQUIRE_THAT(protons.front()->momentum().m(), WithinAbs(0.938, 1E-8));
 
-  auto const &[muons, antimuons] = ps::event::AllOutPart(evt1, 13, -13);
+  auto const &[muons, antimuons] =
+      ps::event::AllOutPart(evt1, ps::pids{13, -13});
 
   REQUIRE(muons.size() == 2);
   REQUIRE(antimuons.size() == 1);
@@ -130,6 +137,7 @@ TEST_CASE("AllOutPartExcept", "[ps::event]") {
   auto not_protons = ps::event::AllOutPartExcept(evt1, 2212);
   REQUIRE(not_protons.size() == 3);
 
-  auto not_protons_or_muons = ps::event::AllOutPartExcept(evt1, 2212, 13);
+  auto not_protons_or_muons =
+      ps::event::AllOutPartExcept(evt1, ps::pids{2212, 13});
   REQUIRE(not_protons_or_muons.size() == 1);
 }

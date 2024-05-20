@@ -13,6 +13,8 @@ set_target_properties(ProSelectaInterpreter PROPERTIES
   PUBLIC_HEADER "${HEADERS}"
   EXPORT_NAME Interpreter)
 
+target_compile_options(ProSelectaInterpreter PUBLIC -Wno-psabi)
+
 target_include_directories(ProSelectaInterpreter PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/..>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/../../env>
