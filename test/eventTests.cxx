@@ -9,135 +9,183 @@
 
 using namespace Catch::Matchers;
 
-TEST_CASE("BeamPart", "[ps::event]") {
+using namespace ps;
+
+TEST_CASE("beam_part", "[ps::event]") {
 
   auto evt1 = BuildEvent({{"14 4 1", "1000060120 11 0"},
                           {"14 3 1", "1000060110 1 0", "2112 21 0"},
                           {"13 1 0.7", "2212 1 0.15"}},
                          {2, 1});
 
-  REQUIRE(ps::event::HasBeamPart(evt1));
-  REQUIRE(ps::event::HasBeamPart(evt1, ps::pdg::kNuMu));
-  REQUIRE(!ps::event::HasBeamPart(evt1, ps::pdg::kNuE));
-  REQUIRE(!ps::event::HasBeamPart(evt1, ps::pdg::kANuMu));
-  REQUIRE(ps::event::HasBeamPart(evt1, ps::pdg::kNeutralLeptons));
+  REQUIRE(event::has_beam_part(evt1));
+  REQUIRE(event::has_beam_part(evt1, pdg::kNuMu));
+  REQUIRE_FALSE(event::has_beam_part(evt1, pdg::kNuE));
+  REQUIRE_FALSE(event::has_beam_part(evt1, pdg::kANuMu));
+  REQUIRE(event::has_beam_part(evt1, pdg::kNeutralLeptons));
 
-  REQUIRE(ps::event::BeamPart(evt1, ps::pdg::kNuMu)->pid() == ps::pdg::kNuMu);
-  REQUIRE_THAT(ps::event::BeamPart(evt1, ps::pdg::kNuMu)->momentum().length(),
+  REQUIRE(event::beam_part(evt1, pdg::kNuMu)->pid() == pdg::kNuMu);
+  REQUIRE_THAT(event::beam_part(evt1, pdg::kNuMu)->momentum().length(),
                WithinAbs(1, 1E-8));
 
-  REQUIRE(ps::event::BeamPart(evt1, ps::pdg::kNeutralLeptons)->pid() ==
-          ps::pdg::kNuMu);
+  REQUIRE(event::beam_part(evt1, pdg::kNeutralLeptons)->pid() == pdg::kNuMu);
+
+  REQUIRE_THROWS_AS(event::beam_part(evt1, pdg::kNuE), event::NoMatchingParts);
+
+  auto evt2 = BuildEvent({{"14 4 1", "12 4 1", "1000060120 11 0"},
+                          {"14 3 1", "1000060110 1 0", "2112 21 0"},
+                          {"13 1 0.7", "2212 1 0.15"}},
+                         {2, 1});
+
+  REQUIRE_THROWS_AS(event::beam_part(evt2, pdg::kNeutralLeptons),
+                    event::MoreThanOneBeamPart);
 }
 
-TEST_CASE("TargetPart", "[ps::event]") {
+TEST_CASE("target_part", "[ps::event]") {
 
   auto evt1 = BuildEvent({{"14 4 1", "1000060120 11 0"},
                           {"14 3 1", "1000060110 1 0", "2112 21 0"},
                           {"13 1 0.7", "2212 1 0.15"}},
                          {2, 1});
 
-  REQUIRE(ps::event::HasTargetPart(evt1));
-  REQUIRE(ps::event::HasTargetPart(evt1, 1000060120));
-  REQUIRE(!ps::event::HasTargetPart(evt1, 1000070140));
-  REQUIRE(ps::event::TargetPart(evt1)->pid() == 1000060120);
-  REQUIRE_THAT(ps::event::TargetPart(evt1)->momentum().m(),
-               WithinAbs(12, 1E-8));
+  REQUIRE(event::has_target_part(evt1));
+  REQUIRE(event::has_target_part(evt1, 1000060120));
+  REQUIRE_FALSE(event::has_target_part(evt1, 1000070140));
+  REQUIRE(event::target_part(evt1)->pid() == 1000060120);
+  REQUIRE_THAT(event::target_part(evt1)->momentum().m(), WithinAbs(12, 1E-8));
+
+  REQUIRE_THROWS_AS(event::target_part(evt1, 1000070140),
+                    event::NoMatchingParts);
 }
 
-TEST_CASE("HasOutPart", "[ps::event]") {
+TEST_CASE("has_out_part", "[ps::event]") {
 
   auto evt1 =
       BuildEvent({{"14 4 3 0", "1000060120 11 0"},
                   {"2212 1 0.15", "13 1 0.7", "13 1 1.2", "-13 1 1.3"}});
 
-  REQUIRE(ps::event::HasOutPart(evt1, 2212));
-  REQUIRE(ps::event::HasOutPart(evt1, 13));
-  REQUIRE(ps::event::HasOutPart(evt1, -13));
-  REQUIRE(!ps::event::HasOutPart(evt1, 14));
+  REQUIRE(event::has_out_part(evt1, 2212));
+  REQUIRE(event::has_out_part(evt1, 13));
+  REQUIRE(event::has_out_part(evt1, -13));
+  REQUIRE_FALSE(event::has_out_part(evt1, 14));
 
-  REQUIRE(ps::event::HasOutPart(evt1, ps::pids{2212, 13, -13}));
-  REQUIRE(!ps::event::HasOutPart(evt1, ps::pids{2212, 13, -13, 14}));
+  REQUIRE(event::has_out_part(evt1, pids{2212, 13, -13}));
+  REQUIRE_FALSE(event::has_out_part(evt1, pids{2212, 13, -13, 14}));
 }
 
-TEST_CASE("HasAtLeastOutPart", "[ps::event]") {
+TEST_CASE("has_exact_out_part", "[ps::event]") {
 
   auto evt1 =
       BuildEvent({{"14 4 3 0", "1000060120 11 0"},
                   {"2212 1 0.15", "13 1 0.7", "13 1 1.2", "-13 1 1.3"}});
 
-  REQUIRE(ps::event::HasAtLeastOutPart(evt1, 2212, 1));
-  REQUIRE(!ps::event::HasAtLeastOutPart(evt1, 2212, 2));
-  REQUIRE(ps::event::HasAtLeastOutPart(evt1, 13, 1));
-  REQUIRE(ps::event::HasAtLeastOutPart(evt1, 13, 2));
-  REQUIRE(!ps::event::HasAtLeastOutPart(evt1, 13, 3));
+  REQUIRE(event::has_exact_out_part(evt1, 2212, 1));
+  REQUIRE(event::has_exact_out_part(evt1, 13, 2));
+  REQUIRE(event::has_exact_out_part(evt1, -13, 1));
+  REQUIRE(event::has_exact_out_part(evt1, 14, 0));
+  REQUIRE_FALSE(event::has_exact_out_part(evt1, -13, 2));
+
+  REQUIRE(event::has_exact_out_part(evt1, pids{2212, 13, -13}, {1, 2, 1}));
+  REQUIRE(event::has_exact_out_part(evt1, pids{2212, 13, -13}, {1, 2, 1}));
+  REQUIRE_FALSE(
+      event::has_exact_out_part(evt1, pids{2212, 13, -13}, {1, 2, 2}));
+}
+
+TEST_CASE("out_part_topology_matches", "[ps::event]") {
+
+  auto evt1 =
+      BuildEvent({{"14 4 3 0", "1000060120 11 0"},
+                  {"2212 1 0.15", "13 1 0.7", "13 1 1.2", "-13 1 1.3"}});
 
   REQUIRE(
-      ps::event::HasAtLeastOutPart(evt1, ps::pids{2212, 13, -13}, {1, 2, 1}));
-  REQUIRE(
-      !ps::event::HasAtLeastOutPart(evt1, ps::pids{2212, 13, -13}, {1, 2, 2}));
+      event::out_part_topology_matches(evt1, pids{2212, 13, -13}, {1, 2, 1}));
+  REQUIRE(event::out_part_topology_matches(evt1, pids{2212, 13, -13, 14},
+                                           {1, 2, 1, 0}));
+
+  REQUIRE_FALSE(event::out_part_topology_matches(evt1, pids{2212, 13}, {1, 2}));
+  REQUIRE_FALSE(
+      event::out_part_topology_matches(evt1, pids{2212, 13, -13}, {1, 2, 2}));
+  REQUIRE_FALSE(
+      event::out_part_topology_matches(evt1, pids{2212, 13, -13}, {1, 2, 2}));
 }
 
-TEST_CASE("NumOutPart", "[ps::event]") {
+TEST_CASE("has_at_least_out_part", "[ps::event]") {
 
   auto evt1 =
       BuildEvent({{"14 4 3 0", "1000060120 11 0"},
                   {"2212 1 0.15", "13 1 0.7", "13 1 1.2", "-13 1 1.3"}});
 
-  REQUIRE(ps::event::NumOutPart(evt1, 2212) == 1);
-  REQUIRE(ps::event::NumOutPart(evt1, 13) == 2);
-  REQUIRE(ps::event::NumOutPart(evt1, 14) == 0);
+  REQUIRE(event::has_at_least_out_part(evt1, 2212, 1));
+  REQUIRE_FALSE(event::has_at_least_out_part(evt1, 2212, 2));
+  REQUIRE(event::has_at_least_out_part(evt1, 13, 1));
+  REQUIRE(event::has_at_least_out_part(evt1, 13, 2));
+  REQUIRE_FALSE(event::has_at_least_out_part(evt1, 13, 3));
+
+  REQUIRE(event::has_at_least_out_part(evt1, pids{2212, 13, -13}, {1, 2, 1}));
+  REQUIRE(!event::has_at_least_out_part(evt1, pids{2212, 13, -13}, {1, 2, 2}));
+}
+
+TEST_CASE("num_out_part", "[ps::event]") {
+
+  auto evt1 =
+      BuildEvent({{"14 4 3 0", "1000060120 11 0"},
+                  {"2212 1 0.15", "13 1 0.7", "13 1 1.2", "-13 1 1.3"}});
+
+  REQUIRE(event::num_out_part(evt1, 2212) == 1);
+  REQUIRE(event::num_out_part(evt1, 13) == 2);
+  REQUIRE(event::num_out_part(evt1, 14) == 0);
 
   auto const &[nprot, nmu, nmubar, nnumu] =
-      ps::event::NumOutPart(evt1, ps::pids{2212, 13, -13, 14});
+      event::num_out_part(evt1, pids{2212, 13, -13, 14});
   REQUIRE(nprot == 1);
   REQUIRE(nmu == 2);
   REQUIRE(nmubar == 1);
   REQUIRE(nnumu == 0);
 }
 
-TEST_CASE("NumOutPartExcept", "[ps::event]") {
+TEST_CASE("num_out_part_except", "[ps::event]") {
 
   auto evt1 =
       BuildEvent({{"14 4 3 0", "1000060120 11 0"},
                   {"2212 1 0.15", "13 1 0.7", "13 1 1.2", "-13 1 1.3"}});
 
-  REQUIRE(ps::event::NumOutPartExcept(evt1, 2212) == 3);
-  REQUIRE(ps::event::NumOutPartExcept(evt1, 13) == 2);
-  REQUIRE(ps::event::NumOutPartExcept(evt1, 14) == 4);
-  REQUIRE(ps::event::NumOutPartExcept(evt1, ps::pids{2212, 13, -13}) == 0);
+  REQUIRE(event::num_out_part_except(evt1, 2212) == 3);
+  REQUIRE(event::num_out_part_except(evt1, 13) == 2);
+  REQUIRE(event::num_out_part_except(evt1, 14) == 4);
+  REQUIRE(event::num_out_part_except(evt1, pids{2212, 13, -13}) == 0);
 }
 
-TEST_CASE("AllOutPart", "[ps::event]") {
+TEST_CASE("all_out_part", "[ps::event]") {
 
   auto evt1 =
       BuildEvent({{"14 4 3 0", "1000060120 11 0"},
                   {"2212 1 0.15", "13 1 0.7", "13 1 1.2", "-13 1 1.3"}});
 
-  auto protons = ps::event::AllOutPart(evt1, 2212);
+  auto protons = event::all_out_part(evt1, 2212);
 
   REQUIRE(protons.size() == 1);
   REQUIRE_THAT(protons.front()->momentum().length(), WithinAbs(0.15, 1E-8));
   REQUIRE_THAT(protons.front()->momentum().m(), WithinAbs(0.938, 1E-8));
 
-  auto const &[muons, antimuons] =
-      ps::event::AllOutPart(evt1, ps::pids{13, -13});
+  auto const &[muons, antimuons] = event::all_out_part(evt1, pids{13, -13});
 
   REQUIRE(muons.size() == 2);
   REQUIRE(antimuons.size() == 1);
   REQUIRE_THAT(antimuons.front()->momentum().length(), WithinAbs(1.3, 1E-8));
+
+  auto all_out_part = event::all_out_part(evt1);
+  REQUIRE(all_out_part.size() == 4);
 }
 
-TEST_CASE("AllOutPartExcept", "[ps::event]") {
+TEST_CASE("all_out_part_except", "[ps::event]") {
 
   auto evt1 =
       BuildEvent({{"14 4 3 0", "1000060120 11 0"},
                   {"2212 1 0.15", "13 1 0.7", "13 1 1.2", "-13 1 1.3"}});
 
-  auto not_protons = ps::event::AllOutPartExcept(evt1, 2212);
+  auto not_protons = event::all_out_part_except(evt1, 2212);
   REQUIRE(not_protons.size() == 3);
 
-  auto not_protons_or_muons =
-      ps::event::AllOutPartExcept(evt1, ps::pids{2212, 13});
+  auto not_protons_or_muons = event::all_out_part_except(evt1, pids{2212, 13});
   REQUIRE(not_protons_or_muons.size() == 1);
 }

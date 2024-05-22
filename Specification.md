@@ -1,36 +1,91 @@
 # ProSelecta
 
-This document corresponds to version 0.1 of the NUISANCE ProSelecta definition.
+This document corresponds to version 1 of the NUISANCE ProSelecta definition.
 
-ProSelecta is a bit like an Analysis Descriptor Language (ADL), except that it doesn't attempt to define a new Domain Specific Language and instead defines a list of utility functions that an event procesing environment might implement to facilitate the declaration of a measurements key steps.
+ProSelecta is a bit like an Analysis Descriptor Language (ADL), except that it doesn't attempt to define a new Domain Specific Language and instead defines a list of utility functions that an event procesing environment might implement to facilitate the declaration of a measurement's key steps.
 
-ProSelecta is an abstract specification for a minimal set of utilities to support describing the _event_ selection and projection steps of constructing a prediction of a neutrino-scattering measurement in a declarative way. 
+ProSelecta is an specification for a minimal set of utilities to support describing the _event_ selection and projection steps of constructing a prediction of a neutrino-scattering measurement in a declarative way.
 
-An implementation of the ProSelecta environment will have to choose a specific language, event format, and <>
+ProSelecta is an implementation of this specification in C++ and using HepMC3 as the event format. To avoid needless code duplication, some of the HepMC3 event model is included as part of ProSelecta. While this limits the purity and generality of ProSelecta, we think that it is the right choice practicaly.
+
+ProSelecta is built on [HepMC3](https://gitlab.cern.ch/hepmc/HepMC3) and [cling](https://github.com/root-project/cling) technologies. If you use ProSelecta, please cite all three. Find a bibtex entry [here](#citation-helper).
 
 Designed for the [NUISANCE](https://github.com/NUISANCEMC/nuisance) framework.
 
 ## Table of Contents
 
-# First Off, Some Physics
+* Quick Start
+* Types
+* The Environment
+  * event
+  * part
+  * vect
+* Auxilliary Definitions
+  * unit
+  * pid
+  * missing_datum
+* Examples
+* Community Functions
 
-## The Neutrino Interaction
+# Quick Start
 
-## The Event Object
+Check for and fetch an incoming neutrino of any flavor
+```c++
+auto nu = ps::event::beam_part(evt, ps::pdg::kNeutralLeptons);
+```
+
+Check that event has at least one incoming muon neutrino and one outgoing muon:
+```c++
+bool has_incoming_numu = ps::event::has_beam_part(evt, 14);
+bool has_final_state_proton = ps::event::has_out_part(evt, 13);
+```
+
+Check the final state topology exactly matches: 1mu1p1pi:
+```c++
+bool is_1mu1p1pi = ps::event::out_part_topology_matches(evt, ps::pids{13,2212,211}, {1,1,1});
+```
+
+Get all outgoing protons, ordered by momentum
+```c++
+auto protons = ps::event::all_out_part(evt, 2212);
+auto protons_sorted = ps::part::sort_ascending(ps::p3mod, protons);
+```
+
+Get the highest momentum outgoing proton and negative pion
+```c++
+auto [protons, pims] = ps::event::all_out_part(evt, ps::pids{2212,-211});
+auto hmproton = ps::part::highest(ps::p3mod, protons);
+auto hmpim = ps::part::highest(ps::p3mod, pims);
+```
+
+Get the transverse component of the vector sum of the final state muon and all protons
+```c++
+auto sum_pt = ps::event::sum(ps::momentum, ps::event::all_out_part(evt, ps::pids{13, 2212})).pt();
+```
+
+# Auxilliary Definitions
+
+## HepMC3 Type System
+
+ProSelecta is built on HepMC3
 
 ## System of Units
 
 This specification place no constraints on the internal units used by a concrete event and particle implementation. However, at least the below constants must be defined in the context of the internal units to allow deterministic conversion to user-specified units.
 
-* Energy/Momentum
-  - MeV
-  - GeV
-* Mass
-  - MeV_c2
-  - GeV_c2
-* Angle
-  - rad
-  - deg
+* Energy/Momentum: `[M,G,k,]eV`
+* Mass: `[M,G,k,]eV_c2`
+* Angle: `rad, deg`
+
+Units constants can be used with numeric literals for direct comparison to calculated properties from an event or particle, for example:
+
+`part.momentum().p3mod() > 1*units::GeV`
+
+They can also be used to convert the units of a calculated property, for example:
+
+`part.momentum().p3mod() / units::GeV`
+
+# Community Functions
 
 # The ProSelecta Environment
 
@@ -85,7 +140,7 @@ GetOutPartsExcept(event, PID) -> list<particles>
 GetOutPartsExceptAny(event, list<PID>) -> list<particles>
 
 FilterByMomentum(list<particles>, real, real) -> list<particles>
-OutNuclearParts(event) -> list<particles>
+out_nuclear_parts(event) -> list<particles>
 ```
 
 ## Hard-Scatter Channels
@@ -137,3 +192,45 @@ parts::EPmiss(list<particles>) -> 4vec
 ## Reference Implementation
 
 This package provides the [ProSelectaCPP](README.md) reference implementation that can be used to process HepMC3 events in the ProSelecta environment with interpreted C++ or python processing functions.
+
+# Citation Helper
+
+If you use ProSelecta in your publication, please cite Cling, HepMC3, and ProSelecta itself.
+
+```tex
+%%%% ProSelecta citation when we have one
+
+%%%% cling citation
+% Peer-Reviewed Publication
+%
+% 19th International Conference on Computing in High Energy and Nuclear Physics (CHEP)
+% 21-25 May, 2012, New York, USA
+%
+@inproceedings{Cling,
+  author = {Vassilev,V. and Canal,Ph. and Naumann,A. and Moneta,L. and Russo,P.},
+  title = {{Cling} -- The New Interactive Interpreter for {ROOT} 6}},
+  journal = {Journal of Physics: Conference Series},
+  year = 2012,
+  month = {dec},
+  volume = {396},
+  number = {5},
+  pages = {052071},
+  doi = {10.1088/1742-6596/396/5/052071},
+  url = {https://iopscience.iop.org/article/10.1088/1742-6596/396/5/052071/pdf},
+  publisher = {{IOP} Publishing}
+}
+
+%%%% HepMC3 citation
+@article{Buckley_2021,
+   title={The HepMC3 event record library for Monte Carlo event generators},
+   volume={260},
+   ISSN={0010-4655},
+   url={http://dx.doi.org/10.1016/j.cpc.2020.107310},
+   DOI={10.1016/j.cpc.2020.107310},
+   journal={Computer Physics Communications},
+   publisher={Elsevier BV},
+   author={Buckley, Andy and Ilten, Philip and Konstantinov, Dmitri and Lönnblad, Leif and Monk, James and Pokorski, Witold and Przedzinski, Tomasz and Verbytskyi, Andrii},
+   year={2021},
+   month=mar, pages={107310} }
+
+```

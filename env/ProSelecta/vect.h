@@ -1,16 +1,27 @@
 #pragma once
 
-#include "HepMC3/GenEvent.h"
+#include "HepMC3/FourVector.h"
+
+#include <numeric>
+#include <algorithm>
 
 namespace ps {
 namespace vect {
 
-// parts::q0(particle, particle) -> real
-double dot(HepMC3::FourVector &a, HepMC3::FourVector &b) {
+HepMC3::FourVector direction(HepMC3::FourVector v) {
+  v.set_e(0);
+  if (v.p3mod() > 0) {
+    v /= v.p3mod();
+  }
+  return v;
+}
+
+double dot(HepMC3::FourVector const &a, HepMC3::FourVector const &b) {
   return a.x() * b.x() + a.y() * b.y() + a.z() * b.z();
 }
 
-HepMC3::FourVector cross(HepMC3::FourVector &a, HepMC3::FourVector &b) {
+HepMC3::FourVector cross(HepMC3::FourVector const &a,
+                         HepMC3::FourVector const &b) {
   auto i = a.y() * b.z() - a.z() * b.y();
   auto j = a.z() * b.x() - a.x() * b.z();
   auto k = a.x() * b.y() - a.y() * b.x();
@@ -18,8 +29,31 @@ HepMC3::FourVector cross(HepMC3::FourVector &a, HepMC3::FourVector &b) {
   return HepMC3::FourVector{i, j, k, 0};
 }
 
-HepMC3::FourVector boost(const HepMC3::FourVector v1,
-                         const HepMC3::FourVector boost) {
+double angle(HepMC3::FourVector const &v, HepMC3::FourVector const &refv) {
+  double ptot2 = v.length2() * refv.length2();
+  if (ptot2 <= 0) {
+    return 0.0;
+  }
+  return std::acos(std::clamp(dot(v, refv) / sqrt(ptot2), -1.0, 1.0));
+}
+
+HepMC3::FourVector transverse(HepMC3::FourVector v, HepMC3::FourVector dir) {
+  dir = direction(dir);
+  v.set_e(0);
+  auto long_comp = dir * dot(v, dir);
+  return v - long_comp;
+}
+
+HepMC3::FourVector rotate(HepMC3::FourVector const &v, HepMC3::FourVector axis,
+                          double theta) {
+  // from https://en.wikipedia.org/wiki/Rodrigues%27_rotation_formula
+  axis = direction(axis);
+  return v * std::cos(theta) + cross(axis, v) * std::sin(theta) +
+         axis * dot(axis, v) * (1.0 - std::cos(theta));
+}
+
+HepMC3::FourVector boost(HepMC3::FourVector const &fv,
+                         HepMC3::FourVector const &boost) {
 
   HepMC3::FourVector vo;
 
@@ -30,39 +64,15 @@ HepMC3::FourVector boost(const HepMC3::FourVector v1,
 
   double b2 = bx * bx + by * by + bz * bz;
   double gamma = 1.0 / sqrt(1.0 - b2);
-  double bp = bx * v1.x() + by * v1.y() + bz * v1.z();
+  double bp = bx * fv.x() + by * fv.y() + bz * fv.z();
   double gamma2 = b2 > 0 ? (gamma - 1.0) / b2 : 0.0;
 
-  vo.set_x(v1.x() + gamma2 * bp * bx + gamma * bx * v1.e());
-  vo.set_y(v1.y() + gamma2 * bp * by + gamma * by * v1.e());
-  vo.set_z(v1.z() + gamma2 * bp * bz + gamma * bz * v1.e());
-  vo.set_e(gamma * (v1.e() + bp));
+  vo.set_x(fv.x() + gamma2 * bp * bx + gamma * bx * fv.e());
+  vo.set_y(fv.y() + gamma2 * bp * by + gamma * by * fv.e());
+  vo.set_z(fv.z() + gamma2 * bp * bz + gamma * bz * fv.e());
+  vo.set_e(gamma * (fv.e() + bp));
 
   return vo;
-}
-
-double angle(HepMC3::FourVector v1, HepMC3::FourVector q) {
-  double ptot2 = v1.length2() * q.length2();
-  if (ptot2 <= 0) {
-    return 0.0;
-  } else {
-    double arg = dot(v1, q) / sqrt(ptot2);
-    if (arg > 1.0)
-      arg = 1.0;
-    if (arg < -1.0)
-      arg = -1.0;
-    return acos(arg);
-  }
-}
-
-HepMC3::FourVector rotate(HepMC3::FourVector p1, HepMC3::FourVector p2) {
-  return HepMC3::FourVector(); // to be added
-}
-
-HepMC3::FourVector transverse(HepMC3::FourVector a, HepMC3::FourVector b) {
-  a.set_e(0);
-  auto long_comp = b * dot(a, b);
-  return a - long_comp;
 }
 
 } // namespace vect

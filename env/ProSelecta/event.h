@@ -25,37 +25,64 @@ struct MoreThanOneTargetPart : public ProSelecta_detail::exception {
 };
 
 template <size_t N>
-bool HasOutPart(HepMC3::GenEvent const &ev, std::array<int, N> const &PIDs) {
-  static_assert(N > 0, "HasOutPart: EmptyPIDList");
+bool has_out_part(HepMC3::GenEvent const &ev, std::array<int, N> const &PIDs) {
+  static_assert(N > 0, "has_out_part: EmptyPIDList");
 
   return ProSelecta_detail::has_particles<ProSelecta_detail::kUndecayedPhysical,
                                           N>(ev, PIDs);
 }
 
-bool HasOutPart(HepMC3::GenEvent const &ev, int PID) {
+bool has_out_part(HepMC3::GenEvent const &ev, int PID) {
   return ProSelecta_detail::has_particles<ProSelecta_detail::kUndecayedPhysical,
                                           1>(ev, {PID});
 }
 
 template <size_t N>
-bool HasAtLeastOutPart(HepMC3::GenEvent const &ev,
-                       std::array<int, N> const &PIDs,
-                       std::array<int, N> const &counts) {
-  static_assert(N > 0, "HasAtLeastOutPart: EmptyPIDList");
+bool has_exact_out_part(HepMC3::GenEvent const &ev,
+                        std::array<int, N> const &PIDs,
+                        std::array<int, N> const &counts) {
+  static_assert(N > 0, "has_exact_out_part: EmptyPIDList");
+
+  return ProSelecta_detail::has_particles_exact<
+      ProSelecta_detail::kUndecayedPhysical, N>(ev, PIDs, counts);
+}
+
+bool has_exact_out_part(HepMC3::GenEvent const &ev, int PID, int count) {
+  return ProSelecta_detail::has_particles_exact<
+      ProSelecta_detail::kUndecayedPhysical, 1>(ev, {PID}, {count});
+}
+
+template <size_t N>
+bool out_part_topology_matches(HepMC3::GenEvent const &ev,
+                               std::array<int, N> const &PIDs,
+                               std::array<int, N> const &counts) {
+  static_assert(N > 0, "out_part_topology_matches: EmptyPIDList");
+
+  return has_exact_out_part<N>(ev, PIDs, counts) &&
+         (ProSelecta_detail::particles<ProSelecta_detail::kUndecayedPhysical,
+                                       0>(ev, {})
+              .size() == std::accumulate(counts.begin(), counts.end(), 0));
+}
+
+template <size_t N>
+bool has_at_least_out_part(HepMC3::GenEvent const &ev,
+                           std::array<int, N> const &PIDs,
+                           std::array<int, N> const &counts) {
+  static_assert(N > 0, "has_at_least_out_part: EmptyPIDList");
 
   return ProSelecta_detail::has_particles_atleast<
       ProSelecta_detail::kUndecayedPhysical, N>(ev, PIDs, counts);
 }
 
-bool HasAtLeastOutPart(HepMC3::GenEvent const &ev, int PID, int count) {
+bool has_at_least_out_part(HepMC3::GenEvent const &ev, int PID, int count) {
   return ProSelecta_detail::has_particles_atleast<
       ProSelecta_detail::kUndecayedPhysical, 1>(ev, {PID}, {count});
 }
 
 template <size_t N>
-auto NumOutPart(HepMC3::GenEvent const &ev, std::array<int, N> const &PIDs) {
+auto num_out_part(HepMC3::GenEvent const &ev, std::array<int, N> const &PIDs) {
 
-  static_assert(N > 0, "NumOutPart: EmptyPIDList");
+  static_assert(N > 0, "num_out_part: EmptyPIDList");
 
   std::array<int, N> outs;
 
@@ -68,7 +95,7 @@ auto NumOutPart(HepMC3::GenEvent const &ev, std::array<int, N> const &PIDs) {
   return outs;
 }
 
-int NumOutPart(HepMC3::GenEvent const &ev, int PID = 0) {
+int num_out_part(HepMC3::GenEvent const &ev, int PID = 0) {
   if (PID) {
     return ProSelecta_detail::particles<ProSelecta_detail::kUndecayedPhysical,
                                         1>(ev, {PID})
@@ -81,9 +108,9 @@ int NumOutPart(HepMC3::GenEvent const &ev, int PID = 0) {
 }
 
 template <size_t N>
-int NumOutPartExcept(HepMC3::GenEvent const &ev,
-                     std::array<int, N> const &PIDs) {
-  static_assert(N > 0, "NumOutPartExcept: EmptyPIDList");
+int num_out_part_except(HepMC3::GenEvent const &ev,
+                        std::array<int, N> const &PIDs) {
+  static_assert(N > 0, "num_out_part_except: EmptyPIDList");
 
   return ProSelecta_detail::particles<ProSelecta_detail::kUndecayedPhysical, N,
                                       ProSelecta_detail::kNotFromPDGList>(ev,
@@ -91,12 +118,12 @@ int NumOutPartExcept(HepMC3::GenEvent const &ev,
       .size();
 }
 
-int NumOutPartExcept(HepMC3::GenEvent const &ev, int PID) {
-  return NumOutPartExcept<1>(ev, {PID});
+int num_out_part_except(HepMC3::GenEvent const &ev, int PID) {
+  return num_out_part_except<1>(ev, {PID});
 }
 
 template <size_t N>
-auto AllOutPart(HepMC3::GenEvent const &ev, std::array<int, N> const &PIDs) {
+auto all_out_part(HepMC3::GenEvent const &ev, std::array<int, N> const &PIDs) {
   static_assert(N > 0, "OutPart: EmptyPIDList");
 
   std::array<std::vector<HepMC3::ConstGenParticlePtr>, N> outs;
@@ -109,8 +136,8 @@ auto AllOutPart(HepMC3::GenEvent const &ev, std::array<int, N> const &PIDs) {
   return outs;
 }
 
-std::vector<HepMC3::ConstGenParticlePtr> AllOutPart(HepMC3::GenEvent const &ev,
-                                                    int PID = 0) {
+std::vector<HepMC3::ConstGenParticlePtr>
+all_out_part(HepMC3::GenEvent const &ev, int PID = 0) {
   if (PID) {
     return ProSelecta_detail::particles<ProSelecta_detail::kUndecayedPhysical,
                                         1>(ev, {PID});
@@ -121,29 +148,29 @@ std::vector<HepMC3::ConstGenParticlePtr> AllOutPart(HepMC3::GenEvent const &ev,
 }
 
 template <size_t N>
-auto AllOutPartExcept(HepMC3::GenEvent const &ev,
-                      std::array<int, N> const &PIDs) {
+auto all_out_part_except(HepMC3::GenEvent const &ev,
+                         std::array<int, N> const &PIDs) {
   return ProSelecta_detail::particles<ProSelecta_detail::kUndecayedPhysical, N,
                                       ProSelecta_detail::kNotFromPDGList>(ev,
                                                                           PIDs);
 }
 
-auto AllOutPartExcept(HepMC3::GenEvent const &ev, int PID) {
+auto all_out_part_except(HepMC3::GenEvent const &ev, int PID) {
   return ProSelecta_detail::particles<ProSelecta_detail::kUndecayedPhysical, 1,
                                       ProSelecta_detail::kNotFromPDGList>(
       ev, {PID});
 }
 
 template <size_t N>
-bool HasBeamPart(HepMC3::GenEvent const &ev, std::array<int, N> const &PIDs) {
+bool has_beam_part(HepMC3::GenEvent const &ev, std::array<int, N> const &PIDs) {
 
-  static_assert(N > 0, "HasBeamPart: EmptyPIDList");
+  static_assert(N > 0, "has_beam_part: EmptyPIDList");
 
   return ProSelecta_detail::particles<ProSelecta_detail::kBeam, N>(ev, PIDs)
       .size();
 }
 
-bool HasBeamPart(HepMC3::GenEvent const &ev, int PID = 0) {
+bool has_beam_part(HepMC3::GenEvent const &ev, int PID = 0) {
   if (PID) {
     return ProSelecta_detail::has_particles<ProSelecta_detail::kBeam, 1>(ev,
                                                                          {PID});
@@ -152,26 +179,26 @@ bool HasBeamPart(HepMC3::GenEvent const &ev, int PID = 0) {
       .size();
 }
 
-auto BeamPart(HepMC3::GenEvent const &ev, int PID = 0) {
+auto beam_part(HepMC3::GenEvent const &ev, int PID = 0) {
   auto parts =
       PID ? ProSelecta_detail::particles<ProSelecta_detail::kBeam, 1>(ev, {PID})
           : ProSelecta_detail::particles<ProSelecta_detail::kBeam, 0>(ev, {});
 
   if (!parts.size()) {
     std::stringstream ss;
-    ss << "BeamPart(" << PID << "): NoMatchingParts";
+    ss << "beam_part(" << PID << "): NoMatchingParts";
     throw NoMatchingParts(ss.str());
   }
   if (parts.size() > 1) {
     std::stringstream ss;
-    ss << "BeamPart(" << PID << "): MoreThanOneBeamPart";
+    ss << "beam_part(" << PID << "): MoreThanOneBeamPart";
     throw MoreThanOneBeamPart(ss.str());
   }
   return parts.front();
 }
 
 template <size_t N>
-auto BeamPart(HepMC3::GenEvent const &ev, std::array<int, N> const &PIDs) {
+auto beam_part(HepMC3::GenEvent const &ev, std::array<int, N> const &PIDs) {
   static_assert(N > 0, "OutPart: EmptyPIDList");
 
   auto parts =
@@ -179,7 +206,7 @@ auto BeamPart(HepMC3::GenEvent const &ev, std::array<int, N> const &PIDs) {
 
   if (!parts.size()) {
     std::stringstream ss;
-    ss << "BeamPart({";
+    ss << "beam_part({";
     for (auto PID : PIDs) {
       ss << PID << ", ";
     }
@@ -188,7 +215,7 @@ auto BeamPart(HepMC3::GenEvent const &ev, std::array<int, N> const &PIDs) {
   }
   if (parts.size() > 1) {
     std::stringstream ss;
-    ss << "BeamPart({";
+    ss << "beam_part({";
     for (auto PID : PIDs) {
       ss << PID << ", ";
     }
@@ -199,15 +226,16 @@ auto BeamPart(HepMC3::GenEvent const &ev, std::array<int, N> const &PIDs) {
 }
 
 template <size_t N>
-bool HasTargetPart(HepMC3::GenEvent const &ev, std::array<int, N> const &PIDs) {
+bool has_target_part(HepMC3::GenEvent const &ev,
+                     std::array<int, N> const &PIDs) {
 
-  static_assert(N > 0, "HasTargetPart: EmptyPIDList");
+  static_assert(N > 0, "has_target_part: EmptyPIDList");
 
   return ProSelecta_detail::particles<ProSelecta_detail::kTarget, N>(ev, PIDs)
       .size();
 }
 
-bool HasTargetPart(HepMC3::GenEvent const &ev, int PID = 0) {
+bool has_target_part(HepMC3::GenEvent const &ev, int PID = 0) {
   if (PID) {
     return ProSelecta_detail::has_particles<ProSelecta_detail::kTarget, 1>(
         ev, {PID});
@@ -216,26 +244,26 @@ bool HasTargetPart(HepMC3::GenEvent const &ev, int PID = 0) {
       .size();
 }
 
-auto TargetPart(HepMC3::GenEvent const &ev, int PID = 0) {
+auto target_part(HepMC3::GenEvent const &ev, int PID = 0) {
   auto parts =
       PID ? ProSelecta_detail::particles<ProSelecta_detail::kTarget, 1>(ev,
                                                                         {PID})
           : ProSelecta_detail::particles<ProSelecta_detail::kTarget, 0>(ev, {});
   if (!parts.size()) {
     std::stringstream ss;
-    ss << "TargetPart(" << PID << "): NoMatchingParts";
+    ss << "target_part(" << PID << "): NoMatchingParts";
     throw NoMatchingParts(ss.str());
   }
   if (parts.size() > 1) {
     std::stringstream ss;
-    ss << "TargetPart(" << PID << "): MoreThanOneTargetPart";
+    ss << "target_part(" << PID << "): MoreThanOneTargetPart";
     throw MoreThanOneTargetPart(ss.str());
   }
   return parts.front();
 }
 
 template <size_t N>
-auto TargetPart(HepMC3::GenEvent const &ev, std::array<int, N> const &PIDs) {
+auto target_part(HepMC3::GenEvent const &ev, std::array<int, N> const &PIDs) {
   static_assert(N > 0, "OutPart: EmptyPIDList");
 
   auto parts =
@@ -243,7 +271,7 @@ auto TargetPart(HepMC3::GenEvent const &ev, std::array<int, N> const &PIDs) {
 
   if (!parts.size()) {
     std::stringstream ss;
-    ss << "TargetPart({";
+    ss << "target_part({";
     for (auto PID : PIDs) {
       ss << PID << ", ";
     }
@@ -252,7 +280,7 @@ auto TargetPart(HepMC3::GenEvent const &ev, std::array<int, N> const &PIDs) {
   }
   if (parts.size() > 1) {
     std::stringstream ss;
-    ss << "TargetPart({";
+    ss << "target_part({";
     for (auto PID : PIDs) {
       ss << PID << ", ";
     }
@@ -262,7 +290,7 @@ auto TargetPart(HepMC3::GenEvent const &ev, std::array<int, N> const &PIDs) {
   return parts.front();
 }
 
-auto OutNuclearParts(HepMC3::GenEvent const &ev) {
+auto out_nuclear_parts(HepMC3::GenEvent const &ev) {
   return ProSelecta_detail::nuclear_particles<
       ProSelecta_detail::kUndecayedPhysical>(ev);
 }

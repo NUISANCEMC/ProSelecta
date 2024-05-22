@@ -23,6 +23,12 @@ target_include_directories(partTests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
 catch_discover_tests(partTests)
 
+add_executable(vectTests vectTests.cxx)
+target_link_libraries(vectTests PRIVATE Catch2::Catch2WithMain ProSelecta::Interpreter ROOT::MathCore HepMC3::All)
+target_include_directories(vectTests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+
+catch_discover_tests(vectTests)
+
 add_executable(EnvTests EnvTests.cxx)
 target_link_libraries(EnvTests PRIVATE Catch2::Catch2WithMain ProSelecta::Interpreter ROOT::MathCore HepMC3::All)
 target_include_directories(EnvTests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})

@@ -12,9 +12,11 @@ namespace ps {
 
 namespace part {
 struct cuts {
-
   using argument_type = HepMC3::ConstGenParticlePtr;
+
   std::vector<std::function<bool(HepMC3::ConstGenParticlePtr)>> fcuts;
+  bool negate = false;
+
   bool operator()(HepMC3::ConstGenParticlePtr part) const {
     bool passall = true;
 
@@ -22,13 +24,19 @@ struct cuts {
       passall = passall && cut(part);
     }
 
-    return passall;
+    return negate ? !passall : passall;
   }
 
   cuts operator&&(cuts const &other) const {
     cuts out = *this;
     std::copy(other.fcuts.begin(), other.fcuts.end(),
               std::back_inserter(out.fcuts));
+    return out;
+  }
+
+  cuts operator!() const {
+    cuts out = *this;
+    out.negate = !out.negate;
     return out;
   }
 };
@@ -65,17 +73,17 @@ template <typename Projector> struct cutable {
   }
 };
 
-struct momentum_ : public cutable<momentum_> {
+struct p3mod_ : public cutable<p3mod_> {
   double operator()(HepMC3::ConstGenParticlePtr part) const {
     return part->momentum().p3mod();
   }
-} momentum;
+} p3mod;
 
 struct energy_ : public cutable<energy_> {
   double operator()(HepMC3::ConstGenParticlePtr part) const {
     return part->momentum().e();
   }
-};
+} energy;
 
 struct theta_ : public cutable<theta_> {
 
@@ -108,6 +116,13 @@ struct costheta_ : public cutable<costheta_> {
   }
 
 } costheta;
+
+struct momentum_ {
+  HepMC3::FourVector operator()(HepMC3::ConstGenParticlePtr part) const {
+    return part->momentum();
+  }
+} momentum;
+
 } // namespace ps
 
 namespace ProSelecta_detail {
@@ -153,39 +168,29 @@ particles(HepMC3::GenEvent const &evt, std::array<int, N> const &pdgs) {
   return selected_parts;
 }
 
-template <int status>
-HepMC3::ConstGenParticlePtr hmparticle(HepMC3::GenEvent const &evt, int pdg) {
-  HepMC3::ConstGenParticlePtr hmpart = nullptr;
-  double hmmom2 = 0;
-
-  for (auto const &part : evt.particles()) {
-    if (part->status() != status) {
-      continue;
-    }
-    if constexpr (status == kUndecayedPhysical) {
-      if (part->pid() >= ps::pdg::kNuclearPDGBoundary) {
-        continue;
-      }
-    }
-
-    if (part->pid() == pdg) {
-      double part_mom2 = part->momentum().length2();
-      if (part_mom2 > hmmom2) {
-        hmpart = part;
-        hmmom2 = part_mom2;
-      }
-    }
-  }
-
-  return hmpart;
-}
-
 template <int status, size_t N>
 bool has_particles(HepMC3::GenEvent const &ev, std::array<int, N> const &PIDs) {
   bool hasall = true;
 
   for (auto id : PIDs) {
     hasall = hasall && bool(particles<status, 1>(ev, {id}).size());
+  }
+
+  return hasall;
+}
+
+template <int status, size_t N>
+bool has_particles_exact(HepMC3::GenEvent const &ev,
+                         std::array<int, N> const &PIDs,
+                         std::array<int, N> const &counts) {
+  bool hasall = true;
+
+  for (size_t i = 0; i < PIDs.size(); ++i) {
+    hasall = hasall && bool(particles<status, N>(ev,
+                                                 {
+                                                     PIDs[i],
+                                                 })
+                                .size() == counts[i]);
   }
 
   return hasall;
