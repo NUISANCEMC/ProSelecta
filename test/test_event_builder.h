@@ -84,15 +84,15 @@ std::shared_ptr<HepMC3::GenParticle> BuildPart(std::string const &pline) {
 
   int pdg = std::stol(split[0]);
   int status = std::stol(split[1]);
-  double p3mag = std::stod(split[2]);
+  double p3mag = std::stod(split[2]) * 1000.0;
 
   double pol_rad = std::acos(gRandom->Uniform(-1, 1));
   if (split.size() >= 4) {
     pol_rad = std::stod(split[3]) * (M_PI / 180.0);
   }
-  double mass = default_mass_GeV(pdg);
+  double mass = default_mass_GeV(pdg) * 1000.0;
   if ((split.size() >= 5) && (split[4] != "-")) {
-    mass = std::stod(split[4]);
+    mass = std::stod(split[4]) * 1000.0;
   }
   double azim_rad = gRandom->Uniform(0, 2 * M_PI);
   if (split.size() >= 6) {
@@ -111,7 +111,7 @@ std::shared_ptr<HepMC3::GenParticle> BuildPart(std::string const &pline) {
 HepMC3::GenEvent BuildEvent(std::vector<std::vector<std::string>> const &parts,
                             std::vector<int> const &vids = {}) {
 
-  HepMC3::GenEvent evt;
+  HepMC3::GenEvent evt(HepMC3::Units::MEV, HepMC3::Units::CM);
 
   for (int v = 0; v < (parts.size() - 1); ++v) {
 
@@ -139,8 +139,6 @@ HepMC3::GenEvent BuildEvent(std::vector<std::vector<std::string>> const &parts,
 
     evt.add_vertex(vertex);
   }
-
-  evt.set_units(HepMC3::Units::GEV, HepMC3::Units::CM);
 
   return evt;
 }

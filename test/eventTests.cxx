@@ -26,7 +26,7 @@ TEST_CASE("beam_part", "[ps::event]") {
 
   REQUIRE(event::beam_part(evt1, pdg::kNuMu)->pid() == pdg::kNuMu);
   REQUIRE_THAT(event::beam_part(evt1, pdg::kNuMu)->momentum().length(),
-               WithinAbs(1, 1E-8));
+               WithinAbs(1 * ps::unit::GeV, 1E-8));
 
   REQUIRE(event::beam_part(evt1, pdg::kNeutralLeptons)->pid() == pdg::kNuMu);
 
@@ -52,7 +52,8 @@ TEST_CASE("target_part", "[ps::event]") {
   REQUIRE(event::has_target_part(evt1, 1000060120));
   REQUIRE_FALSE(event::has_target_part(evt1, 1000070140));
   REQUIRE(event::target_part(evt1)->pid() == 1000060120);
-  REQUIRE_THAT(event::target_part(evt1)->momentum().m(), WithinAbs(12, 1E-8));
+  REQUIRE_THAT(event::target_part(evt1)->momentum().m(),
+               WithinAbs(12 * ps::unit::GeV, 1E-8));
 
   REQUIRE_THROWS_AS(event::target_part(evt1, 1000070140),
                     event::NoMatchingParts);
@@ -164,14 +165,17 @@ TEST_CASE("all_out_part", "[ps::event]") {
   auto protons = event::all_out_part(evt1, 2212);
 
   REQUIRE(protons.size() == 1);
-  REQUIRE_THAT(protons.front()->momentum().length(), WithinAbs(0.15, 1E-8));
-  REQUIRE_THAT(protons.front()->momentum().m(), WithinAbs(0.938, 1E-8));
+  REQUIRE_THAT(protons.front()->momentum().length(),
+               WithinAbs(0.15 * ps::unit::GeV, 1E-8));
+  REQUIRE_THAT(protons.front()->momentum().m(),
+               WithinAbs(0.938 * ps::unit::GeV, 1E-8));
 
   auto const &[muons, antimuons] = event::all_out_part(evt1, pids{13, -13});
 
   REQUIRE(muons.size() == 2);
   REQUIRE(antimuons.size() == 1);
-  REQUIRE_THAT(antimuons.front()->momentum().length(), WithinAbs(1.3, 1E-8));
+  REQUIRE_THAT(antimuons.front()->momentum().length(),
+               WithinAbs(1.3 * ps::unit::GeV, 1E-8));
 
   auto all_out_part = event::all_out_part(evt1);
   REQUIRE(all_out_part.size() == 4);

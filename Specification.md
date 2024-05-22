@@ -29,38 +29,67 @@ Designed for the [NUISANCE](https://github.com/NUISANCEMC/nuisance) framework.
 
 # Quick Start
 
-Check for and fetch an incoming neutrino of any flavor
+1) Check for and fetch an incoming neutrino of any flavor. 
+
 ```c++
+if(!ps::event::has_beam_part(evt, ps::pdg::kNeutralLeptons)){
+  return false;
+}
 auto nu = ps::event::beam_part(evt, ps::pdg::kNeutralLeptons);
 ```
 
-Check that event has at least one incoming muon neutrino and one outgoing muon:
+All single particle fetching functions throw if no particle can be found, 
+rather than returning a `nullptr`.
+
+2) Check that the event has at least one incoming muon neutrino and one outgoing muon:
 ```c++
-bool has_incoming_numu = ps::event::has_beam_part(evt, 14);
-bool has_final_state_proton = ps::event::has_out_part(evt, 13);
+if(!ps::event::has_beam_part(evt, 14) || !ps::event::has_out_part(evt, 13){
+  return false;
+}
 ```
 
-Check the final state topology exactly matches: 1mu1p1pi:
+3) Check the final state topology exactly matches: 1mu1p1pi:
 ```c++
-bool is_1mu1p1pi = ps::event::out_part_topology_matches(evt, ps::pids{13,2212,211}, {1,1,1});
+if(!ps::event::out_part_topology_matches(evt, ps::pids{13,2212,211}, {1,1,1})){
+  return false;
+}
 ```
 
-Get all outgoing protons, ordered by momentum
+4) Get all outgoing protons and sort them by by 3momentum:
 ```c++
 auto protons = ps::event::all_out_part(evt, 2212);
 auto protons_sorted = ps::part::sort_ascending(ps::p3mod, protons);
 ```
 
-Get the highest momentum outgoing proton and negative pion
+Multi-particle search functions can return empty vectors. Accessing an
+empty vector is undefined behavior.
+
+5) Get the highest momentum outgoing proton and negative pion
 ```c++
 auto [protons, pims] = ps::event::all_out_part(evt, ps::pids{2212,-211});
 auto hmproton = ps::part::highest(ps::p3mod, protons);
 auto hmpim = ps::part::highest(ps::p3mod, pims);
 ```
 
-Get the transverse component of the vector sum of the final state muon and all protons
+6) Get the transverse component of the vector sum of the final state muon and all protons
 ```c++
 auto sum_pt = ps::event::sum(ps::momentum, ps::event::all_out_part(evt, ps::pids{13, 2212})).pt();
+```
+
+7) Get all protons with more than 0.05 GeV/c but less than 2 GeV/c of 3momentum:
+```c++
+auto p3mod_cut = (ps::p3mod > 0.05 * ps::unit::GeV)&&(ps::p3mod < 2 * ps::unit::GeV);
+auto passing_protons = ps::event::filter(p3mod_cut, ps::event::all_out_part(evt, 2212));
+```
+
+8) Get the invariant mass of all final state protons and pions with more than 250 MeV/c of 3momentum:
+```c++
+auto invmass_protons_and_pions = 
+  ps::event::sum(ps::momentum, 
+    ps::event::filter(ps::p3mod > 250 * ps::unit::MeV, 
+      ps::part::cat(ps::event::all_out_part(evt, ps::pids{2212, 211, -211, 111}))
+    )
+  ).m();
 ```
 
 # Auxilliary Definitions

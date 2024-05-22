@@ -13,20 +13,20 @@ TEST_CASE("BuildMinPart", "[test-tools]") {
   auto part = BuildPart("2212 11 1");
   REQUIRE(part->pid() == 2212);
   REQUIRE(part->status() == 11);
-  REQUIRE_THAT(part->momentum().length(), WithinAbs(1, 1E-8));
-  REQUIRE_THAT(part->momentum().m(), WithinAbs(0.938, 1E-8));
+  REQUIRE_THAT(part->momentum().length(), WithinAbs(1 * ps::unit::GeV, 1E-8));
+  REQUIRE_THAT(part->momentum().m(), WithinAbs(0.938 * ps::unit::GeV, 1E-8));
 }
 
 TEST_CASE("BuildPartSkipMass", "[test-tools]") {
   auto part = BuildPart("2212 11 1 30 - 0");
-  REQUIRE_THAT(part->momentum().m(), WithinAbs(0.938, 1E-8));
+  REQUIRE_THAT(part->momentum().m(), WithinAbs(0.938 * ps::unit::GeV, 1E-8));
 
   REQUIRE_THAT(part->momentum().theta() * (180.0 / M_PI), WithinAbs(30, 1E-8));
-  REQUIRE_THAT(part->momentum().x(), WithinAbs(0.5, 1E-8));
+  REQUIRE_THAT(part->momentum().x(), WithinAbs(0.5 * ps::unit::GeV, 1E-8));
   REQUIRE_THAT(part->momentum().y(), WithinAbs(0, 1E-8));
   REQUIRE_THAT(part->momentum().z(),
-               WithinAbs(std::sqrt(1 - std::pow(.5, 2)), 1E-8));
-  REQUIRE_THAT(part->momentum().m(), WithinAbs(.938, 1E-8));
+               WithinAbs(std::sqrt(1 - std::pow(.5, 2)) * ps::unit::GeV, 1E-8));
+  REQUIRE_THAT(part->momentum().m(), WithinAbs(.938 * ps::unit::GeV, 1E-8));
   REQUIRE_THAT(part->momentum().phi() * (180.0 / M_PI), WithinAbs(0, 1E-8));
 }
 
@@ -34,9 +34,9 @@ TEST_CASE("BuildFullPart", "[test-tools]") {
   auto part = BuildPart("2212 11 1 20 .937 45");
   REQUIRE(part->pid() == 2212);
   REQUIRE(part->status() == 11);
-  REQUIRE_THAT(part->momentum().length(), WithinAbs(1, 1E-8));
+  REQUIRE_THAT(part->momentum().length(), WithinAbs(1 * ps::unit::GeV, 1E-8));
   REQUIRE_THAT(part->momentum().theta() * (180.0 / M_PI), WithinAbs(20, 1E-8));
-  REQUIRE_THAT(part->momentum().m(), WithinAbs(0.937, 1E-8));
+  REQUIRE_THAT(part->momentum().m(), WithinAbs(0.937 * ps::unit::GeV, 1E-8));
   REQUIRE_THAT(part->momentum().phi() * (180.0 / M_PI), WithinAbs(45, 1E-8));
 }
 

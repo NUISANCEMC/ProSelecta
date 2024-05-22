@@ -91,6 +91,17 @@ auto one(std::array<std::vector<HepMC3::ConstGenParticlePtr>, N> parts) {
   return part;
 }
 
+template <size_t N>
+auto cat(std::array<std::vector<HepMC3::ConstGenParticlePtr>, N> parts) {
+
+  std::vector<HepMC3::ConstGenParticlePtr> all_parts;
+  for (auto const &arr : parts) {
+    std::copy(arr.begin(), arr.end(), std::back_inserter(all_parts));
+  }
+
+  return all_parts;
+}
+
 template <typename T>
 auto sum(T const &projector, std::vector<HepMC3::ConstGenParticlePtr> parts) {
   return std::accumulate(
