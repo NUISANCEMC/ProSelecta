@@ -53,7 +53,7 @@ HepMC3::FourVector rotate(HepMC3::FourVector const &v, HepMC3::FourVector axis,
 }
 
 HepMC3::FourVector boost(HepMC3::FourVector const &fv,
-                         HepMC3::FourVector const &boost) {
+                         HepMC3::FourVector const &boost_beta) {
 
   HepMC3::FourVector vo;
 

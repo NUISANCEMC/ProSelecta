@@ -7,5 +7,3 @@
 #include "part.h"
 #include "vect.h"
 #include "unit.h"
-
-#include "ext/scatter.h"
