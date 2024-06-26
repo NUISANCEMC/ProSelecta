@@ -52,6 +52,10 @@ HepMC3::FourVector rotate(HepMC3::FourVector const &v, HepMC3::FourVector axis,
          axis * dot(axis, v) * (1.0 - std::cos(theta));
 }
 
+HepMC3::FourVector boost_beta(HepMC3::FourVector const &fv) {
+  return (fv.p3mod()/fv.e())*direction(fv);
+}
+
 HepMC3::FourVector boost(HepMC3::FourVector const &fv,
                          HepMC3::FourVector const &boost_beta) {
 
