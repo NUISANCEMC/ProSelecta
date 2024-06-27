@@ -256,7 +256,7 @@ std::vector<double> ProSelecta_detail_test_vector_double(){ return {1,}; }
         "variable points to a HepMC3 distribution.");
   }
 
-  if (!gInterpreter->LoadText(R"(#include "ProSelecta/env/env.h")")) {
+  if (!gInterpreter->LoadText(R"(#include "ProSelecta/env.h")")) {
     std::cerr << "ProSelecta environment initialization failed." << std::endl;
     throw std::runtime_error("cling returned false when asked to include the "
                              "ProSelecta/env.h.");

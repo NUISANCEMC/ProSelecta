@@ -60,6 +60,7 @@ find_package(ROOT ${ROOT_MIN_VERSION} REQUIRED)
 LIST(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules)
 include(CPM)
 
+find_package(Protobuf 2.4)
 find_package(HepMC3 REQUIRED)
 
 if(TARGET HepMC3::HepMC3)
