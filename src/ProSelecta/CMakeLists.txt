@@ -6,7 +6,7 @@ set(HEADERS
 add_library(ProSelectaInterpreter SHARED ProSelecta.cxx ProSelecta_cling.cxx)
 
 target_link_libraries(ProSelectaInterpreter PUBLIC 
-  NuHepMC::CPPUtils
+  HepMC3::HepMC3
   ROOT::Core ROOT::Hist)
 
 set_target_properties(ProSelectaInterpreter PROPERTIES 

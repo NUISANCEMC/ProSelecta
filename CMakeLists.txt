@@ -60,7 +60,7 @@ find_package(ROOT ${ROOT_MIN_VERSION} REQUIRED)
 LIST(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules)
 include(CPM)
 
-find_package(NuHepMC_CPPUtils REQUIRED)
+find_package(HepMC3 REQUIRED)
 
 if(TARGET HepMC3::HepMC3)
   get_target_property(ProSelecta_HEPMC3_INCLUDE_DIR HepMC3::HepMC3 INTERFACE_INCLUDE_DIRECTORIES)
