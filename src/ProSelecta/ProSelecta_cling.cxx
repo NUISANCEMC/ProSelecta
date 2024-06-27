@@ -30,9 +30,8 @@ bool returns_impl(std::string const &symname,
                   TInterpreter::EErrorCode &cling_err) {
   gInterpreter->ProcessLine(
       (std::string(
-           "ProSelecta_detail_FillFuncReturnTypeDeductions<decltype(std:"
-           ":function{") +
-       symname + "})::result_type>();")
+           "ProSelecta_detail_FillFuncReturnTypeDeductions<decltype(") +
+       symname + "(HepMC3::GenEvent{}))>();")
           .c_str(),
       &cling_err);
 
