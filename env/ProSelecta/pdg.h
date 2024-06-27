@@ -34,7 +34,8 @@ constexpr static int kGamma = 22;
 
 constexpr static int kNuclearPDGBoundary = 1000000000;
 
-constexpr static std::array kChargedLeptons = {kElectron, kAElectron, kMuon, kAMuon};
+constexpr static std::array kChargedLeptons = {kElectron, kAElectron, kMuon,
+                                               kAMuon};
 constexpr static std::array kChargedLeptons_matter = {kElectron, kMuon};
 constexpr static std::array kChargedLeptons_amatter = {kAElectron, kAMuon};
 
@@ -43,7 +44,7 @@ constexpr static std::array kNeutralLeptons_matter = {kNuE, kNuMu};
 constexpr static std::array kNeutralLeptons_amatter = {kANuE, kANuMu};
 
 constexpr static std::array kLeptons = {kElectron, kAElectron, kMuon, kAMuon,
-                                  kNuE,      kANuE,      kNuMu, kANuMu};
+                                        kNuE,      kANuE,      kNuMu, kANuMu};
 
 } // namespace pdg
 } // namespace ps

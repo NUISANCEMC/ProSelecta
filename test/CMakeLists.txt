@@ -35,16 +35,16 @@ target_include_directories(envTests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
 catch_discover_tests(envTests)
 
-# find_package(Boost 1.70.0)
-# if(BOOST_FOUND)
+find_package(Boost 1.70.0 COMPONENTS filesystem)
+if(BOOST_FOUND)
 
-#   add_library(dummyPlugin dummyPlugin.cxx)
-#   target_link_libraries(dummyPlugin PRIVATE Boost::boost ProSelecta::Interpreter ROOT::MathCore HepMC3::All)
-#   target_include_directories(dummyPlugin PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+  add_library(dummyPlugin SHARED dummyPlugin.cxx)
+  target_link_libraries(dummyPlugin PRIVATE Boost::boost ProSelecta::Interpreter ROOT::MathCore HepMC3::All)
+  target_include_directories(dummyPlugin PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
-#   add_executable(pluginTests pluginTests.cxx)
-#   target_link_libraries(pluginTests PRIVATE Boost::boost Catch2::Catch2WithMain ProSelecta::Interpreter ROOT::MathCore HepMC3::All)
-#   target_include_directories(pluginTests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+  add_executable(pluginTest pluginTest.cxx)
+  target_link_libraries(pluginTest PRIVATE Boost::boost Boost::filesystem Catch2::Catch2WithMain ProSelecta::Interpreter ROOT::MathCore HepMC3::All)
+  target_include_directories(pluginTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
-#   catch_discover_tests(pluginTests)
-# endif()
+  catch_discover_tests(pluginTest)
+endif()
