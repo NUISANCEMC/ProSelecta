@@ -71,11 +71,10 @@ bool load_file(std::string const &file_to_read) {
 std::vector<std::string> analyses;
 bool load_analysis(std::string const &file_to_read, std::string location) {
   ps::cling::initialize_environment();
-  if (std::find(ps::cling::analyses.begin(),
-                ps::cling::analyses.end(),
+  if (std::find(ps::cling::analyses.begin(), ps::cling::analyses.end(),
                 location + file_to_read) != ps::cling::analyses.end()) {
-                  return true;
-                }
+    return true;
+  }
   ps::cling::add_include_path(location);
   ps::cling::analyses.push_back(location + file_to_read);
   return !bool(gInterpreter->LoadFile(file_to_read.c_str()));
@@ -255,22 +254,6 @@ std::vector<double> ProSelecta_detail_test_vector_double(){ return {1,}; }
         "cling returned false when asked to include the "
         "HepMC3/GenEvent.h. Check that the ProSelecta_INCLUDE_PATH environment "
         "variable points to a HepMC3 distribution.");
-  }
-
-  if (!gInterpreter->LoadText(R"(#include "NuHepMC/Constants.hxx")")) {
-    std::cerr << "ProSelecta environment initialization failed." << std::endl;
-    throw std::runtime_error("cling returned false when asked to include the "
-                             "NuHepMC/Constants.hxx. Check that the "
-                             "ProSelecta_INCLUDE_PATH environment "
-                             "variable points to a NuHepMC distribution.");
-  }
-
-  if (!gInterpreter->LoadText(R"(#include "Eigen/Dense")")) {
-    std::cerr << "ProSelecta environment initialization failed." << std::endl;
-    throw std::runtime_error(
-        "cling returned false when asked to include the "
-        "Eigen/Dense. Check that the ProSelecta_INCLUDE_PATH environment "
-        "variable points to a Eigen3 distribution.");
   }
 
   if (!gInterpreter->LoadText(R"(#include "ProSelecta/env/env.h")")) {

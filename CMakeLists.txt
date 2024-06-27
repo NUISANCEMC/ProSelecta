@@ -84,7 +84,7 @@ CPMFindPackage(
 set(ProSelecta_PYSITEARCH "${Python3_VERSION_MAJOR}${Python3_VERSION_MINOR}")
 set(ProSelecta_PYTHONPATH "python/${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}")
 
-# add_subdirectory(python)
+add_subdirectory(python)
 
 if(ProSelecta_ENABLE_TESTS)
   add_subdirectory(test)
@@ -119,4 +119,4 @@ install(FILES
     ${CMAKE_CURRENT_BINARY_DIR}/ProSelectaConfigVersion.cmake 
   DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/cmake/ProSelecta)
 
-install(DIRECTORY env DESTINATION ${CMAKE_INSTALL_PREFIX})
+install(DIRECTORY env/ProSelecta DESTINATION ${CMAKE_INSTALL_PREFIX}/include)

@@ -53,7 +53,7 @@ HepMC3::FourVector rotate(HepMC3::FourVector const &v, HepMC3::FourVector axis,
 }
 
 HepMC3::FourVector boost_beta(HepMC3::FourVector const &fv) {
-  return (fv.p3mod()/fv.e())*direction(fv);
+  return direction(fv)*(fv.p3mod()/fv.e());
 }
 
 HepMC3::FourVector boost(HepMC3::FourVector const &fv,
@@ -62,9 +62,9 @@ HepMC3::FourVector boost(HepMC3::FourVector const &fv,
   HepMC3::FourVector vo;
 
   // Boost this Lorentz vector
-  double bx = boost.x();
-  double by = boost.y();
-  double bz = boost.z();
+  double bx = boost_beta.x();
+  double by = boost_beta.y();
+  double bz = boost_beta.z();
 
   double b2 = bx * bx + by * by + bz * bz;
   double gamma = 1.0 / sqrt(1.0 - b2);

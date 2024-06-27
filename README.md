@@ -6,9 +6,9 @@ ProSelecta is a bit like an Analysis Descriptor Language (ADL), except that it d
 
 ProSelecta is a specification for a minimal set of utilities to support describing the _event_ selection and projection steps of constructing a prediction of a neutrino-scattering measurement in a declarative way.
 
-ProSelecta is also an implementation of this specification in C++ and using HepMC3 as the event format. To avoid needless code duplication, some of the HepMC3 event model is included as part of ProSelecta. While this limits the purity and generality of ProSelecta, we think that it is the right choice practicaly.
+ProSelecta is also a header-only implementation of this specification in C++ and using HepMC3 as the event format. To avoid needless code duplication, some of the HepMC3 event model is included as part of ProSelecta. While this limits the purity and generality of ProSelecta, we think that it is the right choice practicaly.
 
-ProSelecta is also also a library providing an interface for writing dynamic event processors that JIT C++ source files written against the ProSelecta environment and makeing the functions defined within this source immediately callable for event processing.
+ProSelecta is also also a library providing an interface for writing dynamic event processors that JITs C++ source files written against the ProSelecta environment and exposes functions defined within the source as immediately callable for event processing.
 
 A pseudo-python example of what this enables is shown below:
 
@@ -41,7 +41,7 @@ for event in hepmc3_file: #don't ask how we got this file
     enu = projection(event)
 ```
 
-This example is contrived, but hopefully it highlights how a robust event processing environment, coupled to a JIT runtime can enable a range of dynamic, automated workflows.
+This example is somewhat contrived and not particularly efficient, but hopefully it highlights how a robust event processing environment, coupled to a JIT runtime can enable a range of dynamic, automated workflows.
 
 ## Attribution
 
@@ -51,18 +51,19 @@ Designed for the [NUISANCE](https://github.com/NUISANCEMC/nuisance) framework.
 
 ## Table of Contents
 
-* The Environment
-  * Quick Start
-  * HepMC3 Types
-  * event
-  * vect
-  * part
-* Auxilliary Definitions
-  * Units
-  * PDG MC Codes
-  * Missing Datum
-* Community Functions
-* The Interpreter
+* [The Environment](#the-proselecta-environment)
+  * [Quick Start](#quick-start)
+  * [event](#event)
+  * [vect](#vect)
+  * [part](#part)
+  * [HepMC3 Types](#hepmc3-types)
+* [Auxilliary Definitions](#auxilliary-defintions)
+  * [Units](#units)
+  * [PDG MC Codes](#pdg-mc-codes)
+  * [Missing Datum](#missing-datum)
+* [Community Functions](#community-functions)
+* [The Interpreter](#the-interpreter)
+* [Python Bindings](#python-bindings)
 
 # The ProSelecta Environment
 
@@ -70,13 +71,16 @@ This section provides high-level documentation for the ProSelecta Environment.
 
 ## Quick Start
 
+Below are some examples, in increasing complexity, to showcase the expected use cases of ProSelecta.
+
 1) Check for and fetch an incoming neutrino of any flavor. 
 
 ```c++
 if(!ps::event::has_beam_part(evt, ps::pdg::kNeutralLeptons)){
   return false;
 }
-auto nu = ps::event::beam_part(evt, ps::pdg::kNeutralLeptons);
+HepMC3::ConstGenParticlePtr nu = 
+  ps::event::beam_part(evt, ps::pdg::kNeutralLeptons);
 ```
 
 All single particle fetching functions throw if no particle can be found. 
@@ -96,9 +100,10 @@ if(!ps::event::out_part_topology_matches(evt, ps::pids{13,2212,211}, {1,1,1})){
 }
 ```
 
-4) Get all outgoing protons and sort them by by 3momentum:
+4) Get all outgoing protons and sort them by 3-momentum magnitude:
 ```c++
-auto protons = ps::event::all_out_part(evt, 2212);
+std::vector<HepMC3::ConstGenParticlePtr> protons = 
+  ps::event::all_out_part(evt, 2212);
 auto protons_sorted = ps::part::sort_ascending(ps::p3mod, protons);
 ```
 
@@ -114,13 +119,13 @@ auto hmpim = ps::part::highest(ps::p3mod, pims);
 
 6) Get the transverse component of the vector sum of the final state muon and all protons
 ```c++
-auto sum_pt = ps::event::sum(ps::momentum, ps::event::all_out_part(evt, ps::pids{13, 2212})).pt();
+auto sum_pt = ps::part::sum(ps::momentum, ps::event::all_out_part(evt, ps::pids{13, 2212})).pt();
 ```
 
 7) Get all protons with more than 0.05 GeV/c but less than 2 GeV/c of 3momentum:
 ```c++
 auto p3mod_cut = (ps::p3mod > 0.05 * ps::unit::GeV)&&(ps::p3mod < 2 * ps::unit::GeV);
-auto passing_protons = ps::event::filter(p3mod_cut, ps::event::all_out_part(evt, 2212));
+auto passing_protons = ps::part::filter(p3mod_cut, ps::event::all_out_part(evt, 2212));
 ```
 
 8) Get the invariant mass of all final state protons and pions with more than 250 MeV/c of 3momentum:
@@ -387,21 +392,35 @@ ProSelecta is built on HepMC3 and so the full set of HepMC3 types can be used in
 
 ## System of Units
 
-This specification place no constraints on the internal units used by a concrete event and particle implementation. However, at least the below constants must be defined in the context of the internal units to allow deterministic conversion to user-specified units.
+The follow simple system of units is defined in [ProSelect/env/pdg.h](ProSelect/env/pdg.h) under the `ps::unit` namespace. These enable projected event properties to be converted to a specified unit and absolute cut values to be defined.
 
-* Energy/Momentum: `[M,G,k,]eV`
-* Mass: `[M,G,k,]eV_c2`
-* Angle: `rad, deg`
+* Energy/Momentum: `ps::unit::[M,G,k,]eV`
+* Angle: `ps::unit::rad, ps::unit::deg`
 
 Units constants can be used with numeric literals for direct comparison to calculated properties from an event or particle, for example:
 
-`part.momentum().p3mod() > 1*unit::GeV`
+```c++
+part.momentum().p3mod() > 1*ps::unit::GeV
+```
 
 They can also be used to convert the units of a calculated property, for example:
 
-`part.momentum().p3mod() / unit::GeV`
+```c++
+part.momentum().p3mod() / ps::unit::GeV
+```
 
 ## PDG MC Codes
+
+A number of pid constants are defined in [ProSelect/env/pdg.h](ProSelect/env/pdg.h) according to the [PDG MC particle numbering scheme](https://pdg.lbl.gov/2020/reviews/rpp2020-rev-monte-carlo-numbering.pdf). Groups of related particles are provides as `std::arrays` for  convenient use with particle search functions in the `ps::event` namespace. Some examples are given below:
+
+```c++
+ps::pdg::kNuE = 12;
+ps::pdg::kANuMu = -14;
+ps::pdg::kElectron = 11;
+ps::pdg::kProton = 2212;
+ps::pdg::kChargedLeptons = {kElectron, kAElectron, kMuon, kAMuon};
+ps::pdg::kNeutralLeptons_matter = {kNuE, kNuMu};
+```
 
 ## Missing Datum
 
@@ -416,7 +435,7 @@ double e_nu_mu_GeV(HepMC3::GenEvent const &evt){
 }
 ```
 
-This paradigm facilitates downstream code building columnar analyses without needing consistent nullable type handling.
+This paradigm facilitates downstream columnar analyses without needing consistent nullable type handling.
 
 # Community Functions
 
@@ -426,7 +445,51 @@ Community functions are auxilliary helper functions that the ProSelecta environm
 #include "ext/scatter.h"
 ```
 
-Documentation for community functions, where it exists, can be found [here]().
+Documentation for community functions, where it exists, can be found [here](CommunityFunctions.md).
+
+# The Interpreter
+
+ProSelecta provides an interpreter based on `cling` which can be used to JIT C++ source containing functions written against the ProSelecta environment and then provide type-checked access to those functions. This enables the writing of fully dynamic event processing frameworks that can apply selection and projection operators defined in externally-provided source files on input event vectors.
+
+The facilities provided by the ProSelecta Interpreter are quite minimal. The Proselecta environment is included before any proffered source is forwarded to the interpreter so that environment boiler plate in user scripts can be kept to a minimum. When fetching handles to JIT'd functions, the full function signature is type-checked to catch errors before they cause undefined behavior that can be difficult to debug.
+
+A complete example of a program that applys a selection and projection on an input event vector is included below.
+
+```c++
+
+#include "ProSelecta/ProSelecta.h"
+#include "HepMC3/deduce_reader.h"
+
+#include <iostream>
+
+//arguments <inputsrc.cpp> <sel_func_name> <proj_func_name> <inputevts.hepmc>
+int main(int argc, char const *argv[]){
+
+  ps::ProSelecta::Get().load_file(argv[1]);
+  auto self = ps::ProSelecta::Get().GetSelectFunction(argv[2]);
+  auto projf = ps::ProSelecta::Get().GetProjectionFunction(argv[3]);
+
+  auto rdr = HepMC3::deduce_reader(argv[4]);
+  HepMC3::GenEvent evt;
+
+  int i = 0;
+  while(!rdr->failed()){
+    rdr->read_event(evt);
+    if(rdr->failed()){
+      break;
+    }
+
+    if(self(evt)){ //if the event passes the selection
+      std::cout << i << ", " << projf(evt) << std::endl; // print the projection
+    }
+    i++;
+  }
+}
+```
+
+# Python Bindings
+
+Python bindings are provided for both the ProSelecta environment functions and for writing scripts that make use of the ProSelecta interpreter.
 
 # Citation Helper
 

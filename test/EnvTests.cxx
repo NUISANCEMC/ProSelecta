@@ -9,6 +9,6 @@
 TEST_CASE("Get", "[ps::ProSelecta]") { REQUIRE_NOTHROW(ps::ProSelecta::Get()); }
 
 TEST_CASE("LoadText::no-op", "[ps::ProSelecta]") {
-  REQUIRE(ps::ProSelecta::Get().LoadText("void no_op(){};",
-                                         ps::ProSelecta::Interpreter::kCling));
+  REQUIRE(ps::ProSelecta::Get().load_text("void no_op(){};",
+                                          ps::ProSelecta::Interpreter::kCling));
 }

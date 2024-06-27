@@ -34,12 +34,12 @@ ProSelecta::Interpreter GuessInterpreter(std::string const &path) {
   return ProSelecta::Interpreter::kCling;
 }
 
-bool ProSelecta::LoadText(std::string const &txt,
-                          ProSelecta::Interpreter itype) {
+bool ProSelecta::load_text(std::string const &txt,
+                           ProSelecta::Interpreter itype) {
   switch (itype) {
   case Interpreter::kAuto: {
     throw std::runtime_error(
-        "Cannot call ProSelecta::LoadText with Interpreter type kAuto. "
+        "Cannot call ProSelecta::load_text with Interpreter type kAuto. "
         "Explicitly specify the interpreter type.");
   }
   case Interpreter::kCling: {
@@ -51,8 +51,8 @@ bool ProSelecta::LoadText(std::string const &txt,
   }
 }
 
-bool ProSelecta::LoadFile(std::string const &file_to_read,
-                          ProSelecta::Interpreter itype) {
+bool ProSelecta::load_file(std::string const &file_to_read,
+                           ProSelecta::Interpreter itype) {
 
   if (itype == Interpreter::kAuto) {
     itype = GuessInterpreter(file_to_read);
@@ -67,10 +67,9 @@ bool ProSelecta::LoadFile(std::string const &file_to_read,
   }
 }
 
-
-bool ProSelecta::LoadAnalysis(std::string const &file_to_read,
-  std::string const &path,
-                          ProSelecta::Interpreter itype) {
+bool ProSelecta::load_analysis(std::string const &file_to_read,
+                               std::string const &path,
+                               ProSelecta::Interpreter itype) {
 
   if (itype == Interpreter::kAuto) {
     itype = GuessInterpreter(file_to_read);
@@ -85,12 +84,12 @@ bool ProSelecta::LoadAnalysis(std::string const &file_to_read,
   }
 }
 
-void ProSelecta::AddIncludePath(std::string const &path,
-                                ProSelecta::Interpreter itype) {
+void ProSelecta::add_include_path(std::string const &path,
+                                  ProSelecta::Interpreter itype) {
   switch (itype) {
   case Interpreter::kAuto: {
     throw std::runtime_error(
-        "Cannot call ProSelecta::AddIncludePath with Interpreter type kAuto. "
+        "Cannot call ProSelecta::add_include_path with Interpreter type kAuto. "
         "Explicitly specify the interpreter type.");
   }
   case Interpreter::kCling: {
@@ -103,8 +102,8 @@ void ProSelecta::AddIncludePath(std::string const &path,
   }
 }
 
-ProSelecta::Interpreter ProSelecta::ResolveType(std::string const &fnname,
-                                                std::string const &) {
+ProSelecta::Interpreter ProSelecta::resolve_type(std::string const &fnname,
+                                                 std::string const &) {
   bool cf = ps::cling::func_is_defined(fnname, "HepMC3::GenEvent const &");
 
   if (cf) {
@@ -117,11 +116,11 @@ ProSelecta::Interpreter ProSelecta::ResolveType(std::string const &fnname,
   }
 }
 
-SelectFunc ProSelecta::GetSelectFunction(std::string const &fnname,
-                                         Interpreter itype) {
+SelectFunc ProSelecta::get_select_func(std::string const &fnname,
+                                       Interpreter itype) {
 
   if (itype == Interpreter::kAuto) {
-    itype = ResolveType(fnname, "HepMC3::GenEvent const &");
+    itype = resolve_type(fnname, "HepMC3::GenEvent const &");
   }
 
   switch (itype) {
@@ -134,10 +133,27 @@ SelectFunc ProSelecta::GetSelectFunction(std::string const &fnname,
   }
 }
 
-ProjectionFunc ProSelecta::GetProjectionFunction(std::string const &fnname,
-                                                 Interpreter itype) {
+SelectsFunc ProSelecta::get_selects_func(std::string const &fnname,
+                                         Interpreter itype) {
+
   if (itype == Interpreter::kAuto) {
-    itype = ResolveType(fnname, "HepMC3::GenEvent const &");
+    itype = resolve_type(fnname, "HepMC3::GenEvent const &");
+  }
+
+  switch (itype) {
+  case Interpreter::kCling: {
+    return cling::get_selects_func(fnname);
+  }
+  default: {
+    throw std::runtime_error("invalid interpreter type");
+  }
+  }
+}
+
+ProjectionFunc ProSelecta::get_projection_func(std::string const &fnname,
+                                               Interpreter itype) {
+  if (itype == Interpreter::kAuto) {
+    itype = resolve_type(fnname, "HepMC3::GenEvent const &");
   }
 
   switch (itype) {
@@ -150,10 +166,26 @@ ProjectionFunc ProSelecta::GetProjectionFunction(std::string const &fnname,
   }
 }
 
-WeightFunc ProSelecta::GetWeightFunction(std::string const &fnname,
-                                         Interpreter itype) {
+ProjectionsFunc ProSelecta::get_projections_func(std::string const &fnname,
+                                                 Interpreter itype) {
   if (itype == Interpreter::kAuto) {
-    itype = ResolveType(fnname, "HepMC3::GenEvent const &");
+    itype = resolve_type(fnname, "HepMC3::GenEvent const &");
+  }
+
+  switch (itype) {
+  case Interpreter::kCling: {
+    return cling::get_projections_func(fnname);
+  }
+  default: {
+    throw std::runtime_error("invalid interpreter type");
+  }
+  }
+}
+
+WeightFunc ProSelecta::get_weight_func(std::string const &fnname,
+                                       Interpreter itype) {
+  if (itype == Interpreter::kAuto) {
+    itype = resolve_type(fnname, "HepMC3::GenEvent const &");
   }
 
   switch (itype) {

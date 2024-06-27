@@ -5,8 +5,6 @@
 namespace ps {
 namespace unit {
 
-constexpr double const missing_data = 0xdeadbeef;
-
 constexpr double const MeV = 1; // leading unit
 constexpr double const GeV = 1000*MeV;
 constexpr double const keV = 1E-3*MeV;

@@ -19,22 +19,27 @@ public:
 
   static ProSelecta &Get();
 
-  Interpreter ResolveType(std::string const &fnname,
+  Interpreter resolve_type(std::string const &fnname,
                           std::string const &arglist = "");
 
-  bool LoadFile(std::string const &, Interpreter itype = Interpreter::kCling);
-  bool LoadText(std::string const &, Interpreter itype = Interpreter::kCling);
-  bool LoadAnalysis(std::string const &, std::string const &, Interpreter itype = Interpreter::kCling);
+  bool load_file(std::string const &, Interpreter itype = Interpreter::kCling);
+  bool load_text(std::string const &, Interpreter itype = Interpreter::kCling);
+  bool load_analysis(std::string const &, std::string const &,
+                     Interpreter itype = Interpreter::kCling);
 
-  void AddIncludePath(std::string const &,
-                      Interpreter itype = Interpreter::kCling);
+  void add_include_path(std::string const &,
+                        Interpreter itype = Interpreter::kCling);
 
-  SelectFunc GetSelectFunction(std::string const &,
+  SelectFunc get_select_func(std::string const &,
+                             Interpreter itype = Interpreter::kCling);
+  SelectsFunc get_selects_func(std::string const &,
                                Interpreter itype = Interpreter::kCling);
-  ProjectionFunc GetProjectionFunction(std::string const &,
+  ProjectionFunc get_projection_func(std::string const &,
+                                     Interpreter itype = Interpreter::kCling);
+  ProjectionsFunc get_projections_func(std::string const &,
                                        Interpreter itype = Interpreter::kCling);
-  WeightFunc GetWeightFunction(std::string const &,
-                               Interpreter itype = Interpreter::kCling);
+  WeightFunc get_weight_func(std::string const &,
+                             Interpreter itype = Interpreter::kCling);
 };
 
 } // namespace ps

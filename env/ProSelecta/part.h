@@ -23,9 +23,6 @@ struct TooManyParts : public ProSelecta_detail::exception {
 template <typename T>
 auto sort_ascending(T const &projector,
                     std::vector<HepMC3::ConstGenParticlePtr> parts) {
-  if (!parts.size()) {
-    throw EmptyParticleList("sort: no particles");
-  }
   std::sort(parts.begin(), parts.end(),
             [=](HepMC3::ConstGenParticlePtr a, HepMC3::ConstGenParticlePtr b) {
               return projector(a) < projector(b);
@@ -56,6 +53,17 @@ auto filter(cuts const &c, std::vector<HepMC3::ConstGenParticlePtr> parts) {
   return parts;
 }
 
+template <size_t N>
+auto cat(std::array<std::vector<HepMC3::ConstGenParticlePtr>, N> parts) {
+
+  std::vector<HepMC3::ConstGenParticlePtr> all_parts;
+  for (auto const &arr : parts) {
+    std::copy(arr.begin(), arr.end(), std::back_inserter(all_parts));
+  }
+
+  return all_parts;
+}
+
 auto one(std::vector<HepMC3::ConstGenParticlePtr> parts) {
   if (!parts.size()) {
     throw NoParts("ps::part::one passed an empty vector");
@@ -68,38 +76,7 @@ auto one(std::vector<HepMC3::ConstGenParticlePtr> parts) {
 
 template <size_t N>
 auto one(std::array<std::vector<HepMC3::ConstGenParticlePtr>, N> parts) {
-
-  HepMC3::ConstGenParticlePtr part = nullptr;
-  for (auto const &arr : parts) {
-    if (arr.size() > 1) {
-      throw TooManyParts(
-          "ps::part::one passed an array with more than one particle");
-    } else if (arr.size() == 1) {
-      if (!part) {
-        part = arr.front();
-      } else {
-        throw TooManyParts(
-            "ps::part::one passed an array with more than one particle");
-      }
-    }
-  }
-
-  if (part) {
-    throw NoParts("ps::part::one passed an empty array of vectors");
-  }
-
-  return part;
-}
-
-template <size_t N>
-auto cat(std::array<std::vector<HepMC3::ConstGenParticlePtr>, N> parts) {
-
-  std::vector<HepMC3::ConstGenParticlePtr> all_parts;
-  for (auto const &arr : parts) {
-    std::copy(arr.begin(), arr.end(), std::back_inserter(all_parts));
-  }
-
-  return all_parts;
+  return one(cat(parts));
 }
 
 template <typename T>

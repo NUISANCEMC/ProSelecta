@@ -79,42 +79,11 @@ int main(int argc, char const *argv[]) {
   handleOpts(argc, argv);
 
   for (auto const &p : include_paths) {
-    ProSelecta::Get().AddIncludePath(p);
-  }
-
-  char *ProSelecta_env = getenv("ProSelecta_ROOT");
-
-  if (!ProSelecta_env && !ProSelecta_env_dir.length()) {
-    std::cout << "[ERROR]: Cannot find ProSelecta environment headers. Either "
-                 "define ProSelecta_ROOT in the calling environment or add "
-                 "--env command line argument."
-              << std::endl;
-    return 1;
-  }
-  if (!ProSelecta_env_dir.length()) {
-    ProSelecta_env_dir = ProSelecta_env;
-    if (ProSelecta_env_dir.back() != '/') {
-      ProSelecta_env_dir += '/';
-    }
-    ProSelecta_env_dir += "include/ProSelecta/env";
-  }
-
-  ProSelecta::Get().AddIncludePath(ProSelecta_env_dir);
-
-  bool read_env = ProSelecta::Get().LoadText("#include \"env.h\"",
-                                             ProSelecta::Interpreter::kCling);
-
-  if (!read_env) {
-    std::cout
-        << "[ERROR]: Cling failed to interpret the processor environment, if "
-           "you passed the right path to find these header files and this "
-           "still occures then it is a bug in ProSelectaCPP itself."
-        << std::endl;
-    return 1;
+    ProSelecta::Get().add_include_path(p);
   }
 
   for (auto const &file_to_read : files_to_read) {
-    if (!ProSelecta::Get().LoadFile(file_to_read.c_str())) {
+    if (!ProSelecta::Get().load_file(file_to_read.c_str())) {
       std::cout << "[ERROR]: Cling failed interpreting: " << argv[1]
                 << std::endl;
       return 1;
@@ -123,7 +92,7 @@ int main(int argc, char const *argv[]) {
 
   ps::SelectFunc sel_func;
   if (sel_symname.length()) {
-    sel_func = ProSelecta::Get().GetSelectFunction(sel_symname);
+    sel_func = ProSelecta::Get().get_select_func(sel_symname);
 
     if (!sel_func) {
       std::cout << "[ERROR]: Cling didn't find a function named: "
@@ -135,7 +104,7 @@ int main(int argc, char const *argv[]) {
   std::vector<ps::ProjectionFunc> proj_funcs;
   std::vector<std::string> proj_funcnames;
   for (auto &proj_sym_name : projection_symnames) {
-    auto proj_func = ProSelecta::Get().GetProjectionFunction(proj_sym_name);
+    auto proj_func = ProSelecta::Get().get_projection_func(proj_sym_name);
     if (proj_func) {
       proj_funcs.push_back(proj_func);
       proj_funcnames.push_back(proj_sym_name);
@@ -149,7 +118,7 @@ int main(int argc, char const *argv[]) {
   std::vector<ps::WeightFunc> wgt_funcs;
   std::vector<std::string> wgt_funcnames;
   for (auto &wgt_sym_name : wgt_symnames) {
-    auto wgt_func = ProSelecta::Get().GetWeightFunction(wgt_sym_name);
+    auto wgt_func = ProSelecta::Get().get_weight_func(wgt_sym_name);
     if (wgt_func) {
       wgt_funcs.push_back(wgt_func);
       wgt_funcnames.push_back(wgt_sym_name);
