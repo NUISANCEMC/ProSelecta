@@ -29,8 +29,7 @@ template <size_t N>
 bool returns_impl(std::string const &symname,
                   TInterpreter::EErrorCode &cling_err) {
   gInterpreter->ProcessLine(
-      (std::string(
-           "ProSelecta_detail_FillFuncReturnTypeDeductions<decltype(") +
+      (std::string("ProSelecta_detail_FillFuncReturnTypeDeductions<decltype(") +
        symname + "(HepMC3::GenEvent{}))>();")
           .c_str(),
       &cling_err);
@@ -64,7 +63,8 @@ bool returns_vector_double(std::string const &symname,
 
 bool load_file(std::string const &file_to_read) {
   ps::cling::initialize_environment();
-  return !bool(gInterpreter->LoadFile(file_to_read.c_str()));
+  return !bool(gInterpreter->LoadFile(
+      std::filesystem::canonical(file_to_read).native().c_str()));
 }
 
 std::vector<std::string> analyses;

@@ -5,6 +5,7 @@
 #include "catch2/catch_test_macros.hpp"
 
 #include <cassert>
+#include <filesystem>
 #include <fstream>
 
 TEST_CASE("Get", "[ps::ProSelecta]") { REQUIRE_NOTHROW(ps::ProSelecta::Get()); }
@@ -45,7 +46,6 @@ TEST_CASE("LoadFile::get_select_func", "[ps::ProSelecta]") {
 
   REQUIRE(func1(evt) == 1);
 }
-
 
 TEST_CASE("LoadFile::get_select_func*2", "[ps::ProSelecta]") {
 
@@ -139,4 +139,16 @@ TEST_CASE("LoadFile::no-op*2 diff file", "[ps::ProSelecta]") {
 
   CHECK_FALSE((ps::ProSelecta::Get().load_file("envTests.out7.cpp") &&
                ps::ProSelecta::Get().load_file("envTests.out8.cpp")));
+}
+
+TEST_CASE("LoadFile::path_tests", "[ps::ProSelecta]") {
+
+  std::ofstream out("envTests.out9.cpp");
+  out << "void no_op9(){};";
+  out.close();
+
+  REQUIRE(ps::ProSelecta::Get().load_file("envTests.out9.cpp"));
+  REQUIRE(ps::ProSelecta::Get().load_file("./envTests.out9.cpp"));
+  REQUIRE(ps::ProSelecta::Get().load_file(".//envTests.out9.cpp"));
+  REQUIRE(ps::ProSelecta::Get().load_file(".///envTests.out9.cpp"));
 }

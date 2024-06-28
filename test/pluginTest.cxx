@@ -77,3 +77,17 @@ TEST_CASE("LoadFile::via_both_filechange", "[ps::ProSelecta]") {
   HepMC3::GenEvent evt;
   REQUIRE(ps::ProSelecta::Get().get_select_func("dummyfunc4")(evt) == 13371338);
 }
+
+TEST_CASE("LoadFile::retrieve_func", "[ps::ProSelecta]") {
+
+  std::ofstream out("pluginTest.out5.cpp");
+  out << "int dummyfunc5(HepMC3::GenEvent const&){ return 13391339; };";
+  out.close();
+
+  auto plugin = boost::dll::import_alias<ps::SelectFunc(
+      std::string const &, std::string const &)>("./libdummyPlugin.so",
+                                                 "load_and_return");
+
+  REQUIRE(plugin("pluginTest.out5.cpp", "dummyfunc5")(HepMC3::GenEvent{}) ==
+          13391339);
+}
