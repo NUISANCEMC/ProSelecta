@@ -47,4 +47,9 @@ if(BOOST_FOUND)
   target_include_directories(pluginTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
   catch_discover_tests(pluginTest)
+
+  pybind11_add_module(pyProSelectaPlugin SHARED pyProSelectaPlugin.cxx)
+
+  target_link_libraries(pyProSelectaPlugin PRIVATE ProSelecta::Interpreter pybind11::module Boost::boost Boost::filesystem)
+
 endif()
