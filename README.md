@@ -254,6 +254,13 @@ The previously detailed functions all ignore particles with pid >= 1000000000 fo
 auto out_nuclear_parts(HepMC3::GenEvent const &ev)
 ```
 
+### misc
+
+```c++
+//Returns the signal_process_id for the event, throws if the attribute does not exist
+int signal_process_id(HepMC3::GenEvent const &ev);
+```
+
 ## part
 
 The `ps::part` namespace, defined in [ProSelect/env/part.h](ProSelect/env/part.h) contains functions for working with `HepMC3::GenParticlePtr`s and collections thereof.

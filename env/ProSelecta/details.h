@@ -2,6 +2,7 @@
 #include "ProSelecta/pdg.h"
 #include "ProSelecta/vect.h"
 
+#include "HepMC3/Attribute.h"
 #include "HepMC3/GenEvent.h"
 #include "HepMC3/GenParticle.h"
 
@@ -230,11 +231,6 @@ nuclear_particles(HepMC3::GenEvent const &evt) {
     selected_parts.push_back(part);
   }
   return selected_parts;
-}
-
-bool IsChannel(HepMC3::GenEvent const &ev, std::string const &chan_attr) {
-  auto attr = ev.attribute<HepMC3::BoolAttribute>(chan_attr);
-  return attr && attr->value();
 }
 
 } // namespace ProSelecta_detail

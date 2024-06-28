@@ -23,6 +23,9 @@ struct MoreThanOneBeamPart : public ProSelecta_detail::exception {
 struct MoreThanOneTargetPart : public ProSelecta_detail::exception {
   using ProSelecta_detail::exception::exception;
 };
+struct NoSignalProcessId : public ProSelecta_detail::exception {
+  using ProSelecta_detail::exception::exception;
+};
 
 template <size_t N>
 bool has_out_part(HepMC3::GenEvent const &ev, std::array<int, N> const &PIDs) {
@@ -315,6 +318,17 @@ auto target_part(HepMC3::GenEvent const &ev, std::array<int, N> const &PIDs) {
 auto out_nuclear_parts(HepMC3::GenEvent const &ev) {
   return ProSelecta_detail::nuclear_particles<
       ProSelecta_detail::kUndecayedPhysical>(ev);
+}
+
+int signal_process_id(HepMC3::GenEvent const &ev) {
+
+  auto const &attr_names = ev.attribute_names();
+  if (std::find(attr_names.begin(), attr_names.end(), "signal_process_id") ==
+      attr_names.end()) {
+    throw NoSignalProcessId("Event contains no signal_process_id attribute");
+  }
+
+  return ev.attribute<HepMC3::IntAttribute>("signal_process_id")->value();
 }
 
 } // namespace event
