@@ -209,6 +209,12 @@ auto all_out_part(HepMC3::GenEvent const &ev, std::array<int, N> const &PIDs);
 //Returns as single std::vector of GenParticlePtr to final-state particles with pid not specified in PIDs.
 auto all_out_part_except(HepMC3::GenEvent const &ev,
                          std::array<int, N> const &PIDs);
+
+//Returns an array of GenParticlePtr to the highest momentum final-state particles
+// for each specified PID.
+//Convenience overload for passing a single pid exists and returns a GenParticlePtr rather 
+//  than an std::array<GenParticlePtr,1>.
+auto hm_out_part(HepMC3::GenEvent const &ev, std::array<int, N> const &PIDs);
 ```
 
 ### Searching for beam and target particles

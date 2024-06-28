@@ -148,6 +148,28 @@ all_out_part(HepMC3::GenEvent const &ev, int PID = 0) {
 }
 
 template <size_t N>
+auto hm_out_part(HepMC3::GenEvent const &ev, std::array<int, N> const &PIDs) {
+  static_assert(N > 0, "OutPart: EmptyPIDList");
+
+  std::array<HepMC3::ConstGenParticlePtr, N> outs;
+
+  for (size_t i = 0; i < N; ++i) {
+    outs[i] = ps::part::highest(
+        ps::p3mod,
+        ProSelecta_detail::particles<ProSelecta_detail::kUndecayedPhysical, 1>(
+            ev, {PIDs[i]}));
+  }
+  return outs;
+}
+
+HepMC3::ConstGenParticlePtr hm_out_part(HepMC3::GenEvent const &ev, int PID) {
+  return ps::part::highest(
+      ps::p3mod,
+      ProSelecta_detail::particles<ProSelecta_detail::kUndecayedPhysical, 1>(
+          ev, {PID}));
+}
+
+template <size_t N>
 auto all_out_part_except(HepMC3::GenEvent const &ev,
                          std::array<int, N> const &PIDs) {
   return ProSelecta_detail::particles<ProSelecta_detail::kUndecayedPhysical, N,
