@@ -17,10 +17,15 @@ constexpr double const MeV2 = MeV*MeV;
 constexpr double const keV2 = keV*keV;
 constexpr double const eV2 = eV*eV;
 
-constexpr double const GeV_c2 = GeV/c_light/c_light;
-constexpr double const MeV_c2 = MeV/c_light/c_light;
-constexpr double const keV_c2 = keV/c_light/c_light;
-constexpr double const eV_c2 = eV/c_light/c_light;
+constexpr double const GeV_c = GeV/c_light;
+constexpr double const MeV_c = MeV/c_light;
+constexpr double const keV_c = keV/c_light;
+constexpr double const eV_c = eV/c_light;
+
+constexpr double const GeV_c2 = GeV_c/c_light;
+constexpr double const MeV_c2 = MeV_c/c_light;
+constexpr double const keV_c2 = keV_c/c_light;
+constexpr double const eV_c2 = eV_c/c_light;
 
 constexpr double const cm = 1; // leading unit
 constexpr double const m = 100*cm;

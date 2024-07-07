@@ -20,6 +20,8 @@ PYBIND11_MODULE(pyProSelecta, m) {
   m.def("load_analysis", &ps::cling::load_analysis);
   m.def("add_include_path", &ps::cling::add_include_path);
 
+  m.attr("kMissingDatum") = ps::kMissingDatum<double>;
+
   auto m_ps_select = m.def_submodule("select", "ProSelecta select interface");
   m_ps_select.def("get", &ps::cling::get_select_func);
   m_ps_select.def("get_vect", &ps::cling::get_selects_func);
@@ -32,8 +34,70 @@ PYBIND11_MODULE(pyProSelecta, m) {
   auto m_ps_weight = m.def_submodule("weight", "ProSelecta weight interface");
   m_ps_weight.def("get", &ps::cling::get_weight_func);
 
+  auto m_ps_event = m.def_submodule("event", "ProSelecta event module");
+  m_ps_event.def(
+      "has_out_part",
+      [](HepMC3::GenEvent const &ev, int PID) {
+        return ps::event::has_out_part(ev, PID);
+      },
+      py::arg("event"), py::arg("PID") = 0);
+  m_ps_event.def(
+      "num_out_part",
+      [](HepMC3::GenEvent const &ev, int PID) {
+        return ps::event::num_out_part(ev, PID);
+      },
+      py::arg("event"), py::arg("PID") = 0);
+  m_ps_event.def(
+      "all_out_part",
+      [](HepMC3::GenEvent const &ev, int PID) {
+        return ps::event::all_out_part(ev, PID);
+      },
+      py::arg("event"), py::arg("PID") = 0);
+  m_ps_event.def(
+      "hm_out_part",
+      [](HepMC3::GenEvent const &ev, int PID) {
+        return ps::event::hm_out_part(ev, PID);
+      },
+      py::arg("event"), py::arg("PID") = 0);
+  m_ps_event.def(
+      "has_beam_part",
+      [](HepMC3::GenEvent const &ev, int PID) {
+        return ps::event::has_beam_part(ev, PID);
+      },
+      py::arg("event"), py::arg("PID") = 0);
+  m_ps_event.def(
+      "beam_part",
+      [](HepMC3::GenEvent const &ev, int PID) {
+        return ps::event::beam_part(ev, PID);
+      },
+      py::arg("event"), py::arg("PID") = 0);
+  m_ps_event.def(
+      "has_target_part",
+      [](HepMC3::GenEvent const &ev, int PID) {
+        return ps::event::has_target_part(ev, PID);
+      },
+      py::arg("event"), py::arg("PID") = 0);
+  m_ps_event.def(
+      "target_part",
+      [](HepMC3::GenEvent const &ev, int PID) {
+        return ps::event::target_part(ev, PID);
+      },
+      py::arg("event"), py::arg("PID") = 0);
+  m_ps_event.def(
+      "out_nuclear_parts",
+      [](HepMC3::GenEvent const &ev) {
+        return ps::event::out_nuclear_parts(ev);
+      },
+      py::arg("event"));
+  m_ps_event.def(
+      "signal_process_id",
+      [](HepMC3::GenEvent const &ev) {
+        return ps::event::signal_process_id(ev);
+      },
+      py::arg("event"));
+
   // Units.h
-  py::module units = m.def_submodule("units", "Units constants");
+  py::module units = m.def_submodule("unit", "Units constants");
   units.attr("GeV") = ps::unit::GeV;
   units.attr("MeV") = ps::unit::MeV;
   units.attr("GeV2") = ps::unit::GeV2;
