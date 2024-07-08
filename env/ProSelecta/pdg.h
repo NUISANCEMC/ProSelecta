@@ -5,7 +5,11 @@
 
 namespace ps {
 
-template <typename T, std::size_t N> using pids = std::array<T, N>;
+template <typename ... Args>
+constexpr auto pids(Args... args){
+  return std::array{args...};
+}
+
 
 namespace pdg {
 constexpr static int kNuE = 12;

@@ -95,7 +95,7 @@ if(!ps::event::has_beam_part(evt, 14) || !ps::event::has_out_part(evt, 13){
 
 3) Check the final state topology exactly matches: 1mu1p1pi:
 ```c++
-if(!ps::event::out_part_topology_matches(evt, ps::pids{13,2212,211}, {1,1,1})){
+if(!ps::event::out_part_topology_matches(evt, ps::pids(13,2212,211), {1,1,1})){
   return false;
 }
 ```
@@ -112,14 +112,14 @@ empty vector is undefined behavior.
 
 5) Get the highest momentum outgoing proton and negative pion
 ```c++
-auto [protons, pims] = ps::event::all_out_part(evt, ps::pids{2212,-211});
+auto [protons, pims] = ps::event::all_out_part(evt, ps::pids(2212,-211));
 auto hmproton = ps::part::highest(ps::p3mod, protons);
 auto hmpim = ps::part::highest(ps::p3mod, pims);
 ```
 
 6) Get the transverse component of the vector sum of the final state muon and all protons
 ```c++
-auto sum_pt = ps::part::sum(ps::momentum, ps::event::all_out_part(evt, ps::pids{13, 2212})).pt();
+auto sum_pt = ps::part::sum(ps::momentum, ps::event::all_out_part(evt, ps::pids(13, 2212))).pt();
 ```
 
 7) Get all protons with more than 0.05 GeV/c but less than 2 GeV/c of 3momentum:
@@ -133,7 +133,7 @@ auto passing_protons = ps::part::filter(p3mod_cut, ps::event::all_out_part(evt, 
 auto invmass_protons_and_pions = 
   ps::event::sum(ps::momentum, 
     ps::event::filter(ps::p3mod > 250 * ps::unit::MeV, 
-      ps::part::cat(ps::event::all_out_part(evt, ps::pids{2212, 211, -211, 111}))
+      ps::part::cat(ps::event::all_out_part(evt, ps::pids(2212, 211, -211, 111)))
     )
   ).m();
 ```
@@ -144,7 +144,7 @@ The `ps::event` namespace, defined in [ProSelect/env/event.h](ProSelect/env/even
 
 ```c++
 bool has_fs_mu = ps::event::has_out_part(evt, ps::pdg::kMuon);
-bool has_fs_mu_or_amu = ps::event::has_out_part(evt, ps::pids{ps::pdg::kMuon, ps::pdg::kAMuon});
+bool has_fs_mu_or_amu = ps::event::has_out_part(evt, ps::pids(ps::pdg::kMuon, ps::pdg::kAMuon));
 ```
 
 **N.B.** While it might be tempting to pass a initializer list of pids rather than an initialized instance of the `ps::pids` type, which is just a alias for `std::array<int, N>`, the C++17 template argument deduction cannot pick the right type in this instance and so we need to give the `ps::pids` as a type hint to avoid compiler errors.
@@ -153,13 +153,13 @@ For functions that fetch or count particles, passing a list of pids may result i
 
 ```c++
 auto num_fs_mu = ps::event::num_out_part(evt, ps::pdg::kMuon);
-auto num_fs_mu_or_amu = ps::event::num_out_part(evt, ps::pids{ps::pdg::kMuon, ps::pdg::kAMuon});
+auto num_fs_mu_or_amu = ps::event::num_out_part(evt, ps::pids(ps::pdg::kMuon, ps::pdg::kAMuon));
 ```
 
 The type of `num_fs_mu_or_amu` is `std::array<int,2>` where `num_fs_mu_or_amu[0]` holds the number of final-state muons and `num_fs_mu_or_amu[1]` holds the number of final-state anti-muons. This is useful thanks to [C++17's structured bindings](https://en.cppreference.com/w/cpp/language/structured_binding), which allows the following syntactic sugar, which is similar to python's tuple unpacking:
 
 ```c++
-auto [num_fs_mu, num_fs_amu] = ps::event::num_out_part(evt, ps::pids{ps::pdg::kMuon, ps::pdg::kAMuon});
+auto [num_fs_mu, num_fs_amu] = ps::event::num_out_part(evt, ps::pids(ps::pdg::kMuon, ps::pdg::kAMuon));
 ```
 
 ### Searching for final-state particles
@@ -285,10 +285,10 @@ As these are a bit more abstract, we will provide some example usage below.
 auto the_one_proton = ps::part::one(ps::event::all_out_part(evt,2212));
 
 //throws if there is not exactly one charged pion
-auto the_one_charged_pion = ps::part::one(ps::event::all_out_part(evt, ps::pids{211,-211}));
+auto the_one_charged_pion = ps::part::one(ps::event::all_out_part(evt, ps::pids(211,-211)));
 
 //a single std::vector<HepMC3::GenParticlePtr> of all final-state charged pions found in the event
-auto all_the_charged_pions = ps::part::cat(ps::event::all_out_part(evt, ps::pids{211,-211}));
+auto all_the_charged_pions = ps::part::cat(ps::event::all_out_part(evt, ps::pids(211,-211)));
 ```
 
 ### projectors

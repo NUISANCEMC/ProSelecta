@@ -235,7 +235,12 @@ std::vector<double> ProSelecta_detail_test_vector_double(){ return {1,}; }
                              "appear to return a vector<double>.");
   }
 
-  std::string paths = std::getenv("ProSelecta_INCLUDE_PATH");
+  char const *pathsc = std::getenv("ProSelecta_INCLUDE_PATH");
+  if (!pathsc) {
+    throw std::runtime_error(
+        "ProSelecta_INCLUDE_PATH environment variable is not defined.");
+  }
+  std::string paths = pathsc;
   const std::regex ws_re(":");
   for (auto it =
            std::sregex_token_iterator(paths.begin(), paths.end(), ws_re, -1);

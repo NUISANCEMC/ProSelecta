@@ -70,8 +70,8 @@ TEST_CASE("has_out_part", "[ps::event]") {
   REQUIRE(event::has_out_part(evt1, -13));
   REQUIRE_FALSE(event::has_out_part(evt1, 14));
 
-  REQUIRE(event::has_out_part(evt1, pids{2212, 13, -13}));
-  REQUIRE_FALSE(event::has_out_part(evt1, pids{2212, 13, -13, 14}));
+  REQUIRE(event::has_out_part(evt1, pids(2212, 13, -13)));
+  REQUIRE_FALSE(event::has_out_part(evt1, pids(2212, 13, -13, 14)));
 }
 
 TEST_CASE("has_exact_out_part", "[ps::event]") {
@@ -86,10 +86,10 @@ TEST_CASE("has_exact_out_part", "[ps::event]") {
   REQUIRE(event::has_exact_out_part(evt1, 14, 0));
   REQUIRE_FALSE(event::has_exact_out_part(evt1, -13, 2));
 
-  REQUIRE(event::has_exact_out_part(evt1, pids{2212, 13, -13}, {1, 2, 1}));
-  REQUIRE(event::has_exact_out_part(evt1, pids{2212, 13, -13}, {1, 2, 1}));
+  REQUIRE(event::has_exact_out_part(evt1, pids(2212, 13, -13), {1, 2, 1}));
+  REQUIRE(event::has_exact_out_part(evt1, pids(2212, 13, -13), {1, 2, 1}));
   REQUIRE_FALSE(
-      event::has_exact_out_part(evt1, pids{2212, 13, -13}, {1, 2, 2}));
+      event::has_exact_out_part(evt1, pids(2212, 13, -13), {1, 2, 2}));
 }
 
 TEST_CASE("out_part_topology_matches", "[ps::event]") {
@@ -99,15 +99,15 @@ TEST_CASE("out_part_topology_matches", "[ps::event]") {
                   {"2212 1 0.15", "13 1 0.7", "13 1 1.2", "-13 1 1.3"}});
 
   REQUIRE(
-      event::out_part_topology_matches(evt1, pids{2212, 13, -13}, {1, 2, 1}));
-  REQUIRE(event::out_part_topology_matches(evt1, pids{2212, 13, -13, 14},
+      event::out_part_topology_matches(evt1, pids(2212, 13, -13), {1, 2, 1}));
+  REQUIRE(event::out_part_topology_matches(evt1, pids(2212, 13, -13, 14),
                                            {1, 2, 1, 0}));
 
-  REQUIRE_FALSE(event::out_part_topology_matches(evt1, pids{2212, 13}, {1, 2}));
+  REQUIRE_FALSE(event::out_part_topology_matches(evt1, pids(2212, 13), {1, 2}));
   REQUIRE_FALSE(
-      event::out_part_topology_matches(evt1, pids{2212, 13, -13}, {1, 2, 2}));
+      event::out_part_topology_matches(evt1, pids(2212, 13, -13), {1, 2, 2}));
   REQUIRE_FALSE(
-      event::out_part_topology_matches(evt1, pids{2212, 13, -13}, {1, 2, 2}));
+      event::out_part_topology_matches(evt1, pids(2212, 13, -13), {1, 2, 2}));
 }
 
 TEST_CASE("has_at_least_out_part", "[ps::event]") {
@@ -122,8 +122,8 @@ TEST_CASE("has_at_least_out_part", "[ps::event]") {
   REQUIRE(event::has_at_least_out_part(evt1, 13, 2));
   REQUIRE_FALSE(event::has_at_least_out_part(evt1, 13, 3));
 
-  REQUIRE(event::has_at_least_out_part(evt1, pids{2212, 13, -13}, {1, 2, 1}));
-  REQUIRE(!event::has_at_least_out_part(evt1, pids{2212, 13, -13}, {1, 2, 2}));
+  REQUIRE(event::has_at_least_out_part(evt1, pids(2212, 13, -13), {1, 2, 1}));
+  REQUIRE(!event::has_at_least_out_part(evt1, pids(2212, 13, -13), {1, 2, 2}));
 }
 
 TEST_CASE("num_out_part", "[ps::event]") {
@@ -137,7 +137,7 @@ TEST_CASE("num_out_part", "[ps::event]") {
   REQUIRE(event::num_out_part(evt1, 14) == 0);
 
   auto const &[nprot, nmu, nmubar, nnumu] =
-      event::num_out_part(evt1, pids{2212, 13, -13, 14});
+      event::num_out_part(evt1, pids(2212, 13, -13, 14));
   REQUIRE(nprot == 1);
   REQUIRE(nmu == 2);
   REQUIRE(nmubar == 1);
@@ -153,7 +153,7 @@ TEST_CASE("num_out_part_except", "[ps::event]") {
   REQUIRE(event::num_out_part_except(evt1, 2212) == 3);
   REQUIRE(event::num_out_part_except(evt1, 13) == 2);
   REQUIRE(event::num_out_part_except(evt1, 14) == 4);
-  REQUIRE(event::num_out_part_except(evt1, pids{2212, 13, -13}) == 0);
+  REQUIRE(event::num_out_part_except(evt1, pids(2212, 13, -13)) == 0);
 }
 
 TEST_CASE("all_out_part", "[ps::event]") {
@@ -170,7 +170,7 @@ TEST_CASE("all_out_part", "[ps::event]") {
   REQUIRE_THAT(protons.front()->momentum().m(),
                WithinAbs(0.938 * ps::unit::GeV, 1E-8));
 
-  auto const &[muons, antimuons] = event::all_out_part(evt1, pids{13, -13});
+  auto const &[muons, antimuons] = event::all_out_part(evt1, pids(13, -13));
 
   REQUIRE(muons.size() == 2);
   REQUIRE(antimuons.size() == 1);
@@ -190,6 +190,6 @@ TEST_CASE("all_out_part_except", "[ps::event]") {
   auto not_protons = event::all_out_part_except(evt1, 2212);
   REQUIRE(not_protons.size() == 3);
 
-  auto not_protons_or_muons = event::all_out_part_except(evt1, pids{2212, 13});
+  auto not_protons_or_muons = event::all_out_part_except(evt1, pids(2212, 13));
   REQUIRE(not_protons_or_muons.size() == 1);
 }

@@ -11,7 +11,8 @@
 TEST_CASE("Get", "[ps::ProSelecta]") { REQUIRE_NOTHROW(ps::ProSelecta::Get()); }
 
 TEST_CASE("LoadText::no-op", "[ps::ProSelecta]") {
-  REQUIRE(ps::ProSelecta::Get().load_text("void no_op(){};"));
+  ps::ProSelecta::Get().load_text("void no_op(){};");
+  REQUIRE(true);
 }
 
 TEST_CASE("LoadFile::no-op", "[ps::ProSelecta]") {
@@ -151,4 +152,14 @@ TEST_CASE("LoadFile::path_tests", "[ps::ProSelecta]") {
   REQUIRE(ps::ProSelecta::Get().load_file("./envTests.out9.cpp"));
   REQUIRE(ps::ProSelecta::Get().load_file(".//envTests.out9.cpp"));
   REQUIRE(ps::ProSelecta::Get().load_file(".///envTests.out9.cpp"));
+}
+
+TEST_CASE("LoadFile::pids_template_instantiate", "[ps::ProSelecta]") {
+
+  REQUIRE(ps::ProSelecta::Get().load_text(
+      R"(int pids_template_instantiate_test(HepMC3::GenEvent const &ev){
+    ps::event::num_out_part(ev, ps::pids(13,2122,2112));
+    return 1;
+}
+)"));
 }
