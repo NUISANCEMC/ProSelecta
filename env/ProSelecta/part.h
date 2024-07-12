@@ -12,11 +12,13 @@ namespace part {
 struct EmptyParticleList : public ProSelecta_detail::exception {
   using ProSelecta_detail::exception::exception;
 };
-
 struct NoParts : public ProSelecta_detail::exception {
   using ProSelecta_detail::exception::exception;
 };
 struct TooManyParts : public ProSelecta_detail::exception {
+  using ProSelecta_detail::exception::exception;
+};
+struct InvalidProjector : public ProSelecta_detail::exception {
   using ProSelecta_detail::exception::exception;
 };
 
@@ -32,7 +34,7 @@ auto sort_ascending(T const &projector,
 
 template <typename T>
 auto highest(T const &projector,
-             std::vector<HepMC3::ConstGenParticlePtr> parts) {
+             std::vector<HepMC3::ConstGenParticlePtr> const &parts) {
   if (!parts.size()) {
     throw EmptyParticleList("highest: no particles");
   }
@@ -41,7 +43,7 @@ auto highest(T const &projector,
 
 template <typename T>
 auto lowest(T const &projector,
-            std::vector<HepMC3::ConstGenParticlePtr> parts) {
+            std::vector<HepMC3::ConstGenParticlePtr> const &parts) {
   if (!parts.size()) {
     throw EmptyParticleList("lowest: no particles");
   }
@@ -53,8 +55,8 @@ auto filter(cuts const &c, std::vector<HepMC3::ConstGenParticlePtr> parts) {
   return parts;
 }
 
-template <size_t N>
-auto cat(std::array<std::vector<HepMC3::ConstGenParticlePtr>, N> parts) {
+template <typename PartCollectionCollection>
+auto cat(PartCollectionCollection const &parts) {
 
   std::vector<HepMC3::ConstGenParticlePtr> all_parts;
   for (auto const &arr : parts) {
@@ -64,7 +66,7 @@ auto cat(std::array<std::vector<HepMC3::ConstGenParticlePtr>, N> parts) {
   return all_parts;
 }
 
-auto one(std::vector<HepMC3::ConstGenParticlePtr> parts) {
+auto one(std::vector<HepMC3::ConstGenParticlePtr> const &parts) {
   if (!parts.size()) {
     throw NoParts("ps::part::one passed an empty vector");
   }
@@ -74,21 +76,21 @@ auto one(std::vector<HepMC3::ConstGenParticlePtr> parts) {
   return parts.front();
 }
 
-template <size_t N>
-auto one(std::array<std::vector<HepMC3::ConstGenParticlePtr>, N> parts) {
+template <typename PartCollectionCollection>
+auto one(PartCollectionCollection const &parts) {
   return one(cat(parts));
 }
 
 template <typename T>
-auto sum(T const &projector, std::vector<HepMC3::ConstGenParticlePtr> parts) {
+auto sum(T const &projector,
+         std::vector<HepMC3::ConstGenParticlePtr> const &parts) {
   return std::accumulate(
       parts.begin(), parts.end(), decltype(projector(parts.front())){},
       [&](auto const &tot, auto const &part) { return tot + projector(part); });
 }
 
-template <typename T, size_t N>
-auto sum(T const &projector,
-         std::array<std::vector<HepMC3::ConstGenParticlePtr>, N> parts) {
+template <typename T, typename PartCollectionCollection>
+auto sum(T const &projector, PartCollectionCollection const &parts) {
   return std::accumulate(
       parts.begin(), parts.end(), decltype(projector(parts.front().front())){},
       [&](auto const &all_tot, auto const &partarr) {

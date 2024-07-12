@@ -10,8 +10,8 @@
 #include <vector>
 
 namespace ps {
-
 namespace part {
+
 struct cuts {
   using argument_type = HepMC3::ConstGenParticlePtr;
 
@@ -128,6 +128,36 @@ struct momentum_ {
 
 namespace ProSelecta_detail {
 
+template <typename Collection> struct is_zero_std_array : std::true_type {};
+
+template <size_t N> struct is_zero_std_array<std::array<int, N>> {
+  constexpr static bool value = (N > 0);
+};
+
+template <typename Collection> struct is_std_array_int : std::false_type {};
+template <size_t N>
+struct is_std_array_int<std::array<int, N>> : std::true_type {};
+
+template <typename Collection> struct is_std_vector_int : std::false_type {};
+template <> struct is_std_vector_int<std::vector<int>> : std::true_type {};
+
+template <typename Collection> struct is_std_vector_or_array_int {
+  constexpr static bool value = is_std_array_int<Collection>::value ||
+                                is_std_vector_int<Collection>::value;
+};
+
+template <typename Collection, typename ValueType> struct broadcast_return {};
+
+template <size_t N, typename ValueType>
+struct broadcast_return<std::array<int, N>, ValueType> {
+  using type = std::array<ValueType, N>;
+};
+
+template <typename ValueType>
+struct broadcast_return<std::vector<int>, ValueType> {
+  using type = std::vector<ValueType>;
+};
+
 struct exception : public std::exception {
   std::string msg;
 
@@ -142,9 +172,9 @@ constexpr int kTarget = 11;
 constexpr bool kFromPDGList = true;
 constexpr bool kNotFromPDGList = false;
 
-template <int status, size_t N, bool select_from_pdg_list = true>
-std::vector<HepMC3::ConstGenParticlePtr>
-particles(HepMC3::GenEvent const &evt, std::array<int, N> const &pdgs) {
+template <int status, typename Collection, bool select_from_pdg_list = true>
+std::vector<HepMC3::ConstGenParticlePtr> particles(HepMC3::GenEvent const &evt,
+                                                   Collection const &pdgs) {
 
   std::vector<HepMC3::ConstGenParticlePtr> selected_parts = {};
 
@@ -159,7 +189,10 @@ particles(HepMC3::GenEvent const &evt, std::array<int, N> const &pdgs) {
       }
     }
 
-    if constexpr (N == 0) {
+    if constexpr (std::is_same_v<Collection, std::array<int, 0>>) {
+      selected_parts.push_back(part);
+    } else if (std::is_same_v<Collection, std::vector<int>> &&
+               (pdgs.size() == 0)) {
       selected_parts.push_back(part);
     } else if ((std::find(pdgs.begin(), pdgs.end(), part->pid()) !=
                 pdgs.end()) == select_from_pdg_list) {
@@ -169,45 +202,43 @@ particles(HepMC3::GenEvent const &evt, std::array<int, N> const &pdgs) {
   return selected_parts;
 }
 
-template <int status, size_t N>
-bool has_particles(HepMC3::GenEvent const &ev, std::array<int, N> const &PIDs) {
+template <int status, typename Collection>
+bool has_particles(HepMC3::GenEvent const &ev, Collection const &PIDs) {
   bool hasall = true;
 
   for (auto id : PIDs) {
-    hasall = hasall && bool(particles<status, 1>(ev, {id}).size());
+    hasall = hasall && bool(particles<status>(ev, std::array{id}).size());
   }
 
   return hasall;
 }
 
-template <int status, size_t N>
-bool has_particles_exact(HepMC3::GenEvent const &ev,
-                         std::array<int, N> const &PIDs,
-                         std::array<int, N> const &counts) {
+template <int status, typename Collection>
+bool has_particles_exact(HepMC3::GenEvent const &ev, Collection const &PIDs,
+                         Collection const &counts) {
   bool hasall = true;
 
   for (size_t i = 0; i < PIDs.size(); ++i) {
-    hasall = hasall && bool(particles<status, N>(ev,
-                                                 {
-                                                     PIDs[i],
-                                                 })
+    hasall = hasall && bool(particles<status>(ev,
+                                              std::array{
+                                                  PIDs[i],
+                                              })
                                 .size() == counts[i]);
   }
 
   return hasall;
 }
 
-template <int status, size_t N>
-bool has_particles_atleast(HepMC3::GenEvent const &ev,
-                           std::array<int, N> const &PIDs,
-                           std::array<int, N> const &counts) {
+template <int status, typename Collection>
+bool has_particles_atleast(HepMC3::GenEvent const &ev, Collection const &PIDs,
+                           Collection const &counts) {
   bool hasall = true;
 
   for (size_t i = 0; i < PIDs.size(); ++i) {
-    hasall = hasall && bool(particles<status, N>(ev,
-                                                 {
-                                                     PIDs[i],
-                                                 })
+    hasall = hasall && bool(particles<status>(ev,
+                                              std::array{
+                                                  PIDs[i],
+                                              })
                                 .size() >= counts[i]);
   }
 

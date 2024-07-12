@@ -74,6 +74,36 @@ TEST_CASE("has_out_part", "[ps::event]") {
   REQUIRE_FALSE(event::has_out_part(evt1, pids(2212, 13, -13, 14)));
 }
 
+TEST_CASE("has_out_part<vector>", "[ps::event]") {
+
+  auto evt1 =
+      BuildEvent({{"14 4 3 0", "1000060120 11 0"},
+                  {"2212 1 0.15", "13 1 0.7", "13 1 1.2", "-13 1 1.3"}});
+
+  REQUIRE(event::has_out_part(evt1, 2212));
+  REQUIRE(event::has_out_part(evt1, 13));
+  REQUIRE(event::has_out_part(evt1, -13));
+  REQUIRE_FALSE(event::has_out_part(evt1, 14));
+
+  REQUIRE(event::has_out_part(evt1, std::vector<int>{2212, 13, -13}));
+  REQUIRE_FALSE(event::has_out_part(evt1, std::vector<int>{2212, 13, -13, 14}));
+}
+
+TEST_CASE("has_out_part<vector> zero throw", "[ps::event]") {
+
+  auto evt1 =
+      BuildEvent({{"14 4 3 0", "1000060120 11 0"},
+                  {"2212 1 0.15", "13 1 0.7", "13 1 1.2", "-13 1 1.3"}});
+
+  REQUIRE(event::has_out_part(evt1, 2212));
+  REQUIRE(event::has_out_part(evt1, 13));
+  REQUIRE(event::has_out_part(evt1, -13));
+  REQUIRE_FALSE(event::has_out_part(evt1, 14));
+
+  REQUIRE_THROWS_AS(event::has_out_part(evt1, std::vector<int>{}),
+                    ps::event::EmptyPIDList);
+}
+
 TEST_CASE("has_exact_out_part", "[ps::event]") {
 
   auto evt1 =
