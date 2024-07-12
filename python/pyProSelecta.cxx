@@ -1,5 +1,8 @@
 #include "ProSelecta/ProSelecta_cling.h"
+
 #include "ProSelecta/env.h"
+
+#include "ProSelecta/ext/event_proj.h"
 
 #include "pybind11/functional.h"
 #include "pybind11/pybind11.h"
@@ -239,6 +242,16 @@ PYBIND11_MODULE(pyProSelecta, m) {
             }
           },
           py::arg("by"), py::arg("parts"));
+
+  auto m_ps_ext = m.def_submodule("ext", "ProSelecta ext module");
+  m_ps_ext.def("enu_GeV", ps::ext::enu_GeV, py::arg("event"))
+      .def("pmu_GeV", ps::ext::pmu_GeV, py::arg("event"))
+      .def("thetamu_deg", ps::ext::thetamu_deg, py::arg("event"))
+      .def("Q2lep_GeV2", ps::ext::Q2lep_GeV2, py::arg("event"))
+      .def("q0lep_GeV", ps::ext::q0lep_GeV, py::arg("event"))
+      .def("q3lep_GeV", ps::ext::q3lep_GeV, py::arg("event"))
+      .def("hm_pprot_GeV", ps::ext::hm_pprot_GeV, py::arg("event"))
+      .def("hm_thetaprot_deg", ps::ext::hm_thetaprot_deg, py::arg("event"));
 
   // Units.h
   py::module units = m.def_submodule("unit", "Units constants");

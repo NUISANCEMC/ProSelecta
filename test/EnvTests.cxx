@@ -163,3 +163,11 @@ TEST_CASE("LoadFile::pids_template_instantiate", "[ps::ProSelecta]") {
 }
 )"));
 }
+
+TEST_CASE("LoadText::include_ext", "[ps::ProSelecta]") {
+
+  REQUIRE(ps::ProSelecta::Get().load_text(
+      R"(
+#include "ProSelecta/ext/event_proj.h"
+)"));
+}

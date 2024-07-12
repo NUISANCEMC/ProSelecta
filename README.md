@@ -34,7 +34,7 @@ double Enu_GeV(HepMC3::GenEvent const &evt){
 pps.load_text(myfuncsrc) #JIT c++ source code
 
 selection = pps.select.get("isCCNumu") #get a python handle to the C++ selection function
-projection = pps.select.get("Enu_GeV") #get a python handle to the C++ projection function
+projection = pps.project.get("Enu_GeV") #get a python handle to the C++ projection function
 
 for event in hepmc3_file: #don't ask how we got this file
   if selection(event):
@@ -140,7 +140,7 @@ auto invmass_protons_and_pions =
 
 ## event
 
-The `ps::event` namespace, defined in [ProSelect/env/event.h](ProSelect/env/event.h) contains functions for getting particles and lists of particles from an event. For many of the functions described below there are convenience overrides for specifying either a list of particle identifiers to search for, or a single one. For example, both of the below are valid checks for whether final-state muons exist in an event. The first only checked for final-state muons, while the second checks for either final-state muons or anti-muons.
+The `ps::event` namespace, defined in [ProSelecta/env/event.h](ProSelecta/env/event.h) contains functions for getting particles and lists of particles from an event. For many of the functions described below there are convenience overrides for specifying either a list of particle identifiers to search for, or a single one. For example, both of the below are valid checks for whether final-state muons exist in an event. The first only checked for final-state muons, while the second checks for either final-state muons or anti-muons.
 
 ```c++
 bool has_fs_mu = ps::event::has_out_part(evt, ps::pdg::kMuon);
@@ -263,7 +263,7 @@ int signal_process_id(HepMC3::GenEvent const &ev);
 
 ## part
 
-The `ps::part` namespace, defined in [ProSelect/env/part.h](ProSelect/env/part.h) contains functions for working with `HepMC3::GenParticlePtr`s and collections thereof.
+The `ps::part` namespace, defined in [ProSelecta/env/part.h](ProSelecta/env/part.h) contains functions for working with `HepMC3::GenParticlePtr`s and collections thereof.
 
 ### convenience
 
@@ -274,7 +274,7 @@ The functions below are provided to work with the `std::array<std::vector,N>` re
 //throws if there is not exactly one particle in parts.
 auto one(std::array<std::vector<HepMC3::ConstGenParticlePtr>, N> parts);
 //returns a single std::vector<HepMC3::GenParticlePtr> containing all HepMC3::GenParticlePtr
-// in parts. You can think of this as equivalent to flattening the 2D data structure of parts.
+//in parts. You can think of this as equivalent to flattening the 2D data structure of parts.
 auto cat(std::array<std::vector<HepMC3::ConstGenParticlePtr>, N> parts);
 ```
 
@@ -336,7 +336,7 @@ auto lowest(T const &projector,
 
 ### cuts
 
-ProSelect provides a very simple cut syntax built on the projector objects. `cuts` are created by using one of the below operators on a valid projector (*i.e.* not `ps::momentum`).
+ProSelecta provides a very simple cut syntax built on the projector objects. `cuts` are created by using one of the below operators on a valid projector (*i.e.* not `ps::momentum`).
 
 ```c++
 auto cut1 = ps::p3mod < 10 * ps::unit::GeV;
@@ -345,7 +345,7 @@ auto cut3 = ps::p3mod > 10 * ps::unit::GeV;
 auto cut4 = ps::p3mod >= 10 * ps::unit::GeV;
 ```
 
-`cuts` objects can also be negated and logically and'd, they cannot be logically or'd as building correct cut graphs is outside the scope for this utility and for the simple cuts envisioned and extra line or two of user code is worth keeping the framework code considerably simpler.
+`cuts` objects can also be negated and logically and'd, they cannot be logically or'd as building correct cut graphs is outside the scope of this utility and for the simple cuts envisioned, an extra line or two of user code is worth keeping the framework code considerably simpler.
 
 ```c++
 auto cut4not = !cut4;
@@ -364,7 +364,7 @@ auto filter(cuts const &c, std::vector<HepMC3::ConstGenParticlePtr> parts)
 
 ## vect
 
-The `ps::vect` namespace, defined in [ProSelect/env/vect.h](ProSelect/env/vect.h) contains 3- and 4-vector helper functions that provide useful extensions to the HepMC::FourVector class methods. 3-vector functions set HepMC3::FourVector
+The `ps::vect` namespace, defined in [ProSelecta/env/vect.h](ProSelecta/env/vect.h) contains 3- and 4-vector helper functions that provide useful extensions to the HepMC::FourVector class methods. 3-vector functions set HepMC3::FourVector
 
 ```c++
 //Gets the 3-direction (spatial unit vector) from the input 4-vector, v
@@ -405,7 +405,7 @@ ProSelecta is built on HepMC3 and so the full set of HepMC3 types can be used in
 
 ## System of Units
 
-The follow simple system of units is defined in [ProSelect/env/pdg.h](ProSelect/env/pdg.h) under the `ps::unit` namespace. These enable projected event properties to be converted to a specified unit and absolute cut values to be defined.
+The follow simple system of units is defined in [ProSelecta/env/pdg.h](ProSelecta/env/pdg.h) under the `ps::unit` namespace. These enable projected event properties to be converted to a specified unit and absolute cut values to be defined.
 
 * Energy/Momentum: `ps::unit::[M,G,k,]eV`
 * Angle: `ps::unit::rad, ps::unit::deg`
@@ -424,7 +424,7 @@ part.momentum().p3mod() / ps::unit::GeV
 
 ## PDG MC Codes
 
-A number of pid constants are defined in [ProSelect/env/pdg.h](ProSelect/env/pdg.h) according to the [PDG MC particle numbering scheme](https://pdg.lbl.gov/2020/reviews/rpp2020-rev-monte-carlo-numbering.pdf). Groups of related particles are provides as `std::arrays` for  convenient use with particle search functions in the `ps::event` namespace. Some examples are given below:
+A number of pid constants are defined in [ProSelecta/env/pdg.h](ProSelecta/env/pdg.h) according to the [PDG MC particle numbering scheme](https://pdg.lbl.gov/2020/reviews/rpp2020-rev-monte-carlo-numbering.pdf). Groups of related particles are provides as `std::arrays` for  convenient use with particle search functions in the `ps::event` namespace. Some examples are given below:
 
 ```c++
 ps::pdg::kNuE = 12;
@@ -455,7 +455,7 @@ This paradigm facilitates downstream columnar analyses without needing consisten
 Community functions are auxilliary helper functions that the ProSelecta environment exposes, but come with fewer guarantees of robustness. They are provided in case they facilitate analysis development and truth studies, but we do not recommend that they are used in data releases as they are not as robustly defined or tested, or guaranteed to exist in ProSelecta for ever, unlike the core set of ProSelecta functions. Communitity functions live in `ProSelecta/ext/` and should be `#include`d in scripts that want to use them.
 
 ```c++
-#include "ext/scatter.h"
+#include "ext/event_proj.h"
 ```
 
 Documentation for community functions, where it exists, can be found [here](CommunityFunctions.md).
