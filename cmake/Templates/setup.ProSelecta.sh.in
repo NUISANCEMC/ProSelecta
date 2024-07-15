@@ -97,7 +97,7 @@ if ! type add_to_ProSelecta_INCLUDE_PATH &> /dev/null; then
 
 fi
 
-ProSelecta_ROOT=@CMAKE_INSTALL_PREFIX@
+export ProSelecta_ROOT=@CMAKE_INSTALL_PREFIX@
 
 add_to_PATH ${ProSelecta_ROOT}/bin
 add_to_LD_LIBRARY_PATH ${ProSelecta_ROOT}/lib
