@@ -1,0 +1,8 @@
+- snippet: example_MINERvA_PRL.129.021803.cxx
+  functions:
+    select:
+      - MINERvA_PRL129_021803_SignalDefinition
+    project:
+      - MINERvA_PRL129_021803_Project_MuonE
+      - MINERvA_PRL129_021803_Project_SumTp
+      - MINERvA_PRL129_021803_Project_q0QE
