@@ -117,16 +117,7 @@ TEST_CASE("sum momentum", "[ps::part]") {
                  std::sin(45 * unit::deg) * std::cos(120 * unit::deg)) *
                     unit::GeV,
                 1E-8));
-  REQUIRE_THAT(part::sum(momentum, std::array{protons, muons}).pt(),
+  REQUIRE_THAT(part::sum(momentum, std::array{protons, muons}, ps::squeeze).pt(),
                WithinAbs(0, 1E-8));
 }
 
-TEST_CASE("cat", "[ps::part]") {
-
-  std::vector<HepMC3::ConstGenParticlePtr> protons{
-      BuildPart("2212 1 1 45 - 0"), BuildPart("2212 1 1 45 - 120")};
-  std::vector<HepMC3::ConstGenParticlePtr> muons{BuildPart("13 1 1 45 - 240")};
-
-  REQUIRE(part::cat(std::array{protons, muons}).size() == 3);
-  REQUIRE(part::cat(std::array{protons, muons, decltype(protons){}}).size() == 3);
-}

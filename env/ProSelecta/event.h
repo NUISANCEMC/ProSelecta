@@ -1,86 +1,150 @@
 #pragma once
 
-#include "ProSelecta/details.h"
+#include "ProSelecta/detail/TMP.h"
+#include "ProSelecta/detail/event.h"
+#include "ProSelecta/detail/except.h"
+#include "ProSelecta/detail/part.h"
+
 #include "ProSelecta/part.h"
+
+#include "HepMC3/GenEvent.h"
 
 #include <stdexcept>
 
 namespace ps {
 namespace event {
 
-struct EmptyPIDList : public ProSelecta_detail::exception {
-  using ProSelecta_detail::exception::exception;
-};
-struct MismatchedPIDAndCountsListLength : public ProSelecta_detail::exception {
-  using ProSelecta_detail::exception::exception;
-};
-struct NoMatchingParts : public ProSelecta_detail::exception {
-  using ProSelecta_detail::exception::exception;
-};
-struct MoreThanOneBeamPart : public ProSelecta_detail::exception {
-  using ProSelecta_detail::exception::exception;
-};
-struct MoreThanOneTargetPart : public ProSelecta_detail::exception {
-  using ProSelecta_detail::exception::exception;
-};
-struct NoSignalProcessId : public ProSelecta_detail::exception {
-  using ProSelecta_detail::exception::exception;
-};
+NEW_PS_EXCEPT(EmptyPIDList);
+NEW_PS_EXCEPT(MismatchedPIDAndCountsListLength);
+NEW_PS_EXCEPT(NoMatchingParts);
+NEW_PS_EXCEPT(MoreThanOneBeamPart);
+NEW_PS_EXCEPT(MoreThanOneTargetPart);
+NEW_PS_EXCEPT(NoSignalProcessId);
 
 template <typename Collection>
-bool has_out_part(HepMC3::GenEvent const &ev, Collection const &PIDs) {
-  static_assert(ProSelecta_detail::is_zero_std_array<Collection>::value,
+inline auto num_out_part(HepMC3::GenEvent const &ev, Collection const &PIDs) {
+
+  static_assert(!ps::detail::is_zero_std_array<Collection>::value,
+                "num_out_part: EmptyPIDList");
+  if constexpr (ps::detail::is_std_vector_int<Collection>::value) {
+    if (!PIDs.size()) {
+      throw EmptyPIDList("num_out_part passed empty PID list");
+    }
+  }
+
+  static_assert(ps::detail::is_std_vector_or_array_int<Collection>::value,
+                "PIDs type must be a std::array<int,N> or std::vector<int>");
+
+  typename ps::detail::broadcast_return<Collection, int>::type outs;
+
+  if constexpr (ps::detail::is_std_vector_int<Collection>::value) {
+    outs.resize(PIDs.size());
+  }
+
+  for (size_t i = 0; i < PIDs.size(); ++i) {
+    outs[i] = ps::detail::particles<ps::detail::kUndecayedPhysical>(
+                  ev, std::array{PIDs[i]})
+                  .size();
+  }
+  return outs;
+}
+
+template <typename Collection>
+inline auto num_out_part(HepMC3::GenEvent const &ev, Collection const &PIDs,
+                         ps::detail::squeeze const &) {
+
+  auto const &all_num_out_part = num_out_part(ev, PIDs);
+
+  return std::accumulate(all_num_out_part.begin(), all_num_out_part.end(), 0);
+}
+
+inline int num_out_part(HepMC3::GenEvent const &ev, int PID = 0) {
+  if (PID) {
+    return ps::detail::particles<ps::detail::kUndecayedPhysical>(
+               ev, std::array{PID})
+        .size();
+  }
+
+  return ps::detail::particles<ps::detail::kUndecayedPhysical>(
+             ev, std::array<int, 0>{})
+      .size();
+}
+
+template <typename Collection>
+inline int num_out_part_except(HepMC3::GenEvent const &ev,
+                               Collection const &PIDs) {
+  static_assert(!ps::detail::is_zero_std_array<Collection>::value,
+                "num_out_part_except: EmptyPIDList");
+  if constexpr (ps::detail::is_std_vector_int<Collection>::value) {
+    if (!PIDs.size()) {
+      throw EmptyPIDList("num_out_part_except passed empty PID list");
+    }
+  }
+
+  static_assert(ps::detail::is_std_vector_or_array_int<Collection>::value,
+                "PIDs type must be a std::array<int,N> or std::vector<int>");
+
+  return ps::detail::particles<ps::detail::kUndecayedPhysical, Collection,
+                               ps::detail::kNotFromPDGList>(ev, PIDs)
+      .size();
+}
+
+inline int num_out_part_except(HepMC3::GenEvent const &ev, int PID) {
+  return num_out_part_except(ev, std::array{PID});
+}
+
+template <typename Collection>
+inline bool has_out_part(HepMC3::GenEvent const &ev, Collection const &PIDs) {
+  static_assert(!ps::detail::is_zero_std_array<Collection>::value,
                 "has_out_part: EmptyPIDList");
-  if constexpr (ProSelecta_detail::is_std_vector_int<Collection>::value) {
+  if constexpr (ps::detail::is_std_vector_int<Collection>::value) {
     if (!PIDs.size()) {
       throw EmptyPIDList("has_out_part passed empty PID list");
     }
   }
 
-  static_assert(
-      ProSelecta_detail::is_std_vector_or_array_int<Collection>::value,
-      "PIDs type must be a std::array<int,N> or std::vector<int>");
+  static_assert(ps::detail::is_std_vector_or_array_int<Collection>::value,
+                "PIDs type must be a std::array<int,N> or std::vector<int>");
 
-  return ProSelecta_detail::has_particles<
-      ProSelecta_detail::kUndecayedPhysical>(ev, PIDs);
+  return ps::detail::has_particles<ps::detail::kUndecayedPhysical>(ev, PIDs);
 }
 
-bool has_out_part(HepMC3::GenEvent const &ev, int PID) {
-  return ProSelecta_detail::has_particles<
-      ProSelecta_detail::kUndecayedPhysical>(ev, std::array{PID});
+inline bool has_out_part(HepMC3::GenEvent const &ev, int PID) {
+  return ps::detail::has_particles<ps::detail::kUndecayedPhysical>(
+      ev, std::array{PID});
 }
 
 template <typename Collection>
-bool has_exact_out_part(HepMC3::GenEvent const &ev, Collection const &PIDs,
-                        Collection const &counts) {
-  static_assert(ProSelecta_detail::is_zero_std_array<Collection>::value,
+inline bool has_exact_out_part(HepMC3::GenEvent const &ev,
+                               Collection const &PIDs,
+                               Collection const &counts) {
+  static_assert(!ps::detail::is_zero_std_array<Collection>::value,
                 "has_exact_out_part: EmptyPIDList");
-  if constexpr (ProSelecta_detail::is_std_vector_int<Collection>::value) {
+  if constexpr (ps::detail::is_std_vector_int<Collection>::value) {
     if (!PIDs.size()) {
       throw EmptyPIDList("has_exact_out_part passed empty PID list");
     }
   }
 
-  static_assert(
-      ProSelecta_detail::is_std_vector_or_array_int<Collection>::value,
-      "PIDs type must be a std::array<int,N> or std::vector<int>");
+  static_assert(ps::detail::is_std_vector_or_array_int<Collection>::value,
+                "PIDs type must be a std::array<int,N> or std::vector<int>");
 
-  return ProSelecta_detail::has_particles_exact<
-      ProSelecta_detail::kUndecayedPhysical>(ev, PIDs, counts);
+  return ps::detail::has_particles_exact<ps::detail::kUndecayedPhysical>(
+      ev, PIDs, counts);
 }
 
-bool has_exact_out_part(HepMC3::GenEvent const &ev, int PID, int count) {
-  return ProSelecta_detail::has_particles_exact<
-      ProSelecta_detail::kUndecayedPhysical>(ev, std::array{PID}, {count});
+inline bool has_exact_out_part(HepMC3::GenEvent const &ev, int PID, int count) {
+  return ps::detail::has_particles_exact<ps::detail::kUndecayedPhysical>(
+      ev, std::array{PID}, {count});
 }
 
 template <typename Collection>
-bool out_part_topology_matches(HepMC3::GenEvent const &ev,
-                               Collection const &PIDs,
-                               Collection const &counts) {
-  static_assert(ProSelecta_detail::is_zero_std_array<Collection>::value,
+inline bool out_part_topology_matches(HepMC3::GenEvent const &ev,
+                                      Collection const &PIDs,
+                                      Collection const &counts) {
+  static_assert(!ps::detail::is_zero_std_array<Collection>::value,
                 "out_part_topology_matches: EmptyPIDList");
-  if constexpr (ProSelecta_detail::is_std_vector_int<Collection>::value) {
+  if constexpr (ps::detail::is_std_vector_int<Collection>::value) {
     if (!PIDs.size()) {
       throw EmptyPIDList("out_part_topology_matches passed empty PID list");
     }
@@ -92,22 +156,22 @@ bool out_part_topology_matches(HepMC3::GenEvent const &ev,
     }
   }
 
-  static_assert(
-      ProSelecta_detail::is_std_vector_or_array_int<Collection>::value,
-      "PIDs type must be a std::array<int,N> or std::vector<int>");
+  static_assert(ps::detail::is_std_vector_or_array_int<Collection>::value,
+                "PIDs type must be a std::array<int,N> or std::vector<int>");
 
   return has_exact_out_part(ev, PIDs, counts) &&
-         (ProSelecta_detail::particles<ProSelecta_detail::kUndecayedPhysical>(
+         (ps::detail::particles<ps::detail::kUndecayedPhysical>(
               ev, std::array<int, 0>{})
               .size() == std::accumulate(counts.begin(), counts.end(), 0));
 }
 
 template <typename Collection>
-bool has_at_least_out_part(HepMC3::GenEvent const &ev, Collection const &PIDs,
-                           Collection const &counts) {
-  static_assert(ProSelecta_detail::is_zero_std_array<Collection>::value,
+inline bool has_at_least_out_part(HepMC3::GenEvent const &ev,
+                                  Collection const &PIDs,
+                                  Collection const &counts) {
+  static_assert(!ps::detail::is_zero_std_array<Collection>::value,
                 "has_at_least_out_part: EmptyPIDList");
-  if constexpr (ProSelecta_detail::is_std_vector_int<Collection>::value) {
+  if constexpr (ps::detail::is_std_vector_int<Collection>::value) {
     if (!PIDs.size()) {
       throw EmptyPIDList("has_at_least_out_part passed empty PID list");
     }
@@ -119,212 +183,146 @@ bool has_at_least_out_part(HepMC3::GenEvent const &ev, Collection const &PIDs,
     }
   }
 
-  static_assert(
-      ProSelecta_detail::is_std_vector_or_array_int<Collection>::value,
-      "PIDs type must be a std::array<int,N> or std::vector<int>");
+  static_assert(ps::detail::is_std_vector_or_array_int<Collection>::value,
+                "PIDs type must be a std::array<int,N> or std::vector<int>");
 
-  return ProSelecta_detail::has_particles_atleast<
-      ProSelecta_detail::kUndecayedPhysical>(ev, PIDs, counts);
+  return ps::detail::has_particles_atleast<ps::detail::kUndecayedPhysical>(
+      ev, PIDs, counts);
 }
 
-bool has_at_least_out_part(HepMC3::GenEvent const &ev, int PID, int count) {
-  return ProSelecta_detail::has_particles_atleast<
-      ProSelecta_detail::kUndecayedPhysical>(ev, std::array{PID}, {count});
-}
-
-template <typename Collection>
-auto num_out_part(HepMC3::GenEvent const &ev, Collection const &PIDs) {
-
-  static_assert(ProSelecta_detail::is_zero_std_array<Collection>::value,
-                "num_out_part: EmptyPIDList");
-  if constexpr (ProSelecta_detail::is_std_vector_int<Collection>::value) {
-    if (!PIDs.size()) {
-      throw EmptyPIDList("num_out_part passed empty PID list");
-    }
-  }
-
-  static_assert(
-      ProSelecta_detail::is_std_vector_or_array_int<Collection>::value,
-      "PIDs type must be a std::array<int,N> or std::vector<int>");
-
-  typename ProSelecta_detail::broadcast_return<Collection, int>::type outs;
-
-  if constexpr (ProSelecta_detail::is_std_vector_int<Collection>::value) {
-    outs.resize(PIDs.size());
-  }
-
-  for (size_t i = 0; i < PIDs.size(); ++i) {
-    outs[i] =
-        ProSelecta_detail::particles<ProSelecta_detail::kUndecayedPhysical>(
-            ev, std::array{PIDs[i]})
-            .size();
-  }
-  return outs;
-}
-
-int num_out_part(HepMC3::GenEvent const &ev, int PID = 0) {
-  if (PID) {
-    return ProSelecta_detail::particles<ProSelecta_detail::kUndecayedPhysical>(
-               ev, std::array{PID})
-        .size();
-  }
-
-  return ProSelecta_detail::particles<ProSelecta_detail::kUndecayedPhysical>(
-             ev, std::array<int, 0>{})
-      .size();
+inline bool has_at_least_out_part(HepMC3::GenEvent const &ev, int PID,
+                                  int count) {
+  return ps::detail::has_particles_atleast<ps::detail::kUndecayedPhysical>(
+      ev, std::array{PID}, {count});
 }
 
 template <typename Collection>
-int num_out_part_except(HepMC3::GenEvent const &ev, Collection const &PIDs) {
-  static_assert(ProSelecta_detail::is_zero_std_array<Collection>::value,
-                "num_out_part_except: EmptyPIDList");
-  if constexpr (ProSelecta_detail::is_std_vector_int<Collection>::value) {
-    if (!PIDs.size()) {
-      throw EmptyPIDList("num_out_part_except passed empty PID list");
-    }
-  }
-
-  static_assert(
-      ProSelecta_detail::is_std_vector_or_array_int<Collection>::value,
-      "PIDs type must be a std::array<int,N> or std::vector<int>");
-
-  return ProSelecta_detail::particles<ProSelecta_detail::kUndecayedPhysical,
-                                      Collection,
-                                      ProSelecta_detail::kNotFromPDGList>(ev,
-                                                                          PIDs)
-      .size();
-}
-
-int num_out_part_except(HepMC3::GenEvent const &ev, int PID) {
-  return num_out_part_except(ev, std::array{PID});
-}
-
-template <typename Collection>
-auto all_out_part(HepMC3::GenEvent const &ev, Collection const &PIDs) {
-  static_assert(ProSelecta_detail::is_zero_std_array<Collection>::value,
+inline auto all_out_part(HepMC3::GenEvent const &ev, Collection const &PIDs) {
+  static_assert(!ps::detail::is_zero_std_array<Collection>::value,
                 "all_out_part: EmptyPIDList");
-  if constexpr (ProSelecta_detail::is_std_vector_int<Collection>::value) {
+  if constexpr (ps::detail::is_std_vector_int<Collection>::value) {
     if (!PIDs.size()) {
       throw EmptyPIDList("all_out_part passed empty PID list");
     }
   }
 
-  static_assert(
-      ProSelecta_detail::is_std_vector_or_array_int<Collection>::value,
-      "PIDs type must be a std::array<int,N> or std::vector<int>");
+  static_assert(ps::detail::is_std_vector_or_array_int<Collection>::value,
+                "PIDs type must be a std::array<int,N> or std::vector<int>");
 
-  typename ProSelecta_detail::broadcast_return<
+  typename ps::detail::broadcast_return<
       Collection, std::vector<HepMC3::ConstGenParticlePtr>>::type outs;
 
-  if constexpr (ProSelecta_detail::is_std_vector_int<Collection>::value) {
+  if constexpr (ps::detail::is_std_vector_int<Collection>::value) {
     outs.resize(PIDs.size());
   }
 
   for (size_t i = 0; i < PIDs.size(); ++i) {
-    outs[i] =
-        ProSelecta_detail::particles<ProSelecta_detail::kUndecayedPhysical>(
-            ev, std::array{PIDs[i]});
+    outs[i] = ps::detail::particles<ps::detail::kUndecayedPhysical>(
+        ev, std::array{PIDs[i]});
   }
   return outs;
 }
 
-std::vector<HepMC3::ConstGenParticlePtr>
+template <typename Collection>
+inline auto all_out_part(HepMC3::GenEvent const &ev, Collection const &PIDs,
+                         ps::detail::squeeze const &) {
+  return ps::detail::cat(all_out_part(ev, PIDs));
+}
+
+inline std::vector<HepMC3::ConstGenParticlePtr>
 all_out_part(HepMC3::GenEvent const &ev, int PID = 0) {
   if (PID) {
-    return ProSelecta_detail::particles<ProSelecta_detail::kUndecayedPhysical>(
+    return ps::detail::particles<ps::detail::kUndecayedPhysical>(
         ev, std::array{PID});
   }
 
-  return ProSelecta_detail::particles<ProSelecta_detail::kUndecayedPhysical>(
+  return ps::detail::particles<ps::detail::kUndecayedPhysical>(
       ev, std::array<int, 0>{});
 }
 
 template <typename Collection>
-auto hm_out_part(HepMC3::GenEvent const &ev, Collection const &PIDs) {
-  static_assert(ProSelecta_detail::is_zero_std_array<Collection>::value,
+inline auto hm_out_part(HepMC3::GenEvent const &ev, Collection const &PIDs) {
+  static_assert(!ps::detail::is_zero_std_array<Collection>::value,
                 "hm_out_part: EmptyPIDList");
-  if constexpr (ProSelecta_detail::is_std_vector_int<Collection>::value) {
+  if constexpr (ps::detail::is_std_vector_int<Collection>::value) {
     if (!PIDs.size()) {
       throw EmptyPIDList("hm_out_part passed empty PID list");
     }
   }
 
-  static_assert(
-      ProSelecta_detail::is_std_vector_or_array_int<Collection>::value,
-      "PIDs type must be a std::array<int,N> or std::vector<int>");
+  static_assert(ps::detail::is_std_vector_or_array_int<Collection>::value,
+                "PIDs type must be a std::array<int,N> or std::vector<int>");
 
-  typename ProSelecta_detail::broadcast_return<
-      Collection, HepMC3::ConstGenParticlePtr>::type outs;
+  typename ps::detail::broadcast_return<Collection,
+                                        HepMC3::ConstGenParticlePtr>::type outs;
 
-  if constexpr (ProSelecta_detail::is_std_vector_int<Collection>::value) {
+  if constexpr (ps::detail::is_std_vector_int<Collection>::value) {
     outs.resize(PIDs.size());
   }
 
   for (size_t i = 0; i < PIDs.size(); ++i) {
     outs[i] = ps::part::highest(
-        ps::p3mod,
-        ProSelecta_detail::particles<ProSelecta_detail::kUndecayedPhysical>(
-            ev, std::array{PIDs[i]}));
+        ps::p3mod, ps::detail::particles<ps::detail::kUndecayedPhysical>(
+                       ev, std::array{PIDs[i]}));
   }
   return outs;
 }
 
-HepMC3::ConstGenParticlePtr hm_out_part(HepMC3::GenEvent const &ev, int PID) {
+template <typename Collection>
+inline auto hm_out_part(HepMC3::GenEvent const &ev, Collection const &PIDs,
+                        ps::detail::squeeze const &) {
+  return ps::part::highest(ps::p3mod, hm_out_part(ev, PIDs));
+}
+
+inline HepMC3::ConstGenParticlePtr hm_out_part(HepMC3::GenEvent const &ev,
+                                               int PID) {
   return ps::part::highest(
-      ps::p3mod,
-      ProSelecta_detail::particles<ProSelecta_detail::kUndecayedPhysical>(
-          ev, std::array{PID}));
+      ps::p3mod, ps::detail::particles<ps::detail::kUndecayedPhysical>(
+                     ev, std::array{PID}));
 }
 
 template <typename Collection>
-auto all_out_part_except(HepMC3::GenEvent const &ev, Collection const &PIDs) {
-  return ProSelecta_detail::particles<ProSelecta_detail::kUndecayedPhysical,
-                                      Collection,
-                                      ProSelecta_detail::kNotFromPDGList>(ev,
-                                                                          PIDs);
+inline auto all_out_part_except(HepMC3::GenEvent const &ev,
+                                Collection const &PIDs) {
+  return ps::detail::particles<ps::detail::kUndecayedPhysical, Collection,
+                               ps::detail::kNotFromPDGList>(ev, PIDs);
 }
 
-auto all_out_part_except(HepMC3::GenEvent const &ev, int PID) {
-  return ProSelecta_detail::particles<ProSelecta_detail::kUndecayedPhysical,
-                                      std::array<int, 1>,
-                                      ProSelecta_detail::kNotFromPDGList>(
+inline auto all_out_part_except(HepMC3::GenEvent const &ev, int PID) {
+  return ps::detail::particles<ps::detail::kUndecayedPhysical,
+                               std::array<int, 1>, ps::detail::kNotFromPDGList>(
       ev, std::array{PID});
 }
 
 template <typename Collection>
-bool has_beam_part(HepMC3::GenEvent const &ev, Collection const &PIDs) {
+inline bool has_beam_part(HepMC3::GenEvent const &ev, Collection const &PIDs) {
 
-  static_assert(ProSelecta_detail::is_zero_std_array<Collection>::value,
+  static_assert(!ps::detail::is_zero_std_array<Collection>::value,
                 "has_beam_part: EmptyPIDList");
-  if constexpr (ProSelecta_detail::is_std_vector_int<Collection>::value) {
+  if constexpr (ps::detail::is_std_vector_int<Collection>::value) {
     if (!PIDs.size()) {
       throw EmptyPIDList("has_beam_part passed empty PID list");
     }
   }
 
-  static_assert(
-      ProSelecta_detail::is_std_vector_or_array_int<Collection>::value,
-      "PIDs type must be a std::array<int,N> or std::vector<int>");
+  static_assert(ps::detail::is_std_vector_or_array_int<Collection>::value,
+                "PIDs type must be a std::array<int,N> or std::vector<int>");
 
-  return ProSelecta_detail::particles<ProSelecta_detail::kBeam>(ev, PIDs)
-      .size();
+  return ps::detail::particles<ps::detail::kBeam>(ev, PIDs).size();
 }
 
-bool has_beam_part(HepMC3::GenEvent const &ev, int PID = 0) {
+inline bool has_beam_part(HepMC3::GenEvent const &ev, int PID = 0) {
   if (PID) {
-    return ProSelecta_detail::has_particles<ProSelecta_detail::kBeam>(
-        ev, std::array{PID});
+    return ps::detail::has_particles<ps::detail::kBeam>(ev, std::array{PID});
   }
-  return ProSelecta_detail::particles<ProSelecta_detail::kBeam>(
-             ev, std::array<int, 0>{})
+  return ps::detail::particles<ps::detail::kBeam>(ev, std::array<int, 0>{})
       .size();
 }
 
-auto beam_part(HepMC3::GenEvent const &ev, int PID = 0) {
-  auto parts = PID ? ProSelecta_detail::particles<ProSelecta_detail::kBeam>(
-                         ev, std::array{PID})
-                   : ProSelecta_detail::particles<ProSelecta_detail::kBeam>(
-                         ev, std::array<int, 0>{});
+inline auto beam_part(HepMC3::GenEvent const &ev, int PID = 0) {
+  auto parts =
+      PID ? ps::detail::particles<ps::detail::kBeam>(ev, std::array{PID})
+          : ps::detail::particles<ps::detail::kBeam>(ev, std::array<int, 0>{});
 
   if (!parts.size()) {
     std::stringstream ss;
@@ -340,20 +338,19 @@ auto beam_part(HepMC3::GenEvent const &ev, int PID = 0) {
 }
 
 template <typename Collection>
-auto beam_part(HepMC3::GenEvent const &ev, Collection const &PIDs) {
-  static_assert(ProSelecta_detail::is_zero_std_array<Collection>::value,
+inline auto beam_part(HepMC3::GenEvent const &ev, Collection const &PIDs) {
+  static_assert(!ps::detail::is_zero_std_array<Collection>::value,
                 "beam_part: EmptyPIDList");
-  if constexpr (ProSelecta_detail::is_std_vector_int<Collection>::value) {
+  if constexpr (ps::detail::is_std_vector_int<Collection>::value) {
     if (!PIDs.size()) {
       throw EmptyPIDList("beam_part passed empty PID list");
     }
   }
 
-  static_assert(
-      ProSelecta_detail::is_std_vector_or_array_int<Collection>::value,
-      "PIDs type must be a std::array<int,N> or std::vector<int>");
+  static_assert(ps::detail::is_std_vector_or_array_int<Collection>::value,
+                "PIDs type must be a std::array<int,N> or std::vector<int>");
 
-  auto parts = ProSelecta_detail::particles<ProSelecta_detail::kBeam>(ev, PIDs);
+  auto parts = ps::detail::particles<ps::detail::kBeam>(ev, PIDs);
 
   if (!parts.size()) {
     std::stringstream ss;
@@ -377,39 +374,36 @@ auto beam_part(HepMC3::GenEvent const &ev, Collection const &PIDs) {
 }
 
 template <typename Collection>
-bool has_target_part(HepMC3::GenEvent const &ev, Collection const &PIDs) {
+inline bool has_target_part(HepMC3::GenEvent const &ev,
+                            Collection const &PIDs) {
 
-  static_assert(ProSelecta_detail::is_zero_std_array<Collection>::value,
+  static_assert(!ps::detail::is_zero_std_array<Collection>::value,
                 "has_target_part: EmptyPIDList");
-  if constexpr (ProSelecta_detail::is_std_vector_int<Collection>::value) {
+  if constexpr (ps::detail::is_std_vector_int<Collection>::value) {
     if (!PIDs.size()) {
       throw EmptyPIDList("has_target_part passed empty PID list");
     }
   }
 
-  static_assert(
-      ProSelecta_detail::is_std_vector_or_array_int<Collection>::value,
-      "PIDs type must be a std::array<int,N> or std::vector<int>");
+  static_assert(ps::detail::is_std_vector_or_array_int<Collection>::value,
+                "PIDs type must be a std::array<int,N> or std::vector<int>");
 
-  return ProSelecta_detail::particles<ProSelecta_detail::kTarget>(ev, PIDs)
-      .size();
+  return ps::detail::particles<ps::detail::kTarget>(ev, PIDs).size();
 }
 
-bool has_target_part(HepMC3::GenEvent const &ev, int PID = 0) {
+inline bool has_target_part(HepMC3::GenEvent const &ev, int PID = 0) {
   if (PID) {
-    return ProSelecta_detail::has_particles<ProSelecta_detail::kTarget>(
-        ev, std::array{PID});
+    return ps::detail::has_particles<ps::detail::kTarget>(ev, std::array{PID});
   }
-  return ProSelecta_detail::particles<ProSelecta_detail::kTarget>(
-             ev, std::array<int, 0>{})
+  return ps::detail::particles<ps::detail::kTarget>(ev, std::array<int, 0>{})
       .size();
 }
 
-auto target_part(HepMC3::GenEvent const &ev, int PID = 0) {
-  auto parts = PID ? ProSelecta_detail::particles<ProSelecta_detail::kTarget>(
-                         ev, std::array{PID})
-                   : ProSelecta_detail::particles<ProSelecta_detail::kTarget>(
-                         ev, std::array<int, 0>{});
+inline auto target_part(HepMC3::GenEvent const &ev, int PID = 0) {
+  auto parts =
+      PID ? ps::detail::particles<ps::detail::kTarget>(ev, std::array{PID})
+          : ps::detail::particles<ps::detail::kTarget>(ev,
+                                                       std::array<int, 0>{});
   if (!parts.size()) {
     std::stringstream ss;
     ss << "target_part(" << PID << "): NoMatchingParts";
@@ -424,21 +418,19 @@ auto target_part(HepMC3::GenEvent const &ev, int PID = 0) {
 }
 
 template <typename Collection>
-auto target_part(HepMC3::GenEvent const &ev, Collection const &PIDs) {
-  static_assert(ProSelecta_detail::is_zero_std_array<Collection>::value,
+inline auto target_part(HepMC3::GenEvent const &ev, Collection const &PIDs) {
+  static_assert(!ps::detail::is_zero_std_array<Collection>::value,
                 "target_part: EmptyPIDList");
-  if constexpr (ProSelecta_detail::is_std_vector_int<Collection>::value) {
+  if constexpr (ps::detail::is_std_vector_int<Collection>::value) {
     if (!PIDs.size()) {
       throw EmptyPIDList("target_part passed empty PID list");
     }
   }
 
-  static_assert(
-      ProSelecta_detail::is_std_vector_or_array_int<Collection>::value,
-      "PIDs type must be a std::array<int,N> or std::vector<int>");
+  static_assert(ps::detail::is_std_vector_or_array_int<Collection>::value,
+                "PIDs type must be a std::array<int,N> or std::vector<int>");
 
-  auto parts =
-      ProSelecta_detail::particles<ProSelecta_detail::kTarget>(ev, PIDs);
+  auto parts = ps::detail::particles<ps::detail::kTarget>(ev, PIDs);
 
   if (!parts.size()) {
     std::stringstream ss;
@@ -461,12 +453,11 @@ auto target_part(HepMC3::GenEvent const &ev, Collection const &PIDs) {
   return parts.front();
 }
 
-auto out_nuclear_parts(HepMC3::GenEvent const &ev) {
-  return ProSelecta_detail::nuclear_particles<
-      ProSelecta_detail::kUndecayedPhysical>(ev);
+inline auto out_nuclear_parts(HepMC3::GenEvent const &ev) {
+  return ps::detail::nuclear_particles<ps::detail::kUndecayedPhysical>(ev);
 }
 
-int signal_process_id(HepMC3::GenEvent const &ev) {
+inline int signal_process_id(HepMC3::GenEvent const &ev) {
 
   auto const &attr_names = ev.attribute_names();
   if (std::find(attr_names.begin(), attr_names.end(), "signal_process_id") ==

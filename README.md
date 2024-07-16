@@ -2,13 +2,11 @@
 
 This document corresponds to version 1 of the NUISANCE ProSelecta definition.
 
-ProSelecta is a bit like an Analysis Descriptor Language (ADL), except that it doesn't attempt to define a new Domain Specific Language and instead defines a list of utility functions that an event procesing environment might implement to facilitate the declaration of a measurement's key steps.
+ProSelecta is a bit like an Analysis Descriptor Language (ADL), except that it doesn't attempt to define a new Domain Specific Language. Instead defines a list of utility functions (_the environment_) that an event processing framework might implement to facilitate the declaration of a measurement's key steps.
 
-ProSelecta is a specification for a minimal set of utilities to support describing the _event_ selection and projection steps of constructing a prediction of a neutrino-scattering measurement in a declarative way.
+ProSelecta is also a header-only implementation of these utility functions in C++ and using [HepMC3](https://doi.org/10.1016/j.cpc.2020.107310) as the event format. To avoid needless code duplication, some of the HepMC3 event model is included as part of ProSelecta. While this limits the purity and generality of ProSelecta, we think that it is the right choice practically.
 
-ProSelecta is also a header-only implementation of this specification in C++ and using HepMC3 as the event format. To avoid needless code duplication, some of the HepMC3 event model is included as part of ProSelecta. While this limits the purity and generality of ProSelecta, we think that it is the right choice practicaly.
-
-ProSelecta is also also a library providing an interface for writing dynamic event processors that JITs C++ source files written against the ProSelecta environment and exposes functions defined within the source as immediately callable for event processing.
+ProSelecta is also also a library providing an interface for writing dynamic event processors that JITs C++ source files written against the ProSelecta environment and exposes functions defined within the JIT'd source as readily callable for event processing.
 
 A pseudo-python example of what this enables is shown below:
 
@@ -76,11 +74,11 @@ Below are some examples, in increasing complexity, to showcase the expected use 
 1) Check for and fetch an incoming neutrino of any flavor. 
 
 ```c++
-if(!ps::event::has_beam_part(evt, ps::pdg::kNeutralLeptons)){
+if (!ps::event::has_beam_part(evt, ps::pdg::kNeutralLeptons)) {
   return false;
 }
-HepMC3::ConstGenParticlePtr nu = 
-  ps::event::beam_part(evt, ps::pdg::kNeutralLeptons);
+HepMC3::ConstGenParticlePtr nu =
+    ps::event::beam_part(evt, ps::pdg::kNeutralLeptons);
 ```
 
 All single particle fetching functions throw if no particle can be found. 
@@ -88,54 +86,61 @@ If a ProSelecta function returns a `nullptr`, it should be reported as a bug.
 
 2) Check that the event has at least one incoming muon neutrino and one outgoing muon:
 ```c++
-if(!ps::event::has_beam_part(evt, 14) || !ps::event::has_out_part(evt, 13){
+if (!ps::event::has_beam_part(evt, 14) || !ps::event::has_out_part(evt, 13)) {
   return false;
 }
 ```
 
 3) Check the final state topology exactly matches: 1mu1p1pi:
 ```c++
-if(!ps::event::out_part_topology_matches(evt, ps::pids(13,2212,211), {1,1,1})){
+if (!ps::event::out_part_topology_matches(evt, ps::pids(13, 2212, 211),
+                                          {1, 1, 1})) {
   return false;
 }
 ```
 
 4) Get all outgoing protons and sort them by 3-momentum magnitude:
 ```c++
-std::vector<HepMC3::ConstGenParticlePtr> protons = 
-  ps::event::all_out_part(evt, 2212);
+std::vector<HepMC3::ConstGenParticlePtr> protons =
+    ps::event::all_out_part(evt, 2212);
 auto protons_sorted = ps::part::sort_ascending(ps::p3mod, protons);
 ```
 
 Multi-particle search functions can return empty vectors. Accessing an
-empty vector is undefined behavior.
+empty vector is undefined behavior. Look before you leap.
 
-5) Get the highest momentum outgoing proton and negative pion
+5) Get the highest momentum outgoing proton and negative pion:
 ```c++
-auto [protons, pims] = ps::event::all_out_part(evt, ps::pids(2212,-211));
-auto hmproton = ps::part::highest(ps::p3mod, protons);
-auto hmpim = ps::part::highest(ps::p3mod, pims);
+auto [hmproton, hmpim] = ps::part::highest(
+    ps::p3mod, ps::event::all_out_part(evt, ps::pids(2212, -211)));
 ```
 
-6) Get the transverse component of the vector sum of the final state muon and all protons
+6) Get the transverse component of the vector sum of the final state muon and all protons:
 ```c++
-auto sum_pt = ps::part::sum(ps::momentum, ps::event::all_out_part(evt, ps::pids(13, 2212))).pt();
+auto sum_pt =
+    ps::part::sum(ps::momentum, ps::event::all_out_part(
+                                    evt, ps::pids(13, 2212), ps::squeeze))
+        .pt() /
+    ps::unit::GeV_c;
 ```
 
 7) Get all protons with more than 0.05 GeV/c but less than 2 GeV/c of 3momentum:
 ```c++
-auto p3mod_cut = (ps::p3mod > 0.05 * ps::unit::GeV)&&(ps::p3mod < 2 * ps::unit::GeV);
-auto passing_protons = ps::part::filter(p3mod_cut, ps::event::all_out_part(evt, 2212));
+auto p3mod_cut =
+    (ps::p3mod > 0.05 * ps::unit::GeV) && (ps::p3mod < 2 * ps::unit::GeV);
+auto passing_protons =
+    ps::part::filter(p3mod_cut, ps::event::all_out_part(evt, 2212));
 ```
 
 8) Get the invariant mass of all final state protons and pions with more than 250 MeV/c of 3momentum:
 ```c++
-auto invmass_protons_and_pions = 
-  ps::event::sum(ps::momentum, 
-    ps::event::filter(ps::p3mod > 250 * ps::unit::MeV, 
-      ps::part::cat(ps::event::all_out_part(evt, ps::pids(2212, 211, -211, 111)))
-    )
-  ).m();
+auto invmass_protons_and_pions =
+    ps::part::sum(ps::momentum,
+                  ps::part::filter(
+                      ps::p3mod > 250 * ps::unit::MeV,
+                      ps::event::all_out_part(
+                          evt, ps::pids(2212, 211, -211, 111), ps::squeeze)))
+        .m();
 ```
 
 ## event
@@ -147,102 +152,188 @@ bool has_fs_mu = ps::event::has_out_part(evt, ps::pdg::kMuon);
 bool has_fs_mu_or_amu = ps::event::has_out_part(evt, ps::pids(ps::pdg::kMuon, ps::pdg::kAMuon));
 ```
 
-**N.B.** While it might be tempting to pass a initializer list of pids rather than an initialized instance of the `ps::pids` type, which is just a alias for `std::array<int, N>`, the C++17 template argument deduction cannot pick the right type in this instance and so we need to give the `ps::pids` as a type hint to avoid compiler errors.
+**N.B.** While it might be tempting to pass a initializer list of pids rather than using the `ps::pids` function, the C++17 template argument deduction cannot pick the right type in this instance and so we need to use the `ps::pids` as a type hint to avoid compiler errors. `ps::pids` is a `constexpr` function returning a fully qualified `std::array` type, and so should not affect runtime performance.
 
-For functions that fetch or count particles, passing a list of pids may result in a `std::array` of responses being returned. This can be very powerful, but can also trip you up if you aren't aware. Modifying the above example to count the number of final-state muons or anti-muons, rather than just check for any, we see:
+For functions that fetch or count particles, passing a list of pids may result in a `std::array` of responses being returned. This can be very powerful, but can also trip you up if you aren't aware. We can modify the above example to count the number of final-state muons and anti-muons, rather than just check for the existance of either:
 
 ```c++
 auto num_fs_mu = ps::event::num_out_part(evt, ps::pdg::kMuon);
 auto num_fs_mu_or_amu = ps::event::num_out_part(evt, ps::pids(ps::pdg::kMuon, ps::pdg::kAMuon));
 ```
 
-The type of `num_fs_mu_or_amu` is `std::array<int,2>` where `num_fs_mu_or_amu[0]` holds the number of final-state muons and `num_fs_mu_or_amu[1]` holds the number of final-state anti-muons. This is useful thanks to [C++17's structured bindings](https://en.cppreference.com/w/cpp/language/structured_binding), which allows the following syntactic sugar, which is similar to python's tuple unpacking:
+The type of `num_fs_mu_or_amu` is `std::array<int,2>` where `num_fs_mu_or_amu[0]` holds the number of final-state muons and `num_fs_mu_or_amu[1]` holds the number of final-state anti-muons. This is useful thanks to [C++17's structured bindings](https://en.cppreference.com/w/cpp/language/structured_binding), which allows the following syntactic sugar, and gives us something remarkably similar to python's tuple unpacking:
 
 ```c++
 auto [num_fs_mu, num_fs_amu] = ps::event::num_out_part(evt, ps::pids(ps::pdg::kMuon, ps::pdg::kAMuon));
 ```
 
-### Searching for final-state particles
+Finally on this note, sometimes you want to search for particles from a list of multiple pids but then not keep the results separated like above. The `ps::squeeze` optional argument can be used to return a single object from many of the ProSelecta functions. What the returned object is depends on the function called, for the example above, we can count the total number of muons and anti-muons in one call by `squeeze`-ing the result:
 
 ```c++
-//Returns true iff the event contains at least one final-state particle of any of the supplied
-//  PIDs otherwise, false.
-//Convenience overload for passing a single pid exists.
-bool has_out_part(HepMC3::GenEvent const &ev, std::array<int, N> const &PIDs);
+int num_fs_mu_and_amu = ps::event::num_out_part(evt, ps::pids(ps::pdg::kMuon, ps::pdg::kAMuon), ps::squeeze);
+``` 
 
-//Returns true iff the event contains exactly the number of specified final-state particles for
-//  each PID otherwise, false. Additional, unspecified PIDs are not checked.
-//Convenience overload for passing a single pid and associated count exists.
-bool has_exact_out_part(HepMC3::GenEvent const &ev,
-                        std::array<int, N> const &PIDs,
-                        std::array<int, N> const &counts);
+### Searching for final-state particles
 
-//Returns true iff the event contains exactly the number of specified final-state particles for
-// each PID and no additional final state particles otherwise, false.
-bool out_part_topology_matches(HepMC3::GenEvent const &ev,
-                               std::array<int, N> const &PIDs,
-                               std::array<int, N> const &counts);
+#### API Documentation
 
-//Returns true iff the event contains at least the number of specified final-state particles
-//  for each PID otherwise, false. Additional, unspecified PIDs are not checked.
-bool has_at_least_out_part(HepMC3::GenEvent const &ev,
-                           std::array<int, N> const &PIDs,
-                           std::array<int, N> const &counts);
+```c++
+// Returns true iff the event contains at least one final-state particle of any
+// of the supplied PIDs otherwise, false.
+// - Convenience overload for passing a single pid exists.
+bool ps::event::has_out_part(HepMC3::GenEvent const &ev,
+                             std::array<int, N> const &PIDs);
 
-//Returns an array of the number of final-state particles for each specified PID.
-//Convenience overload for passing a single pid exists and returns an int rather 
-//  than an std::array<int,1>.
-//If no PIDs are passed, all final-state particles are counted.
-auto num_out_part(HepMC3::GenEvent const &ev, std::array<int, N> const &PIDs);
+// Returns true iff the event contains exactly the number of specified
+// final-state particles for each PID otherwise, false. Additional, unspecified
+// PIDs are not checked.
+// - Convenience overload for passing a single pid and associated count exists.
+bool ps::event::has_exact_out_part(HepMC3::GenEvent const &ev,
+                                   std::array<int, N> const &PIDs,
+                                   std::array<int, N> const &counts);
 
-//Returns the number of final-state particles with pid not specified in PIDs.
-int num_out_part_except(HepMC3::GenEvent const &ev,
-                        std::array<int, N> const &PIDs);
+// Returns true iff the event contains exactly the number of specified
+// final-state particles for each PID and no additional final state particles
+// otherwise, false.
+bool ps::event::out_part_topology_matches(HepMC3::GenEvent const &ev,
+                                          std::array<int, N> const &PIDs,
+                                          std::array<int, N> const &counts);
 
-//Returns an array of vectors of GenParticlePtr to final-state particles
-// for each specified PID.
-//Convenience overload for passing a single pid exists and returns an std::vector rather 
-//  than an std::array<std::vector,1>.
-//If no PIDs are passed, all final-state particles are returned in a single std::vector.
-auto all_out_part(HepMC3::GenEvent const &ev, std::array<int, N> const &PIDs);
+// Returns true iff the event contains at least the number of specified
+// final-state particles for each PID otherwise, false. Additional, unspecified
+// PIDs are not checked.
+bool ps::event::has_at_least_out_part(HepMC3::GenEvent const &ev,
+                                      std::array<int, N> const &PIDs,
+                                      std::array<int, N> const &counts);
 
-//Returns as single std::vector of GenParticlePtr to final-state particles with pid not specified in PIDs.
-auto all_out_part_except(HepMC3::GenEvent const &ev,
-                         std::array<int, N> const &PIDs);
+// Returns an array of the number of final-state particles for each specified
+// PID.
+// - Passing ps::squeeze as the last parameter will return the total number
+// of final-state particles of all specified PIDs
+// - Convenience overload for passing a single pid exists and returns an int
+// rather than an std::array<int,1>.
+// - If no PIDs are passed, all final-state particles are counted.
+auto ps::event::num_out_part(HepMC3::GenEvent const &ev,
+                             std::array<int, N> const &PIDs);
 
-//Returns an array of GenParticlePtr to the highest momentum final-state particles
-// for each specified PID.
-//Convenience overload for passing a single pid exists and returns a GenParticlePtr rather 
-//  than an std::array<GenParticlePtr,1>.
-auto hm_out_part(HepMC3::GenEvent const &ev, std::array<int, N> const &PIDs);
+// Returns the number of final-state particles with pid not specified in PIDs.
+int ps::event::num_out_part_except(HepMC3::GenEvent const &ev,
+                                   std::array<int, N> const &PIDs);
+
+// Returns an array of vectors of GenParticlePtr to final-state particles for
+// each specified PID.
+// - Passing ps::squeeze as the last parameter will return all matching
+// particles in a single std::vector
+// - Convenience overload for passing a single pid exists and returns an
+// std::vector rather than an std::array<std::vector,1>.
+// - If no PIDs are passed, all final-state particles are returned in a single
+// std::vector.
+auto ps::event::all_out_part(HepMC3::GenEvent const &ev,
+                             std::array<int, N> const &PIDs);
+
+// Returns as single std::vector of GenParticlePtr to final-state particles with
+// pid not specified in PIDs.
+auto ps::event::all_out_part_except(HepMC3::GenEvent const &ev,
+                                    std::array<int, N> const &PIDs);
+
+// Returns an array of GenParticlePtr to the highest momentum final-state
+// particles for each specified PID.
+// - Passing ps::squeeze as the last parameter will return only the highest
+// momentum particle found over all specified PIDs.
+// - Convenience overload for passing a single pid exists and returns a
+// GenParticlePtr rather than an std::array<GenParticlePtr,1>.
+auto ps::event::hm_out_part(HepMC3::GenEvent const &ev,
+                            std::array<int, N> const &PIDs);
 ```
+
+#### Example Usage
+
+Below are some concrete usage examples for each different version of the function families presented in the previous section. Hopefully it is clear that the framework is quite flexible. That does with some cost, and that cost is that the functions rely quite heavily on template metaprogramming, which cause result in impenetrable compiler errors for seemingly innocuous issues. Hopefully the below examples clearly show how to use these functions correctly, but if you do hit compiler errors that are difficult to parse, first check the [Appendix](#common-compiler-errors) and then reach out on [slack: nuisance-xsec#proselecta](nuisance-xsec.slack.com).
+
+```c++
+using namespace ps;
+
+auto has_final_state_muon = event::has_out_part(ev, pdg::kMuon);
+auto has_final_state_muon_or_antimuon =
+    event::has_out_part(ev, pids(pdg::kMuon, pdg::kAMuon));
+auto has_final_state_charged_leptons =
+    event::has_out_part(ev, pdg::kChargedLeptons);
+
+auto has_2_final_state_protons = event::has_exact_out_part(ev, pdg::kProton, 2);
+auto has_2_final_state_protons_and_1_muon =
+    event::has_exact_out_part(ev, pids(pdg::kProton, pdg::kMuon), {2, 1});
+
+auto final_state_only_1mu2p3pip = event::out_part_topology_matches(
+    ev, pids(pdg::kMuon, pdg::kProton, pdg::kPiPlus), {1, 2, 3});
+
+auto final_state_more_than_2_protons =
+    event::has_at_least_out_part(ev, pdg::kProton, 2);
+auto final_state_more_than_2_protons_and_neutrons =
+    event::has_at_least_out_part(ev, pids(pdg::kProton, pdg::kNeutron), {2, 2});
+
+auto num_final_state_protons = event::num_out_part(ev, pdg::kProton);
+auto [num_fs_protons, num_fs_neutrons] =
+    event::num_out_part(ev, pids(pdg::kProton, pdg::kNeutron));
+auto num_fs_protons_and_neutrons] = event::
+          num_out_part(ev, pids(pdg::kProton,pdg::kNeutron), ps::squeeze);
+
+auto num_exotic = event::num_out_part_except(
+    ev, pids(pdg::kMuon, pdg::kProton, pdg::kNeutron, pdg::kPiPlus,
+             pdg::kPiZero, pdg::kPiMinus, pdg::kGamma));
+
+auto all_protons = event::all_out_part(ev, pdg::kProton);
+auto [all_protons, all_pims] =
+    event::all_out_part(ev, pids(pdg::kProton, pdg::kPiMinus));
+auto all_protons_and_pims =
+    event::all_out_part(ev, pids(pdg::kProton, pdg::kPiMinus), ps::squeeze);
+
+auto all_not_protons = event::all_out_part_except(ev, pdg::kProton);
+auto all_exotic = event::all_out_part_except(
+    ev, pids(pdg::kMuon, pdg::kProton, pdg::kNeutron, pdg::kPiPlus,
+             pdg::kPiZero, pdg::kPiMinus, pdg::kGamma));
+
+auto hm_proton = event::hm_out_part(ev, pdg::kProton);
+auto [hm_proton, hm_pi0] =
+    event::hm_out_part(ev, pids(pdg::kProton, pdg::kPiZero));
+auto hm_proton_or_pi0 =
+    event::hm_out_part(ev, pids(pdg::kProton, pdg::kPiZero), ps::squeeze);
+```
+
 
 ### Searching for beam and target particles
 
-Since the [NuHepMC]() standard considers events with anything other than a single beam and a single target particle invalid, the below functions that fetch particles will throw if they find no matching particles **or** if they find more than one matching particle.
+Since the [NuHepMC](https://arxiv.org/pdf/2310.13211) standard considers events with anything other than a single beam and a single target particle invalid, the below functions that fetch particles will throw if they find no matching particles **or** if they find more than one matching particle.
 
 ```c++
-//Returns true iff the event contains at least one beam particle of any of the supplied
-//  PIDs otherwise, false.
-//Convenience overload for passing a single pid exists.
-bool has_beam_part(HepMC3::GenEvent const &ev, std::array<int, N> const &PIDs);
+// Returns true iff the event contains at least one beam particle of any of the
+// supplied PIDs otherwise, false.
+// - Convenience overload for passing a single pid exists.
+bool ps::event::has_beam_part(HepMC3::GenEvent const &ev,
+                              std::array<int, N> const &PIDs);
 
-//Returns a GenParticlePtr to the matching beam particle for any specified PID.
-//Convenience overload for passing a single pid exists.
-//If no PIDs are passed, all beam particles are fetched and the first one is returned.
-//This function will throw if more than one or less than one particle is found in the search
-auto beam_part(HepMC3::GenEvent const &ev, std::array<int, N> const &PIDs);
+// Returns a GenParticlePtr to the matching beam particle for any specified PID.
+// - Convenience overload for passing a single pid exists.
+// - If no PIDs are passed, all beam particles are fetched and the first one is
+// returned.
+// - This function will throw if more than one or less than one particle is
+// found in the search
+auto ps::event::beam_part(HepMC3::GenEvent const &ev,
+                          std::array<int, N> const &PIDs);
 
-//Returns true iff the event contains at least one target particle of any of the supplied
-//  PIDs otherwise, false.
-//Convenience overload for passing a single pid exists.
-bool has_target_part(HepMC3::GenEvent const &ev, std::array<int, N> const &PIDs);
+// Returns true iff the event contains at least one target particle of any of
+// the supplied PIDs otherwise, false.
+// - Convenience overload for passing a single pid exists.
+bool ps::event::has_target_part(HepMC3::GenEvent const &ev,
+                                std::array<int, N> const &PIDs);
 
-//Returns a GenParticlePtr to the matching target particle for any specified PID.
-//Convenience overload for passing a single pid exists.
-//If no PIDs are passed, all target particles are fetched and the first one is returned.
-//This function will throw if more than one or less than one particle is found in the search
-auto target_part(HepMC3::GenEvent const &ev, std::array<int, N> const &PIDs);
+// Returns a GenParticlePtr to the matching target particle for any specified
+// PID.
+// - Convenience overload for passing a single pid exists. If no PIDs are
+// passed, all target particles are fetched and the first one is returned.
+// - This function will throw if more than one or less than one particle is
+// found in the search
+auto ps::event::target_part(HepMC3::GenEvent const &ev,
+                            std::array<int, N> const &PIDs);
 ```
 
 ### Searching for nuclear particles
@@ -250,46 +341,22 @@ auto target_part(HepMC3::GenEvent const &ev, std::array<int, N> const &PIDs);
 The previously detailed functions all ignore particles with pid >= 1000000000 for all searches. If you need to grab these particles you can use the below function that will get all final-state particles from the event with pid >= 1000000000.
 
 ```c++
-//Returns a vector of GenParticlePtr pointing to final-state particles with pid >= 1000000000
-auto out_nuclear_parts(HepMC3::GenEvent const &ev)
+// Returns a vector of GenParticlePtr pointing to final-state particles with 
+// pid >= 1000000000
+auto ps::event::out_nuclear_parts(HepMC3::GenEvent const &ev)
 ```
 
 ### misc
 
 ```c++
-//Returns the signal_process_id for the event, throws if the attribute does not exist
-int signal_process_id(HepMC3::GenEvent const &ev);
+// Returns the signal_process_id for the event, throws if the attribute does 
+// not exist
+int ps::event::signal_process_id(HepMC3::GenEvent const &ev);
 ```
 
 ## part
 
 The `ps::part` namespace, defined in [ProSelecta/env/part.h](ProSelecta/env/part.h) contains functions for working with `HepMC3::GenParticlePtr`s and collections thereof.
-
-### convenience
-
-The functions below are provided to work with the `std::array<std::vector,N>` return values of `ps::event::all_out_part`.
-
-```c++
-//returns exactly one HepMC3::GenParticlePtr from the input array of vectors
-//throws if there is not exactly one particle in parts.
-auto one(std::array<std::vector<HepMC3::ConstGenParticlePtr>, N> parts);
-//returns a single std::vector<HepMC3::GenParticlePtr> containing all HepMC3::GenParticlePtr
-//in parts. You can think of this as equivalent to flattening the 2D data structure of parts.
-auto cat(std::array<std::vector<HepMC3::ConstGenParticlePtr>, N> parts);
-```
-
-As these are a bit more abstract, we will provide some example usage below.
-
-```c++
-//throws if there is not exactly one proton
-auto the_one_proton = ps::part::one(ps::event::all_out_part(evt,2212));
-
-//throws if there is not exactly one charged pion
-auto the_one_charged_pion = ps::part::one(ps::event::all_out_part(evt, ps::pids(211,-211)));
-
-//a single std::vector<HepMC3::GenParticlePtr> of all final-state charged pions found in the event
-auto all_the_charged_pions = ps::part::cat(ps::event::all_out_part(evt, ps::pids(211,-211)));
-```
 
 ### projectors
 
@@ -300,6 +367,7 @@ Some of these projectors, those that project onto a single real number, can be u
 ```c++
 ps::p3mod; //can be used to sort or cut 
 ps::energy; //can be used to sort or cut 
+ps::kinetic_energy; //can be used to sort or cut 
 ps::theta; //can be used to sort or cut 
 ps::costheta; //can be used to sort or cut 
 ps::momentum;
@@ -308,35 +376,98 @@ ps::momentum;
 The projectors are named like the corresponding HepMC3::FourVector methods or properties for clarity and consistency. The `ps::momentum` projector is included for ease of performing 4-vector sums over collections of particles, but it cannot be used to cut or sort particles.
 
 ```c++
-//Returns the accumulated result of applying vector over all particles in parts
-//A convenience overload exists for passing a single vector instead of an array of
-//  vectors.
-auto sum(T const &projector,
-         std::array<std::vector<HepMC3::ConstGenParticlePtr>, N> parts);
+// Returns the accumulated result of applying vector over all particles in parts
+//  - A convenience overload exists for passing a single vector instead of an
+//  array of vectors.
+auto ps::part::sum(
+    T const &projector,
+    std::array<std::vector<HepMC3::ConstGenParticlePtr>, N> parts);
+```
+
+#### Example Usage
+
+```c++
+using namespace ps;
+
+auto sum_T_p =
+    part::sum(ps::kinetic_energy, event::all_out_part(ev, pdg::kProton));
+auto [sum_T_p_alt, sum_T_pi0] =
+    part::sum(ps::kinetic_energy,
+              event::all_out_part(ev, pids(pdg::kProton, pdg::kPiZero)));
+auto sum_p_p_and_pi0 = part::sum(
+    ps::p3mod,
+    event::all_out_part(ev, pids(pdg::kProton, pdg::kPiZero), ps::squeeze));
+// equivalent to
+auto sum_p_p_and_pi0_alt = part::sum(
+    ps::p3mod, event::all_out_part(ev, pids(pdg::kProton, pdg::kPiZero)),
+    ps::squeeze);
 ```
 
 ### sorting
 
 ```c++
-//sort the input particles in ascending order according to the projector
-//throws if parts is an empty vector
-auto sort_ascending(T const &projector,
-                    std::vector<HepMC3::ConstGenParticlePtr> parts);
+// Sort each vector of input particles in ascending order according to the projector
+// - A convenience overload exists for passing a single vector instead of an
+//   array of vectors.
+// - Passing ps::squeeze as the last parameter will sort all input particles
+//   together according to the result of projector and will return a single 
+//   vector of particles
+auto ps::part::sort_ascending(T const &projector,
+    std::array<std::vector<HepMC3::ConstGenParticlePtr>, N> parts);
 
-//Gets the particle from parts with the highest projected value
-//throws if parts is an empty vector
-auto highest(T const &projector,
-             std::vector<HepMC3::ConstGenParticlePtr> parts);
+// Gets the particle from each vector in parts with the highest projected value
+// - Throws if any vector in parts is empty
+// - A convenience overload exists for passing a single vector instead of an
+//   array of vectors.
+// - Passing ps::squeeze as the last parameter will sort all input particles
+//   together according to the result of projector and will return a single 
+//   particle
+auto ps::part::highest(T const &projector,
+    std::array<std::vector<HepMC3::ConstGenParticlePtr>, N> parts);
 
-//Gets the particle from parts with the lowest projected value
-//throws if parts is an empty vector
-auto lowest(T const &projector,
-            std::vector<HepMC3::ConstGenParticlePtr> parts);
+// Gets the particle from each vector in parts with the lowest projected value
+// - Throws if parts is an empty vector
+// - Passing ps::squeeze as the last parameter will sort all input particles
+//   together according to the result of projector and will return a single 
+//   particle
+auto ps::part::lowest(T const &projector,
+    std::array<std::vector<HepMC3::ConstGenParticlePtr>, N> parts);
+```
+
+#### Example Usage
+
+```c++
+using namespace ps;
+
+auto protons_orderby_p3mod =
+    part::sort_ascending(ps::p3mod, event::all_out_part(ev, pdg::kProton));
+auto [protons_orderby_p3mod_alt, pims_orderby_p3mod] = part::sort_ascending(
+    ps::p3mod, event::all_out_part(ev, pids(pdg::kProton, pdg::kPiMinus)));
+auto protons_and_pims_orderby_p3mod = part::sort_ascending(
+    ps::p3mod,
+    event::all_out_part(ev, pids(pdg::kProton, pdg::kPiMinus), ps::squeeze));
+// equivalent to
+auto protons_and_pims_orderby_p3mod_alt = part::sort_ascending(
+    ps::p3mod, event::all_out_part(ev, pids(pdg::kProton, pdg::kPiMinus)),
+    ps::squeeze);
+
+auto hm_proton =
+    part::highest(ps::p3mod, event::all_out_part(ev, pdg::kProton));
+auto [hm_proton_alt, hm_pim] = part::highest(
+    ps::p3mod, event::all_out_part(ev, pids(pdg::kProton, pdg::kPiMinus)));
+auto hm_proton_or_pim = part::highest(
+    ps::p3mod,
+    event::all_out_part(ev, pids(pdg::kProton, pdg::kPiMinus), ps::squeeze));
+// equivalent to
+auto hm_proton_or_pim_alt = part::highest(
+    ps::p3mod, event::all_out_part(ev, pids(pdg::kProton, pdg::kPiMinus)),
+    ps::squeeze);
+
 ```
 
 ### cuts
 
-ProSelecta provides a very simple cut syntax built on the projector objects. `cuts` are created by using one of the below operators on a valid projector (*i.e.* not `ps::momentum`).
+ProSelecta provides a very simple cut syntax built on the projector objects. `ps::cuts` are created by using one of the below operators on a valid projector (*i.e.* not `ps::momentum`).
 
 ```c++
 auto cut1 = ps::p3mod < 10 * ps::unit::GeV;
@@ -345,20 +476,24 @@ auto cut3 = ps::p3mod > 10 * ps::unit::GeV;
 auto cut4 = ps::p3mod >= 10 * ps::unit::GeV;
 ```
 
-`cuts` objects can also be negated and logically and'd, they cannot be logically or'd as building correct cut graphs is outside the scope of this utility and for the simple cuts envisioned, an extra line or two of user code is worth keeping the framework code considerably simpler.
+`ps::cuts` objects can also be negated and logically and'd. They cannot be logically or'd as building correct cut execution graphs is outside the scope of this utility and ,for the simple cuts envisioned, an extra line or two of user code is worth keeping the framework code considerably simpler.
 
 ```c++
 auto cut4not = !cut4;
 auto cut1and2 = cut1&&cut2;
 ```
 
-Importantly, `cuts` can be applied to vectors of particles.
+Importantly, `ps::cuts` can be applied to vectors of particles.
 
 
 ```c++
-//returns the vector of particles passing the cuts, c.
-//returning an empty vector is not an error unlike elsewhere in this interface
-auto filter(cuts const &c, std::vector<HepMC3::ConstGenParticlePtr> parts) 
+// Returns the vector of particles passing the cuts, c.
+// - A convenience overload exists for passing a single vector instead of an
+//   array of vectors.
+// - Passing ps::squeeze as the last parameter will sort all input particles
+//   together according to the result of projector and will return a single 
+//   particle
+auto ps::part::filter(ps::cuts const &c, std::vector<HepMC3::ConstGenParticlePtr> parts) 
 ```
 
 
@@ -504,7 +639,9 @@ int main(int argc, char const *argv[]){
 
 Python bindings are provided for both the ProSelecta environment functions and for writing scripts that make use of the ProSelecta interpreter.
 
-# Citation Helper
+
+# Appendices
+## Citation Helper
 
 If you use ProSelecta in your publication, please cite Cling, HepMC3, and ProSelecta itself.
 
@@ -545,3 +682,5 @@ If you use ProSelecta in your publication, please cite Cling, HepMC3, and ProSel
    month=mar, pages={107310} }
 
 ```
+
+## Common Compiler Errors

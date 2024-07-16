@@ -2,8 +2,6 @@
 
 #include "ProSelecta/env.h"
 
-#include "ProSelecta/ext/event_proj.h"
-
 #include "pybind11/functional.h"
 #include "pybind11/pybind11.h"
 #include "pybind11/stl.h"
@@ -12,6 +10,8 @@
 #include <string>
 
 namespace py = pybind11;
+
+void pyProSelectaExtNuInit(py::module &);
 
 PYBIND11_MODULE(pyProSelecta, m) {
   m.doc() = "ProSelecta implementation in python";
@@ -141,12 +141,8 @@ PYBIND11_MODULE(pyProSelecta, m) {
             return ps::event::out_nuclear_parts(ev);
           },
           py::arg("event"))
-      .def(
-          "signal_process_id",
-          [](HepMC3::GenEvent const &ev) {
-            return ps::event::signal_process_id(ev);
-          },
-          py::arg("event"));
+      .def("signal_process_id", &ps::event::signal_process_id,
+           py::arg("event"));
 
   auto m_ps_part = m.def_submodule("part", "ProSelecta part module");
   m_ps_part
@@ -208,22 +204,6 @@ PYBIND11_MODULE(pyProSelecta, m) {
           },
           py::arg("by"), py::arg("parts"))
       .def(
-          "cat",
-          [](std::vector<std::vector<HepMC3::ConstGenParticlePtr>> const
-                 &parts) { return ps::part::cat(parts); },
-          py::arg("parts"))
-      .def(
-          "one",
-          [](std::vector<HepMC3::ConstGenParticlePtr> const &parts) {
-            return ps::part::one(parts);
-          },
-          py::arg("parts"))
-      .def(
-          "one",
-          [](std::vector<std::vector<HepMC3::ConstGenParticlePtr>> const
-                 &parts) { return ps::part::one(parts); },
-          py::arg("parts"))
-      .def(
           "sum",
           [](std::string const &by,
              std::vector<HepMC3::ConstGenParticlePtr> const &parts) {
@@ -242,16 +222,6 @@ PYBIND11_MODULE(pyProSelecta, m) {
             }
           },
           py::arg("by"), py::arg("parts"));
-
-  auto m_ps_ext = m.def_submodule("ext", "ProSelecta ext module");
-  m_ps_ext.def("enu_GeV", ps::ext::enu_GeV, py::arg("event"))
-      .def("pmu_GeV", ps::ext::pmu_GeV, py::arg("event"))
-      .def("thetamu_deg", ps::ext::thetamu_deg, py::arg("event"))
-      .def("Q2lep_GeV2", ps::ext::Q2lep_GeV2, py::arg("event"))
-      .def("q0lep_GeV", ps::ext::q0lep_GeV, py::arg("event"))
-      .def("q3lep_GeV", ps::ext::q3lep_GeV, py::arg("event"))
-      .def("hm_pprot_GeV", ps::ext::hm_pprot_GeV, py::arg("event"))
-      .def("hm_thetaprot_deg", ps::ext::hm_thetaprot_deg, py::arg("event"));
 
   // Units.h
   py::module units = m.def_submodule("unit", "Units constants");
@@ -290,4 +260,7 @@ PYBIND11_MODULE(pyProSelecta, m) {
   pdg.attr("kNeutralLeptons_matter") = ps::pdg::kNeutralLeptons_matter;
   pdg.attr("kNeutralLeptons_amatter") = ps::pdg::kNeutralLeptons_amatter;
   pdg.attr("kLeptons") = ps::pdg::kLeptons;
+
+  auto m_ps_ext = m.def_submodule("ext", "ProSelecta extra module");
+  pyProSelectaExtNuInit(m_ps_ext);
 }

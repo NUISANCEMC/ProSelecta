@@ -10,7 +10,6 @@ constexpr auto pids(Args... args){
   return std::array{args...};
 }
 
-
 namespace pdg {
 constexpr static int kNuE = 12;
 constexpr static int kANuE = -12;

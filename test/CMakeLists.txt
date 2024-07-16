@@ -35,6 +35,12 @@ target_include_directories(envTests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
 catch_discover_tests(envTests)
 
+add_executable(READMETests READMETests.cxx)
+target_link_libraries(READMETests PRIVATE Catch2::Catch2WithMain ProSelecta::Interpreter ROOT::MathCore HepMC3::All)
+target_include_directories(READMETests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+
+catch_discover_tests(READMETests)
+
 find_package(Boost 1.70.0 COMPONENTS filesystem)
 if(BOOST_FOUND)
 

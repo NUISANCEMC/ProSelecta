@@ -2,13 +2,13 @@
 
 #include "HepMC3/FourVector.h"
 
-#include <numeric>
 #include <algorithm>
+#include <numeric>
 
 namespace ps {
 namespace vect {
 
-HepMC3::FourVector direction(HepMC3::FourVector v) {
+inline HepMC3::FourVector direction(HepMC3::FourVector v) {
   v.set_e(0);
   if (v.p3mod() > 0) {
     v /= v.p3mod();
@@ -16,12 +16,12 @@ HepMC3::FourVector direction(HepMC3::FourVector v) {
   return v;
 }
 
-double dot(HepMC3::FourVector const &a, HepMC3::FourVector const &b) {
+inline double dot(HepMC3::FourVector const &a, HepMC3::FourVector const &b) {
   return a.x() * b.x() + a.y() * b.y() + a.z() * b.z();
 }
 
-HepMC3::FourVector cross(HepMC3::FourVector const &a,
-                         HepMC3::FourVector const &b) {
+inline HepMC3::FourVector cross(HepMC3::FourVector const &a,
+                                HepMC3::FourVector const &b) {
   auto i = a.y() * b.z() - a.z() * b.y();
   auto j = a.z() * b.x() - a.x() * b.z();
   auto k = a.x() * b.y() - a.y() * b.x();
@@ -29,7 +29,8 @@ HepMC3::FourVector cross(HepMC3::FourVector const &a,
   return HepMC3::FourVector{i, j, k, 0};
 }
 
-double angle(HepMC3::FourVector const &v, HepMC3::FourVector const &refv) {
+inline double angle(HepMC3::FourVector const &v,
+                    HepMC3::FourVector const &refv) {
   double ptot2 = v.length2() * refv.length2();
   if (ptot2 <= 0) {
     return 0.0;
@@ -37,27 +38,28 @@ double angle(HepMC3::FourVector const &v, HepMC3::FourVector const &refv) {
   return std::acos(std::clamp(dot(v, refv) / sqrt(ptot2), -1.0, 1.0));
 }
 
-HepMC3::FourVector transverse(HepMC3::FourVector v, HepMC3::FourVector dir) {
+inline HepMC3::FourVector transverse(HepMC3::FourVector v,
+                                     HepMC3::FourVector dir) {
   dir = direction(dir);
   v.set_e(0);
   auto long_comp = dir * dot(v, dir);
   return v - long_comp;
 }
 
-HepMC3::FourVector rotate(HepMC3::FourVector const &v, HepMC3::FourVector axis,
-                          double theta) {
+inline HepMC3::FourVector rotate(HepMC3::FourVector const &v,
+                                 HepMC3::FourVector axis, double theta) {
   // from https://en.wikipedia.org/wiki/Rodrigues%27_rotation_formula
   axis = direction(axis);
   return v * std::cos(theta) + cross(axis, v) * std::sin(theta) +
          axis * dot(axis, v) * (1.0 - std::cos(theta));
 }
 
-HepMC3::FourVector boost_beta(HepMC3::FourVector const &fv) {
-  return direction(fv)*(fv.p3mod()/fv.e());
+inline HepMC3::FourVector boost_beta(HepMC3::FourVector const &fv) {
+  return direction(fv) * (fv.p3mod() / fv.e());
 }
 
-HepMC3::FourVector boost(HepMC3::FourVector const &fv,
-                         HepMC3::FourVector const &boost_beta) {
+inline HepMC3::FourVector boost(HepMC3::FourVector const &fv,
+                                HepMC3::FourVector const &boost_beta) {
 
   HepMC3::FourVector vo;
 

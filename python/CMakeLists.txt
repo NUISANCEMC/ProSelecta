@@ -1,4 +1,4 @@
-pybind11_add_module(pyProSelecta SHARED pyProSelecta.cxx)
+pybind11_add_module(pyProSelecta SHARED pyProSelecta.cxx pyProSelectaExtNu.cxx)
 
 target_link_libraries(pyProSelecta PRIVATE ProSelecta::Interpreter pybind11::module)
 
