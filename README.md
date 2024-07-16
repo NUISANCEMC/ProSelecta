@@ -209,9 +209,9 @@ bool ps::event::has_at_least_out_part(HepMC3::GenEvent const &ev,
 // Returns an array of the number of final-state particles for each specified
 // PID.
 // - Passing ps::squeeze as the last parameter will return the total number
-// of final-state particles of all specified PIDs
+//   of final-state particles of all specified PIDs
 // - Convenience overload for passing a single pid exists and returns an int
-// rather than an std::array<int,1>.
+//   rather than an std::array<int,1>.
 // - If no PIDs are passed, all final-state particles are counted.
 auto ps::event::num_out_part(HepMC3::GenEvent const &ev,
                              std::array<int, N> const &PIDs);
@@ -223,11 +223,11 @@ int ps::event::num_out_part_except(HepMC3::GenEvent const &ev,
 // Returns an array of vectors of GenParticlePtr to final-state particles for
 // each specified PID.
 // - Passing ps::squeeze as the last parameter will return all matching
-// particles in a single std::vector
+//   particles in a single std::vector
 // - Convenience overload for passing a single pid exists and returns an
-// std::vector rather than an std::array<std::vector,1>.
+//   std::vector rather than an std::array<std::vector,1>.
 // - If no PIDs are passed, all final-state particles are returned in a single
-// std::vector.
+//   std::vector.
 auto ps::event::all_out_part(HepMC3::GenEvent const &ev,
                              std::array<int, N> const &PIDs);
 
@@ -239,9 +239,9 @@ auto ps::event::all_out_part_except(HepMC3::GenEvent const &ev,
 // Returns an array of GenParticlePtr to the highest momentum final-state
 // particles for each specified PID.
 // - Passing ps::squeeze as the last parameter will return only the highest
-// momentum particle found over all specified PIDs.
+//   momentum particle found over all specified PIDs.
 // - Convenience overload for passing a single pid exists and returns a
-// GenParticlePtr rather than an std::array<GenParticlePtr,1>.
+//   GenParticlePtr rather than an std::array<GenParticlePtr,1>.
 auto ps::event::hm_out_part(HepMC3::GenEvent const &ev,
                             std::array<int, N> const &PIDs);
 ```
@@ -314,9 +314,9 @@ bool ps::event::has_beam_part(HepMC3::GenEvent const &ev,
 // Returns a GenParticlePtr to the matching beam particle for any specified PID.
 // - Convenience overload for passing a single pid exists.
 // - If no PIDs are passed, all beam particles are fetched and the first one is
-// returned.
+//   returned.
 // - This function will throw if more than one or less than one particle is
-// found in the search
+//   found in the search
 auto ps::event::beam_part(HepMC3::GenEvent const &ev,
                           std::array<int, N> const &PIDs);
 
@@ -329,9 +329,9 @@ bool ps::event::has_target_part(HepMC3::GenEvent const &ev,
 // Returns a GenParticlePtr to the matching target particle for any specified
 // PID.
 // - Convenience overload for passing a single pid exists. If no PIDs are
-// passed, all target particles are fetched and the first one is returned.
+//   passed, all target particles are fetched and the first one is returned.
 // - This function will throw if more than one or less than one particle is
-// found in the search
+//   found in the search
 auto ps::event::target_part(HepMC3::GenEvent const &ev,
                             std::array<int, N> const &PIDs);
 ```
@@ -375,10 +375,24 @@ ps::momentum;
 
 The projectors are named like the corresponding HepMC3::FourVector methods or properties for clarity and consistency. The `ps::momentum` projector is included for ease of performing 4-vector sums over collections of particles, but it cannot be used to cut or sort particles.
 
+The two angular projectors default to taking the angle with respect to the z-axis, but can be passed a reference vector to use instead. Commonly MCEGs will fire the beam particle along the z-axis, but not always, and this assumption should generally be avoided in general code, instead a new projector instances can be made from the original instance and a `HepMC3::FourVector`, like so:
+
+```c++
+auto beamdir = beam_part(ev)->momentum();
+auto angle_wrt_beam = ps::theta(beamdir);
+auto cosangle_wrt_beam = ps::costheta(beamdir);
+```
+
+Be careful to pass a vector and not a particle, or the returned object will be the projection of that particle, rather than another projector object using the profferred momentum direction as the reference vector.
+
+Any of these projectors can be use with `part::sum`, which generally just passes it's arguments to `std::accumulate`.
+
 ```c++
 // Returns the accumulated result of applying vector over all particles in parts
 //  - A convenience overload exists for passing a single vector instead of an
-//  array of vectors.
+//    array of vectors.
+//  - Passing ps::squeeze as the last parameter will return only the highest
+//    momentum particle found over all specified PIDs.
 auto ps::part::sum(
     T const &projector,
     std::array<std::vector<HepMC3::ConstGenParticlePtr>, N> parts);
@@ -426,7 +440,7 @@ auto ps::part::highest(T const &projector,
     std::array<std::vector<HepMC3::ConstGenParticlePtr>, N> parts);
 
 // Gets the particle from each vector in parts with the lowest projected value
-// - Throws if parts is an empty vector
+// - Throws if any vector in parts is empty
 // - Passing ps::squeeze as the last parameter will sort all input particles
 //   together according to the result of projector and will return a single 
 //   particle
@@ -440,34 +454,47 @@ auto ps::part::lowest(T const &projector,
 using namespace ps;
 
 auto protons_orderby_p3mod =
-    part::sort_ascending(ps::p3mod, event::all_out_part(ev, pdg::kProton));
+    part::sort_ascending(p3mod, event::all_out_part(ev, pdg::kProton));
 auto [protons_orderby_p3mod_alt, pims_orderby_p3mod] = part::sort_ascending(
-    ps::p3mod, event::all_out_part(ev, pids(pdg::kProton, pdg::kPiMinus)));
+    p3mod, event::all_out_part(ev, pids(pdg::kProton, pdg::kPiMinus)));
 auto protons_and_pims_orderby_p3mod = part::sort_ascending(
-    ps::p3mod,
+    p3mod,
     event::all_out_part(ev, pids(pdg::kProton, pdg::kPiMinus), ps::squeeze));
 // equivalent to
 auto protons_and_pims_orderby_p3mod_alt = part::sort_ascending(
-    ps::p3mod, event::all_out_part(ev, pids(pdg::kProton, pdg::kPiMinus)),
+    p3mod, event::all_out_part(ev, pids(pdg::kProton, pdg::kPiMinus)),
     ps::squeeze);
 
-auto hm_proton =
-    part::highest(ps::p3mod, event::all_out_part(ev, pdg::kProton));
+auto hm_proton = part::highest(p3mod, event::all_out_part(ev, pdg::kProton));
 auto [hm_proton_alt, hm_pim] = part::highest(
-    ps::p3mod, event::all_out_part(ev, pids(pdg::kProton, pdg::kPiMinus)));
+    p3mod, event::all_out_part(ev, pids(pdg::kProton, pdg::kPiMinus)));
 auto hm_proton_or_pim = part::highest(
-    ps::p3mod,
+    p3mod,
     event::all_out_part(ev, pids(pdg::kProton, pdg::kPiMinus), ps::squeeze));
 // equivalent to
 auto hm_proton_or_pim_alt = part::highest(
-    ps::p3mod, event::all_out_part(ev, pids(pdg::kProton, pdg::kPiMinus)),
+    p3mod, event::all_out_part(ev, pids(pdg::kProton, pdg::kPiMinus)),
     ps::squeeze);
 
+auto pnu = event::beam_part(ev, pdg::kNeutralLeptons)->momentum();
+auto angle_with_pnu = ps::theta(pnu);
+
+auto most_forward_proton =
+    part::lowest(angle_with_pnu, event::all_out_part(ev, pdg::kProton));
+auto [most_forward_proton_alt, most_forward_pim] = part::lowest(
+    angle_with_pnu, event::all_out_part(ev, pids(pdg::kProton, pdg::kPiMinus)));
+auto most_forward_proton_or_pim = part::lowest(
+    angle_with_pnu,
+    event::all_out_part(ev, pids(pdg::kProton, pdg::kPiMinus), ps::squeeze));
+// equivalent to
+auto most_forward_proton_or_pim_alt = part::lowest(
+    angle_with_pnu, event::all_out_part(ev, pids(pdg::kProton, pdg::kPiMinus)),
+    ps::squeeze);
 ```
 
 ### cuts
 
-ProSelecta provides a very simple cut syntax built on the projector objects. `ps::cuts` are created by using one of the below operators on a valid projector (*i.e.* not `ps::momentum`).
+ProSelecta provides a very simple cut syntax built with the projector objects. `ps::cuts` are created by using one of the below operators on a valid projector (*i.e.* not `ps::momentum`).
 
 ```c++
 auto cut1 = ps::p3mod < 10 * ps::unit::GeV;
@@ -485,7 +512,6 @@ auto cut1and2 = cut1&&cut2;
 
 Importantly, `ps::cuts` can be applied to vectors of particles.
 
-
 ```c++
 // Returns the vector of particles passing the cuts, c.
 // - A convenience overload exists for passing a single vector instead of an
@@ -496,38 +522,60 @@ Importantly, `ps::cuts` can be applied to vectors of particles.
 auto ps::part::filter(ps::cuts const &c, std::vector<HepMC3::ConstGenParticlePtr> parts) 
 ```
 
+#### Example Usage
+
+```c++
+using namespace ps;
+
+auto protons_in_range =
+    part::filter(p3mod > 0.1 unit::GeV && p3mod < 1.5 unit::GeV,
+                 event::all_out_part(ev, pdg::kProton));
+auto [protons_in_range, pim_in_range] =
+    part::filter(p3mod > 0.1 unit::GeV && p3mod < 1.5 unit::GeV,
+                 event::all_out_part(ev, pids(pdg::kProton, pdg::kPiMinus)));
+auto protons_and_pim_in_range = part::filter(
+    p3mod > 0.1 unit::GeV && p3mod < 1.5 unit::GeV,
+    event::all_out_part(ev, pids(pdg::kProton, pdg::kPiMinus), ps::squeeze));
+// equivalent to
+auto protons_and_pim_in_range_alt = part::filter(
+    p3mod > 0.1 unit::GeV && p3mod < 1.5 unit::GeV,
+    event::all_out_part(ev, pids(pdg::kProton, pdg::kPiMinus)), ps::squeeze);
+```
 
 ## vect
 
-The `ps::vect` namespace, defined in [ProSelecta/env/vect.h](ProSelecta/env/vect.h) contains 3- and 4-vector helper functions that provide useful extensions to the HepMC::FourVector class methods. 3-vector functions set HepMC3::FourVector
+The `ps::vect` namespace, defined in [ProSelecta/env/vect.h](ProSelecta/env/vect.h) contains 3- and 4-vector helper functions that provide useful extensions to the `HepMC::FourVector` class methods. 3-vector functions set `HepMC3::FourVector::m_4v` to zero. This module contains no templates and is generally a lot simpler than the previous modules.
 
 ```c++
-//Gets the 3-direction (spatial unit vector) from the input 4-vector, v
+// Gets the 3-direction (spatial unit vector) from the input 4-vector, v
 HepMC3::FourVector direction(HepMC3::FourVector v);
 
-//Calculates the dot product (2-norm) of the spatial components of a and b
+// Calculates the dot product (2-norm) of the spatial components of a and b
 double dot(HepMC3::FourVector const &a, HepMC3::FourVector const &b);
 
-//Calculates the cross product (vector product) of the spatial components of a and b
+// Calculates the cross product (vector product) of the spatial components of a
+// and b
 HepMC3::FourVector cross(HepMC3::FourVector const &a,
                          HepMC3::FourVector const &b);
 
-//Calculates the smallest angle between the spatial components of a and b
+// Calculates the smallest angle between the spatial components of a and b
 double angle(HepMC3::FourVector const &v, HepMC3::FourVector const &refv);
 
-//Calculates the spatial component of v transverse to the  vector, dir
+// Calculates the spatial component of v transverse to the  vector, dir
 HepMC3::FourVector transverse(HepMC3::FourVector v, HepMC3::FourVector dir);
 
-//Calculates the spatial vector v rotated by theta (deg) around the axis specified by axis
+// Calculates the spatial vector v rotated by theta (deg) around the axis
+// specified by axis
 HepMC3::FourVector rotate(HepMC3::FourVector const &v, HepMC3::FourVector axis,
                           double theta);
 
-//Calculates the beta vector from an input 4-momentum vector
+// Calculates the beta vector from an input 4-momentum vector
 HepMC3::FourVector boost_beta(HepMC3::FourVector const &fv);
 
-//Boosts the 4-vector, fv, into the reference frame with relative velocity taken from 
-//  the spatial components of boost
-//N.B. Do not pass a 4-momentum vector as the boost_beta vector, use ps::vect::boost_beta
+// Boosts the 4-vector, fv, into the reference frame with relative velocity
+// taken from the spatial components of boost
+// - N.B. Do not pass a 4-momentum vector as the boost_beta vector, use
+//   ps::vect::boost_beta
 HepMC3::FourVector boost(HepMC3::FourVector const &fv,
                          HepMC3::FourVector const &boost_beta);
 ```

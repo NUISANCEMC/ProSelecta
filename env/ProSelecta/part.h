@@ -147,10 +147,31 @@ inline auto lowest(T const &projector, PartCollectionCollection parts,
   return sort_ascending(projector, all_parts).front();
 }
 
-inline auto filter(ps::cuts const &c,
-                   std::vector<HepMC3::ConstGenParticlePtr> parts) {
-  parts.erase(std::remove_if(parts.begin(), parts.end(), !c), parts.end());
-  return parts;
+template <typename PartCollectionCollection>
+inline auto filter(ps::cuts const &c, PartCollectionCollection parts) {
+
+  if constexpr (ps::detail::is_std_array_part<
+                    PartCollectionCollection>::value) {
+    std::vector<HepMC3::ConstGenParticlePtr> outs;
+    for (auto const &p : parts) {
+      if (c(p)) {
+        outs.push_back(p);
+      }
+    }
+    return outs;
+  } else if constexpr (ps::detail::is_std_vector_part<
+                           PartCollectionCollection>::value) {
+    parts.erase(std::remove_if(parts.begin(), parts.end(), !c), parts.end());
+    return parts;
+  } else {
+
+    for (size_t i = 0; i < parts.size(); ++i) {
+      parts[i].erase(std::remove_if(parts[i].begin(), parts[i].end(), !c),
+                     parts[i].end());
+    }
+
+    return parts;
+  }
 }
 
 template <typename PartCollectionCollection>

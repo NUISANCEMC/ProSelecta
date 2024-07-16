@@ -131,4 +131,3 @@ TEST_CASE("readme-8", "[ps::readme]") {
                             evt, ps::pids(2212, 211, -211, 111), ps::squeeze)))
           .m();
 }
-
