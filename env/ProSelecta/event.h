@@ -226,7 +226,7 @@ inline auto all_out_part(HepMC3::GenEvent const &ev, Collection const &PIDs) {
 template <typename Collection>
 inline auto all_out_part(HepMC3::GenEvent const &ev, Collection const &PIDs,
                          ps::detail::squeeze const &) {
-  return ps::detail::cat(all_out_part(ev, PIDs));
+  return ps::detail::particles<ps::detail::kUndecayedPhysical>(ev, PIDs);
 }
 
 inline std::vector<HepMC3::ConstGenParticlePtr>

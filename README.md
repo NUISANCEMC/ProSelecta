@@ -51,6 +51,7 @@ Designed for the [NUISANCE](https://github.com/NUISANCEMC/nuisance) framework.
 
 * [The Environment](#the-proselecta-environment)
   * [Quick Start](#quick-start)
+  * [ProSelecta Snippets](#proselecta-snippets)
   * [event](#event)
   * [vect](#vect)
   * [part](#part)
@@ -62,6 +63,9 @@ Designed for the [NUISANCE](https://github.com/NUISANCEMC/nuisance) framework.
 * [Community Functions](#community-functions)
 * [The Interpreter](#the-interpreter)
 * [Python Bindings](#python-bindings)
+* [Compiling Snippets](#compiling-snippets)
+* [Appendices](#appendices)
+  * [Citation Helper](#citation-helper)
 
 # The ProSelecta Environment
 
@@ -111,8 +115,7 @@ empty vector is undefined behavior. Look before you leap.
 
 5) Get the highest momentum outgoing proton and negative pion:
 ```c++
-auto [hmproton, hmpim] = ps::part::highest(
-    ps::p3mod, ps::event::all_out_part(evt, ps::pids(2212, -211)));
+auto [hmproton, hmpim] = ps::event::hm_out_part(evt, ps::pids(2212, -211));
 ```
 
 6) Get the transverse component of the vector sum of the final state muon and all protons:
@@ -143,13 +146,34 @@ auto invmass_protons_and_pions =
         .m();
 ```
 
-## event
+## ProSelecta Snippets
 
-The `ps::event` namespace, defined in [ProSelecta/env/event.h](ProSelecta/env/event.h) contains functions for getting particles and lists of particles from an event. For many of the functions described below there are convenience overrides for specifying either a list of particle identifiers to search for, or a single one. For example, both of the below are valid checks for whether final-state muons exist in an event. The first only checked for final-state muons, while the second checks for either final-state muons or anti-muons.
+ProSelecta Snippets are what we call C++ source files that contain one or more functions defined against the ProSelect environment. These snippets will often be used to define the selection and projection operations to turn a stream of simulation HEP events into a measurement prediction. We do provide some strong recommendations for writing clear and robust snippet code.
+
+For the majority of use cases, using cling to JIT snippet source code and execute functions via cling is the most flexible and the preferred method of using ProSelecta-enabled code. However, we do envision the need to compile snippets into shared libraries for some use cases. See [Compiling Snippets](#compiling-snippets) for tips and tools supporting this workflow.
+
+### A Note on Namespaces
+
+ProSelecta makes quite heavy use of namespacing to separate parts of the environment. While this is useful for many reasons, it can lead to what looks like a lot of 'qualifying' boiler plate. You may be tempted to use a `using namespace` declaration to import the namespaces into scope, and while we do recommend doing so, we have some words of caution and one strict requirement.
+
+**Requirement:**
+* Never expose any namespace to the global scope in a snippet file, multiple snippet files are likely to be parsed sequentially, and your using directive may change the behavior of someone elses code.
+
+**Recommendations:**
+* Don't `using namespace` the `ps::event`, `ps::part`, or `ps::vect` namespaces, it makes the snippet code clearer if the module qualifier is left in place.
+* Add `using namespace` declarations for `ps`, `ps::unit`, and `ps::pdg` at the function scope, where required.
+
+In the examples in the rest of this section, the `ps` namespace qualifier is often omitted.
+
+### A Note on Function Names
+
+## `ps::event`
+
+The `ps::event` namespace, defined in [ProSelecta/event.h](env/ProSelecta/event.h) contains functions for getting particles and lists of particles from an event. For many of the functions described below there are convenience overrides for specifying either a list of particle identifiers to search for, or a single one. For example, both of the below are valid checks for whether final-state muons exist in an event. The first only checked for final-state muons, while the second checks for either final-state muons or anti-muons.
 
 ```c++
-bool has_fs_mu = ps::event::has_out_part(evt, ps::pdg::kMuon);
-bool has_fs_mu_or_amu = ps::event::has_out_part(evt, ps::pids(ps::pdg::kMuon, ps::pdg::kAMuon));
+bool has_fs_mu = event::has_out_part(evt, pdg::kMuon);
+bool has_fs_mu_or_amu = event::has_out_part(evt, pids(pdg::kMuon, pdg::kAMuon));
 ```
 
 **N.B.** While it might be tempting to pass a initializer list of pids rather than using the `ps::pids` function, the C++17 template argument deduction cannot pick the right type in this instance and so we need to use the `ps::pids` as a type hint to avoid compiler errors. `ps::pids` is a `constexpr` function returning a fully qualified `std::array` type, and so should not affect runtime performance.
@@ -157,20 +181,20 @@ bool has_fs_mu_or_amu = ps::event::has_out_part(evt, ps::pids(ps::pdg::kMuon, ps
 For functions that fetch or count particles, passing a list of pids may result in a `std::array` of responses being returned. This can be very powerful, but can also trip you up if you aren't aware. We can modify the above example to count the number of final-state muons and anti-muons, rather than just check for the existance of either:
 
 ```c++
-auto num_fs_mu = ps::event::num_out_part(evt, ps::pdg::kMuon);
-auto num_fs_mu_or_amu = ps::event::num_out_part(evt, ps::pids(ps::pdg::kMuon, ps::pdg::kAMuon));
+auto num_fs_mu = event::num_out_part(evt, pdg::kMuon);
+auto num_fs_mu_or_amu = event::num_out_part(evt, pids(pdg::kMuon, pdg::kAMuon));
 ```
 
 The type of `num_fs_mu_or_amu` is `std::array<int,2>` where `num_fs_mu_or_amu[0]` holds the number of final-state muons and `num_fs_mu_or_amu[1]` holds the number of final-state anti-muons. This is useful thanks to [C++17's structured bindings](https://en.cppreference.com/w/cpp/language/structured_binding), which allows the following syntactic sugar, and gives us something remarkably similar to python's tuple unpacking:
 
 ```c++
-auto [num_fs_mu, num_fs_amu] = ps::event::num_out_part(evt, ps::pids(ps::pdg::kMuon, ps::pdg::kAMuon));
+auto [num_fs_mu, num_fs_amu] = event::num_out_part(evt, pids(pdg::kMuon, pdg::kAMuon));
 ```
 
 Finally on this note, sometimes you want to search for particles from a list of multiple pids but then not keep the results separated like above. The `ps::squeeze` optional argument can be used to return a single object from many of the ProSelecta functions. What the returned object is depends on the function called, for the example above, we can count the total number of muons and anti-muons in one call by `squeeze`-ing the result:
 
 ```c++
-int num_fs_mu_and_amu = ps::event::num_out_part(evt, ps::pids(ps::pdg::kMuon, ps::pdg::kAMuon), ps::squeeze);
+int num_fs_mu_and_amu = event::num_out_part(evt, pids(pdg::kMuon, pdg::kAMuon), ps::squeeze);
 ``` 
 
 ### Searching for final-state particles
@@ -252,51 +276,52 @@ Below are some concrete usage examples for each different version of the functio
 
 ```c++
 using namespace ps;
+using namespace ps:pdg;
 
-auto has_final_state_muon = event::has_out_part(ev, pdg::kMuon);
+auto has_final_state_muon = event::has_out_part(ev, kMuon);
 auto has_final_state_muon_or_antimuon =
-    event::has_out_part(ev, pids(pdg::kMuon, pdg::kAMuon));
+    event::has_out_part(ev, pids(kMuon, kAMuon));
 auto has_final_state_charged_leptons =
-    event::has_out_part(ev, pdg::kChargedLeptons);
+    event::has_out_part(ev, kChargedLeptons);
 
-auto has_2_final_state_protons = event::has_exact_out_part(ev, pdg::kProton, 2);
+auto has_2_final_state_protons = event::has_exact_out_part(ev, kProton, 2);
 auto has_2_final_state_protons_and_1_muon =
-    event::has_exact_out_part(ev, pids(pdg::kProton, pdg::kMuon), {2, 1});
+    event::has_exact_out_part(ev, pids(kProton, kMuon), {2, 1});
 
 auto final_state_only_1mu2p3pip = event::out_part_topology_matches(
-    ev, pids(pdg::kMuon, pdg::kProton, pdg::kPiPlus), {1, 2, 3});
+    ev, pids(kMuon, kProton, kPiPlus), {1, 2, 3});
 
 auto final_state_more_than_2_protons =
-    event::has_at_least_out_part(ev, pdg::kProton, 2);
+    event::has_at_least_out_part(ev, kProton, 2);
 auto final_state_more_than_2_protons_and_neutrons =
-    event::has_at_least_out_part(ev, pids(pdg::kProton, pdg::kNeutron), {2, 2});
+    event::has_at_least_out_part(ev, pids(kProton, kNeutron), {2, 2});
 
-auto num_final_state_protons = event::num_out_part(ev, pdg::kProton);
+auto num_final_state_protons = event::num_out_part(ev, kProton);
 auto [num_fs_protons, num_fs_neutrons] =
-    event::num_out_part(ev, pids(pdg::kProton, pdg::kNeutron));
-auto num_fs_protons_and_neutrons] = event::
-          num_out_part(ev, pids(pdg::kProton,pdg::kNeutron), ps::squeeze);
+    event::num_out_part(ev, pids(kProton, kNeutron));
+auto num_fs_protons_and_neutrons] = 
+    event::num_out_part(ev, pids(kProton,kNeutron), ps::squeeze);
 
 auto num_exotic = event::num_out_part_except(
-    ev, pids(pdg::kMuon, pdg::kProton, pdg::kNeutron, pdg::kPiPlus,
-             pdg::kPiZero, pdg::kPiMinus, pdg::kGamma));
+    ev, pids(kMuon, kProton, kNeutron, kPiPlus,
+             kPiZero, kPiMinus, kGamma));
 
-auto all_protons = event::all_out_part(ev, pdg::kProton);
+auto all_protons = event::all_out_part(ev, kProton);
 auto [all_protons, all_pims] =
-    event::all_out_part(ev, pids(pdg::kProton, pdg::kPiMinus));
+    event::all_out_part(ev, pids(kProton, kPiMinus));
 auto all_protons_and_pims =
-    event::all_out_part(ev, pids(pdg::kProton, pdg::kPiMinus), ps::squeeze);
+    event::all_out_part(ev, pids(kProton, kPiMinus), ps::squeeze);
 
-auto all_not_protons = event::all_out_part_except(ev, pdg::kProton);
+auto all_not_protons = event::all_out_part_except(ev, kProton);
 auto all_exotic = event::all_out_part_except(
-    ev, pids(pdg::kMuon, pdg::kProton, pdg::kNeutron, pdg::kPiPlus,
-             pdg::kPiZero, pdg::kPiMinus, pdg::kGamma));
+    ev, pids(kMuon, kProton, kNeutron, kPiPlus,
+             kPiZero, kPiMinus, kGamma));
 
-auto hm_proton = event::hm_out_part(ev, pdg::kProton);
+auto hm_proton = event::hm_out_part(ev, kProton);
 auto [hm_proton, hm_pi0] =
-    event::hm_out_part(ev, pids(pdg::kProton, pdg::kPiZero));
+    event::hm_out_part(ev, pids(kProton, kPiZero));
 auto hm_proton_or_pi0 =
-    event::hm_out_part(ev, pids(pdg::kProton, pdg::kPiZero), ps::squeeze);
+    event::hm_out_part(ev, pids(kProton, kPiZero), ps::squeeze);
 ```
 
 
@@ -356,7 +381,7 @@ int ps::event::signal_process_id(HepMC3::GenEvent const &ev);
 
 ## part
 
-The `ps::part` namespace, defined in [ProSelecta/env/part.h](ProSelecta/env/part.h) contains functions for working with `HepMC3::GenParticlePtr`s and collections thereof.
+The `ps::part` namespace, defined in [ProSelecta/part.h](env/ProSelecta/part.h) contains functions for working with `HepMC3::GenParticlePtr`s and collections thereof.
 
 ### projectors
 
@@ -379,8 +404,8 @@ The two angular projectors default to taking the angle with respect to the z-axi
 
 ```c++
 auto beamdir = beam_part(ev)->momentum();
-auto angle_wrt_beam = ps::theta(beamdir);
-auto cosangle_wrt_beam = ps::costheta(beamdir);
+auto angle_wrt_beam = theta(beamdir);
+auto cosangle_wrt_beam = costheta(beamdir);
 ```
 
 Be careful to pass a vector and not a particle, or the returned object will be the projection of that particle, rather than another projector object using the profferred momentum direction as the reference vector.
@@ -402,19 +427,16 @@ auto ps::part::sum(
 
 ```c++
 using namespace ps;
+using namespace ps::pdg;
 
-auto sum_T_p =
-    part::sum(ps::kinetic_energy, event::all_out_part(ev, pdg::kProton));
+auto sum_T_p = part::sum(kinetic_energy, event::all_out_part(ev, kProton));
 auto [sum_T_p_alt, sum_T_pi0] =
-    part::sum(ps::kinetic_energy,
-              event::all_out_part(ev, pids(pdg::kProton, pdg::kPiZero)));
+    part::sum(kinetic_energy, event::all_out_part(ev, pids(kProton, kPiZero)));
 auto sum_p_p_and_pi0 = part::sum(
-    ps::p3mod,
-    event::all_out_part(ev, pids(pdg::kProton, pdg::kPiZero), ps::squeeze));
+    p3mod, event::all_out_part(ev, pids(kProton, kPiZero), ps::squeeze));
 // equivalent to
 auto sum_p_p_and_pi0_alt = part::sum(
-    ps::p3mod, event::all_out_part(ev, pids(pdg::kProton, pdg::kPiZero)),
-    ps::squeeze);
+    p3mod, event::all_out_part(ev, pids(kProton, kPiZero)), ps::squeeze);
 ```
 
 ### sorting
@@ -452,55 +474,52 @@ auto ps::part::lowest(T const &projector,
 
 ```c++
 using namespace ps;
+using namespace ps::pdg;
 
 auto protons_orderby_p3mod =
-    part::sort_ascending(p3mod, event::all_out_part(ev, pdg::kProton));
+    part::sort_ascending(p3mod, event::all_out_part(ev, kProton));
 auto [protons_orderby_p3mod_alt, pims_orderby_p3mod] = part::sort_ascending(
-    p3mod, event::all_out_part(ev, pids(pdg::kProton, pdg::kPiMinus)));
+    p3mod, event::all_out_part(ev, pids(kProton, kPiMinus)));
 auto protons_and_pims_orderby_p3mod = part::sort_ascending(
-    p3mod,
-    event::all_out_part(ev, pids(pdg::kProton, pdg::kPiMinus), ps::squeeze));
+    p3mod, event::all_out_part(ev, pids(kProton, kPiMinus), ps::squeeze));
 // equivalent to
 auto protons_and_pims_orderby_p3mod_alt = part::sort_ascending(
-    p3mod, event::all_out_part(ev, pids(pdg::kProton, pdg::kPiMinus)),
-    ps::squeeze);
+    p3mod, event::all_out_part(ev, pids(kProton, kPiMinus)), ps::squeeze);
 
-auto hm_proton = part::highest(p3mod, event::all_out_part(ev, pdg::kProton));
-auto [hm_proton_alt, hm_pim] = part::highest(
-    p3mod, event::all_out_part(ev, pids(pdg::kProton, pdg::kPiMinus)));
+auto hm_proton = part::highest(p3mod, event::all_out_part(ev, kProton));
+auto [hm_proton_alt, hm_pim] =
+    part::highest(p3mod, event::all_out_part(ev, pids(kProton, kPiMinus)));
 auto hm_proton_or_pim = part::highest(
-    p3mod,
-    event::all_out_part(ev, pids(pdg::kProton, pdg::kPiMinus), ps::squeeze));
+    p3mod, event::all_out_part(ev, pids(kProton, kPiMinus), ps::squeeze));
 // equivalent to
 auto hm_proton_or_pim_alt = part::highest(
-    p3mod, event::all_out_part(ev, pids(pdg::kProton, pdg::kPiMinus)),
-    ps::squeeze);
+    p3mod, event::all_out_part(ev, pids(kProton, kPiMinus)), ps::squeeze);
 
-auto pnu = event::beam_part(ev, pdg::kNeutralLeptons)->momentum();
+auto pnu = event::beam_part(ev, kNeutralLeptons)->momentum();
 auto angle_with_pnu = ps::theta(pnu);
 
 auto most_forward_proton =
-    part::lowest(angle_with_pnu, event::all_out_part(ev, pdg::kProton));
+    part::lowest(angle_with_pnu, event::all_out_part(ev, kProton));
 auto [most_forward_proton_alt, most_forward_pim] = part::lowest(
-    angle_with_pnu, event::all_out_part(ev, pids(pdg::kProton, pdg::kPiMinus)));
-auto most_forward_proton_or_pim = part::lowest(
-    angle_with_pnu,
-    event::all_out_part(ev, pids(pdg::kProton, pdg::kPiMinus), ps::squeeze));
+    angle_with_pnu, event::all_out_part(ev, pids(kProton, kPiMinus)));
+auto most_forward_proton_or_pim =
+    part::lowest(angle_with_pnu,
+                 event::all_out_part(ev, pids(kProton, kPiMinus), ps::squeeze));
 // equivalent to
-auto most_forward_proton_or_pim_alt = part::lowest(
-    angle_with_pnu, event::all_out_part(ev, pids(pdg::kProton, pdg::kPiMinus)),
-    ps::squeeze);
+auto most_forward_proton_or_pim_alt =
+    part::lowest(angle_with_pnu,
+                 event::all_out_part(ev, pids(kProton, kPiMinus)), ps::squeeze);
 ```
 
 ### cuts
 
-ProSelecta provides a very simple cut syntax built with the projector objects. `ps::cuts` are created by using one of the below operators on a valid projector (*i.e.* not `ps::momentum`).
+ProSelecta provides a very simple cut syntax built with the projector objects. `ps::cuts` are created by using one of the below operators on a valid projector (*i.e.* not `ps::momentum`). See [System of Units](#system-of-units) for discussion on the unit constants used below.
 
 ```c++
-auto cut1 = ps::p3mod < 10 * ps::unit::GeV;
-auto cut2 = ps::p3mod <= 10 * ps::unit::GeV;
-auto cut3 = ps::p3mod > 10 * ps::unit::GeV;
-auto cut4 = ps::p3mod >= 10 * ps::unit::GeV;
+auto cut1 = p3mod < 10 * unit::GeV;
+auto cut2 = p3mod <= 10 * unit::GeV;
+auto cut3 = p3mod > 10 * unit::GeV;
+auto cut4 = p3mod >= 10 * unit::GeV;
 ```
 
 `ps::cuts` objects can also be negated and logically and'd. They cannot be logically or'd as building correct cut execution graphs is outside the scope of this utility and ,for the simple cuts envisioned, an extra line or two of user code is worth keeping the framework code considerably simpler.
@@ -526,25 +545,26 @@ auto ps::part::filter(ps::cuts const &c, std::vector<HepMC3::ConstGenParticlePtr
 
 ```c++
 using namespace ps;
+using namespace ps::unit;
+using namespace ps::pdg;
 
-auto protons_in_range =
-    part::filter(p3mod > 0.1 unit::GeV && p3mod < 1.5 unit::GeV,
-                 event::all_out_part(ev, pdg::kProton));
+auto protons_in_range = part::filter(p3mod > 0.1 * GeV && p3mod < 1.5 * GeV,
+                                     event::all_out_part(ev, kProton));
 auto [protons_in_range, pim_in_range] =
-    part::filter(p3mod > 0.1 unit::GeV && p3mod < 1.5 unit::GeV,
-                 event::all_out_part(ev, pids(pdg::kProton, pdg::kPiMinus)));
-auto protons_and_pim_in_range = part::filter(
-    p3mod > 0.1 unit::GeV && p3mod < 1.5 unit::GeV,
-    event::all_out_part(ev, pids(pdg::kProton, pdg::kPiMinus), ps::squeeze));
+    part::filter(p3mod > 0.1 * GeV && p3mod < 1.5 * GeV,
+                 event::all_out_part(ev, pids(kProton, kPiMinus)));
+auto protons_and_pim_in_range =
+    part::filter(p3mod > 0.1 * GeV && p3mod < 1.5 * GeV,
+                 event::all_out_part(ev, pids(kProton, kPiMinus), ps::squeeze));
 // equivalent to
-auto protons_and_pim_in_range_alt = part::filter(
-    p3mod > 0.1 unit::GeV && p3mod < 1.5 unit::GeV,
-    event::all_out_part(ev, pids(pdg::kProton, pdg::kPiMinus)), ps::squeeze);
+auto protons_and_pim_in_range_alt =
+    part::filter(p3mod > 0.1 * GeV && p3mod < 1.5 * GeV,
+                 event::all_out_part(ev, pids(kProton, kPiMinus)), ps::squeeze);
 ```
 
-## vect
+## `ps::vect`
 
-The `ps::vect` namespace, defined in [ProSelecta/env/vect.h](ProSelecta/env/vect.h) contains 3- and 4-vector helper functions that provide useful extensions to the `HepMC::FourVector` class methods. 3-vector functions set `HepMC3::FourVector::m_4v` to zero. This module contains no templates and is generally a lot simpler than the previous modules.
+The `ps::vect` namespace, defined in [ProSelecta/vect.h](env/ProSelecta/vect.h) contains 3- and 4-vector helper functions that provide useful extensions to the `HepMC::FourVector` class methods. 3-vector functions set `HepMC3::FourVector::m_4v` to zero. This module contains no templates and is generally a lot simpler than the previous modules.
 
 ```c++
 // Gets the 3-direction (spatial unit vector) from the input 4-vector, v
@@ -582,32 +602,46 @@ HepMC3::FourVector boost(HepMC3::FourVector const &fv,
 
 ## HepMC3 Types
 
-ProSelecta is built on HepMC3 and so the full set of HepMC3 types can be used in ProSelecta-enabled functions.
+ProSelecta is built on HepMC3 and so the full set of HepMC3 types can be used in ProSelecta-enabled functions. It is worth noting that the main ProSelecta environment deals with 'real' or 'observable' particles, though with status, 11, 4, or 1. For many MC studies or probing generator predictions it can be important to examine the internal details of the event graph, such as studying hadrons produced in a primary process scattering through some medium on their way to the detector. You can use the full HepMC3 API to process the event graph in ProSelecta snippets and extract any available information. However, when using ProSelecta to describe the selection and projection operations for comparing to real measurements, we only expect those selections and projections to be codified in terms of observable particles, hence the focus of the functions defined.
 
 # Auxilliary Definitions
 
 ## System of Units
 
-The follow simple system of units is defined in [ProSelecta/env/pdg.h](ProSelecta/env/pdg.h) under the `ps::unit` namespace. These enable projected event properties to be converted to a specified unit and absolute cut values to be defined.
+The follow simple system of units is defined in [ProSelecta/unit.h](env/ProSelecta/unit.h) under the `ps::unit` namespace. These enable projected event properties to be converted to a specified unit and absolute cut values to be defined.
 
-* Energy/Momentum: `ps::unit::[M,G,k,]eV`
+* Energy: `ps::unit::[M,G,k,]eV`
+* Momentum: `ps::unit::[M,G,k,]eV_c`
+* Mass: `ps::unit::[M,G,k,]eV_c2`
+* Spacetime interval: `ps::unit::[M,G,k,]eV2`
 * Angle: `ps::unit::rad, ps::unit::deg`
 
-Units constants can be used with numeric literals for direct comparison to calculated properties from an event or particle, for example:
+User-defined literal operators are also defined under the `ps` namespace which allows a slightly simpler more concise syntax for literals with units. You must have a `using namespace ps;` declaration at the relevant scope to use these literal operators.
 
 ```c++
-part.momentum().p3mod() > 1*ps::unit::GeV
+using namespace ps;
+
+auto five_MeV = 5_MeV;
+auto one_eighty_deg = 180_deg;
 ```
 
-They can also be used to convert the units of a calculated property, for example:
+Units should be used with numeric literals for direct comparison to calculated properties from an event or particle, for example:
+
+```c++
+part.momentum().p3mod() > 1_GeV
+```
+
+The constants can also be used to convert the units of a calculated property, for example:
 
 ```c++
 part.momentum().p3mod() / ps::unit::GeV
 ```
 
+**N.B** that when expressing an event in some unit, you always *divide* by the constant, and when specifying a literal in some unit, you *multiply* by the constant (or use a user-defined literal operator).
+
 ## PDG MC Codes
 
-A number of pid constants are defined in [ProSelecta/env/pdg.h](ProSelecta/env/pdg.h) according to the [PDG MC particle numbering scheme](https://pdg.lbl.gov/2020/reviews/rpp2020-rev-monte-carlo-numbering.pdf). Groups of related particles are provides as `std::arrays` for  convenient use with particle search functions in the `ps::event` namespace. Some examples are given below:
+A number of pid constants are defined in [ProSelecta/pdg.h](env/ProSelecta/pdg.h) according to the [PDG MC particle numbering scheme](https://pdg.lbl.gov/2020/reviews/rpp2020-rev-monte-carlo-numbering.pdf). Groups of related particles are provides as `std::arrays` for  convenient use with particle search functions in the `ps::event` namespace. Some examples are given below:
 
 ```c++
 ps::pdg::kNuE = 12;
@@ -620,14 +654,18 @@ ps::pdg::kNeutralLeptons_matter = {kNuE, kNuMu};
 
 ## Missing Datum
 
-It is useful to define a magic number to flag missed values, this enables the writing of functions that return/expect optional values. `ps::kMissingDatum` is a contexpr inline variable template that should be used in place of missed values. A definition for `int`s and `double`s are defined for use in ProSelecta functions. For example, a function that gets the energy of incoming muon neutrinos might look like:
+It is useful to define a magic number to flag missed values, this enables the writing of functions that return/expect optional values. `ps::kMissingDatum` is a contexpr inline variable template that should be used in place of missed or uncalculabe values. A definition for `int`s and `double`s are defined for use in ProSelecta functions. For example, a function that gets the energy of incoming muon neutrinos might look like:
 
 ```c++
 double e_nu_mu_GeV(HepMC3::GenEvent const &evt){
-  if(!ps::event::has_beam_part(evt, ps::pdg::kNuMu)){
-    return ps::kMissingDatum<double>;
+  using namespace ps;
+  using namespace ps::pdg;
+  using namespace ps::unit;
+
+  if(!event::has_beam_part(evt, kNuMu)){
+    return kMissingDatum<double>;
   }
-  return ps::event::beam_part(evt, ps::pdg::kNuMu)->momentum().e() / unit::GeV;
+  return event::beam_part(evt, kNuMu)->momentum().e() / GeV;
 }
 ```
 
@@ -641,7 +679,7 @@ Community functions are auxilliary helper functions that the ProSelecta environm
 #include "ext/event_proj.h"
 ```
 
-Documentation for community functions, where it exists, can be found [here](CommunityFunctions.md).
+Documentation for community functions, where it exists, can be found in [CommunityFunctions.md](CommunityFunctions.md).
 
 # The Interpreter
 
@@ -662,8 +700,8 @@ A complete example of a program that applys a selection and projection on an inp
 int main(int argc, char const *argv[]){
 
   ps::ProSelecta::Get().load_file(argv[1]);
-  auto self = ps::ProSelecta::Get().GetSelectFunction(argv[2]);
-  auto projf = ps::ProSelecta::Get().GetProjectionFunction(argv[3]);
+  auto selfunc = ps::ProSelecta::Get().GetSelectFunction(argv[2]);
+  auto projfunc = ps::ProSelecta::Get().GetProjectionFunction(argv[3]);
 
   auto rdr = HepMC3::deduce_reader(argv[4]);
   HepMC3::GenEvent evt;
@@ -675,8 +713,8 @@ int main(int argc, char const *argv[]){
       break;
     }
 
-    if(self(evt)){ //if the event passes the selection
-      std::cout << i << ", " << projf(evt) << std::endl; // print the projection
+    if(selfunc(evt)){ //if the event passes the selection
+      std::cout << i << ", " << projfunc(evt) << std::endl; // print the projection
     }
     i++;
   }
@@ -687,8 +725,106 @@ int main(int argc, char const *argv[]){
 
 Python bindings are provided for both the ProSelecta environment functions and for writing scripts that make use of the ProSelecta interpreter.
 
+## The Environment
+
+The python interface is purposefully defined to work very similarly to the C++ interface. There are some differences in the implementation, many times the C++ interface uses compile-time-sized `std::arrays` to pass lists of pids to particle selection functions, this can't be replicated in python. However, to the user, it doesn't matter, the python interface takes lists instead of arrays and converts them to `std::vectors` which work with the templated C++ code seamlessly. As a result, swapping between the python interface and the C++ interface *should* be trivial. 
+
+It is worth noting that event-level loops in python will be comparitively slower, however, for prototyping it can often be a lot simpler to tinker with a python implementation and then convert it to C++ for larger runs of the analysis. The homogeneity of the C++ and python interfaces hopefully simplifies that workflow.
+
+The C++ examples shown in [Quick Start](#quick-start) are reproduced below in python.
+
+```python
+from pyProSelecta import event, part, unit, pdg, p3mod, momentum
+
+if not event.has_beam_part(evt, pdg.kNeutralLeptons):
+  return False
+
+nu = event.beam_part(evt, pdg.kNeutralLeptons)
+```
+
+```python
+if not event.has_beam_part(evt, 14) or not event.has_out_part(evt, 13):
+  return False
+```
+
+```python
+if not event.out_part_topology_matches(evt, [13, 2212, 211], [1, 1, 1]):
+  return False
+```
+
+```python
+protons = event.all_out_part(evt, 2212)
+```
+
+```python
+protons_sorted = part.sort_ascending(p3mod, protons)
+```
+
+```python
+hmproton, hmpim = event.hm_out_part(evt, [2212, -211])
+```
+
+```python
+sum_pt = part.sum(momentum, event.all_out_part(
+           evt, [13, 2212], squeeze=True)).pt() / unit.GeV_c
+```
+
+```python
+p3mod_cut = (p3mod > 0.05 * unit.GeV) && (p3mod < 2 * unit.GeV)
+passing_protons =
+    part.filter(p3mod_cut, event.all_out_part(evt, 2212));
+```
+
+```python
+nvmass_protons_and_pions =
+    part.sum(momentum,
+                  part.filter(
+                      p3mod > 250 * unit.MeV,
+                      event.all_out_part(
+                          evt, [2212, 211, -211, 111], squeeze=True)))
+        .m();
+
+```
+
+for more details, using `help` on the sub modules should provide useful documentation: 
+
+```python
+import pyProSelecta as pps
+
+help(pps.event)
+```
+
+## The Interpreter
+
+Similarly, the python interface to the interpreter is very similar to the C++ one, as below:
+
+```python
+import sys
+from pyHepMC3 import HepMC3 as hm
+import pyProSelecta as pps
+
+pps.load_file(sys.argv[1])
+
+selfunc = pps.select.get(sys.argv[2])
+projfunc = pps.project.get(sys.argv[3])
+
+auto rdr = hm3.deduce_reader(sys.argv[4])
+evt = hm3.GenEvent 
+
+while not rdr.failed()
+  rdr.read_event(evt);
+  if rdr.failed():
+    break
+
+  if selfunc(evt): #if the event passes the selection
+    print(f"{i}, ", projfunc(evt)) # print the projection
+  i += 1
+```
+
+# Compiling Snippets
 
 # Appendices
+
 ## Citation Helper
 
 If you use ProSelecta in your publication, please cite Cling, HepMC3, and ProSelecta itself.
