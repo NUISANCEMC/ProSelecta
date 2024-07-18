@@ -1,6 +1,8 @@
 int MINERvA_PRL129_021803_SignalDefinition(HepMC3::GenEvent const &ev) {
 
   using namespace ps;
+  using namespace unit;
+  using namespace pdg;
 
   if (!event::has_beam_part(ev, pdg::kNuMu) ||
       !event::has_exact_out_part(ev, pdg::kMuon, 1)) {
@@ -38,7 +40,8 @@ int MINERvA_PRL129_021803_SignalDefinition(HepMC3::GenEvent const &ev) {
 
 double MINERvA_PRL129_021803_Project_MuonE(HepMC3::GenEvent const &ev) {
   using namespace ps;
-
+  using namespace unit;
+  using namespace pdg;
   if (!event::has_out_part(ev, pdg::kMuon)) {
     return kMissingDatum<double>;
   }
@@ -48,7 +51,8 @@ double MINERvA_PRL129_021803_Project_MuonE(HepMC3::GenEvent const &ev) {
 
 double MINERvA_PRL129_021803_Project_SumTp(HepMC3::GenEvent const &ev) {
   using namespace ps;
-
+  using namespace unit;
+  using namespace pdg;
   double SumTP = 0;
 
   for (auto const &prot : event::all_out_part(ev, pdg::kProton)) {
@@ -61,6 +65,8 @@ double MINERvA_PRL129_021803_Project_SumTp(HepMC3::GenEvent const &ev) {
 
 double MINERvA_PRL129_021803_Project_q0QE(HepMC3::GenEvent const &ev) {
   using namespace ps;
+  using namespace unit;
+  using namespace pdg;
 
   if (!event::has_beam_part(ev, pdg::kNuMu) ||
       !event::has_out_part(ev, pdg::kMuon)) {

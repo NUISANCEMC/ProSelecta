@@ -44,7 +44,7 @@ for analysis in data:
 outproj = sys.argv[2]
 
 with open(f"{outproj}.h",'w') as outputh:
-  outputh.write('#include "ProSelecta/env.h"\n\n')
+  outputh.write('#include "HepMC3/GenEvent.h"\n\n')
 
   for sn in snippet_files.keys():
     outputh.write(f'//START -- Prototypes for {sn}\n\n')
@@ -75,6 +75,8 @@ ProSelecta_ROOT = os.environ["ProSelecta_ROOT"]
 
 with open(f"{outproj}.cxx",'w') as outputimpl:
   outputimpl.write(f'#include "{outproj}.h"\n\n')
+  outputimpl.write('#include "ProSelecta/env.h"\n\n')
+
   for sn in snippet_files.keys():
     with open(sn,'r') as snf:
       outputimpl.write(f"//START -- imported from {sn}\n")

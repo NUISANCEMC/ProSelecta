@@ -62,8 +62,10 @@ Designed for the [NUISANCE](https://github.com/NUISANCEMC/nuisance) framework.
   * [Missing Datum](#missing-datum)
 * [Community Functions](#community-functions)
 * [The Interpreter](#the-interpreter)
+  * [ProSelecta Function Types](#proselecta-function-types)
 * [Python Bindings](#python-bindings)
 * [Compiling Snippets](#compiling-snippets)
+* [FAQs and Common Issues](#faqs-and-common-issues)
 * [Appendices](#appendices)
   * [Citation Helper](#citation-helper)
 
@@ -148,7 +150,7 @@ auto invmass_protons_and_pions =
 
 ## ProSelecta Snippets
 
-ProSelecta Snippets are what we call C++ source files that contain one or more functions defined against the ProSelect environment. These snippets will often be used to define the selection and projection operations to turn a stream of simulation HEP events into a measurement prediction. We do provide some strong recommendations for writing clear and robust snippet code.
+*Snippets* are what we call C++ source files that contain one or more functions defined against the ProSelect environment. These snippets will often be used to define the selection and projection operations required to turn a stream of simulated HEP events into the building blocks of a measurement prediction. We do provide some strong recommendations for writing clear and robust snippet code.
 
 For the majority of use cases, using cling to JIT snippet source code and execute functions via cling is the most flexible and the preferred method of using ProSelecta-enabled code. However, we do envision the need to compile snippets into shared libraries for some use cases. See [Compiling Snippets](#compiling-snippets) for tips and tools supporting this workflow.
 
@@ -685,7 +687,40 @@ Documentation for community functions, where it exists, can be found in [Communi
 
 ProSelecta provides an interpreter based on `cling` which can be used to JIT C++ source containing functions written against the ProSelecta environment and then provide type-checked access to those functions. This enables the writing of fully dynamic event processing frameworks that can apply selection and projection operators defined in externally-provided source files on input event vectors.
 
-The facilities provided by the ProSelecta Interpreter are quite minimal. The Proselecta environment is included before any proffered source is forwarded to the interpreter so that environment boiler plate in user scripts can be kept to a minimum. When fetching handles to JIT'd functions, the full function signature is type-checked to catch errors before they cause undefined behavior that can be difficult to debug.
+The facilities provided by the ProSelecta Interpreter are quite minimal. The Proselecta environment is included before any proffered source is forwarded to the interpreter so that environment boiler plate in user scripts can be kept to a minimum.
+
+Snippets are passed to the interpreter via the `ps::ProSelecta::load_file` method. Since ROOT manages a global cling instance, and there is no real need for thread-safety in interactions with the interpreter, the `ps::ProSelecta` interface is exposed as a singleton instance. To pass a file at location `path/to/file.cxx` to the interpreter, you would use: `ps::ProSelecta::Get.load_file("path/to/file.cxx")`. This function returns a boolean indicating whether the interpreter successfully JIT'd the file. During JITing, the error stream from cling is printed to stderr, so users should expect to see real compiler errors if their snippets are not compileable. 
+
+Re-`load_file`ing the same file at the same path will generally trigger cling to unload the previous symbols and allow them to be replaced with the new versions. This sometimes fails and sometimes the best way to load a corrected snippet is to restart the process using ProSelecta.
+
+## ProSelecta Function Types
+
+We limit the signatures of functions that can be retrieved from the interpreter via the ProSelecta interface. This allows us to do type-checking and significantly reduce the scope for hard-to-debug errors from calling JIT'd symbols incorrectly. The only valid function types that can be retrieved are defined in [src/ProSelecta/FuncTypes.h](src/ProSelecta/FuncTypes.h) and examples are given below:
+
+```c++
+int my_selection_func(HepMC3::GenEvent const&);
+std::vector<int> my_selections_func(HepMC3::GenEvent const&);
+
+double my_projections_func(HepMC3::GenEvent const&);
+std::vector<double> my_projections_func(HepMC3::GenEvent const&);
+```
+
+We expect that the vast majority of users will only use functions that return a single projection or selection operator, but we envision use cases where intermediate calculations are computationally expensive and it is significantly more efficient to return vectors of selection and projection results. The `HepMC3::GenEvent -> double/std::vector<double>` signatures are also used for 'weighting' functions, but the type-checking is identical.
+
+**N.B.** A common problem that may result in confusing errors for new users it to forget the `const &` part of the `HepMC3::GenEvent const&` argument. As CV qualifiers and the reference is part of the type, which is part of the function signature, if the functions defined in the snippet exclude these, then they will not be accesible from the interpreter, even if `ProSelecta::load_file` successfully JIT'd the code.
+
+To retrieve callable handles to the above functions from ProSelecta after passing the relevant source to the interpreter, you would use the following code:
+
+```c++
+  auto selfunc = ps::ProSelecta::Get().GetSelectFunction("my_selection_func");
+  auto selsfunc = ps::ProSelecta::Get().GetSelectsFunction("my_selections_func");
+
+  auto projfunc = ps::ProSelecta::Get().GetProjectionFunction("my_projections_func");
+  auto projsfunc = ps::ProSelecta::Get().GetProjectionsFunction("my_projections_func");
+
+```
+
+## An Example Event Processor
 
 A complete example of a program that applys a selection and projection on an input event vector is included below.
 
@@ -720,6 +755,7 @@ int main(int argc, char const *argv[]){
   }
 }
 ```
+
 
 # Python Bindings
 
@@ -822,6 +858,43 @@ while not rdr.failed()
 ```
 
 # Compiling Snippets
+
+If you need to compile one or more snippets into a shared library, you can use the [`ProSelectaBuild.py`](app/ProSelectaBuild.py) script to do so. It takes a YAML manifest of snippet files and selection and projection operators to expose and produces a shared object and a C++ header file for use in other code. An example manifest can be found at [examples/example_build_manifest.yml](examples/example_build_manifest.yml), and is reproduced below:
+
+```yaml
+- snippet: example_MINERvA_PRL.129.021803.cxx
+  functions:
+    select:
+      - MINERvA_PRL129_021803_SignalDefinition
+    project:
+      - MINERvA_PRL129_021803_Project_MuonE
+      - MINERvA_PRL129_021803_Project_SumTp
+      - MINERvA_PRL129_021803_Project_q0QE
+```
+
+We have to manually specify functions that we would like to be exposed so that a correct header file can be generated. `pyProSelecta` is used to check that the functions exist in the snippet file and have the correct type and an error will be reported if problems are found. Not every function in the snippet file needs to be exposed - in fact, functions that do not have one of the allowed signatures cannot be exposed by `ProSelectaBuild.py`.
+
+The generated header file only depends on HepMC3, all dependence on the ProSelecta environment is fully encapsulated in the compiled library. Running `ProSelectaBuild.py example_build_manifest.yml`, which references the example snippet, [examples/example_MINERvA_PRL.129.021803.cxx](examples/example_MINERvA_PRL.129.021803.cxx), produces in the following generated header file.
+
+```c++
+#include "HepMC3/GenEvent.h"
+
+//START -- Prototypes for example_MINERvA_PRL.129.021803.cxx
+
+//START -- select functions
+int MINERvA_PRL129_021803_SignalDefinition(HepMC3::GenEvent const&);
+//END   -- select functions
+
+//START -- project functions
+double MINERvA_PRL129_021803_Project_MuonE(HepMC3::GenEvent const&);
+double MINERvA_PRL129_021803_Project_SumTp(HepMC3::GenEvent const&);
+double MINERvA_PRL129_021803_Project_q0QE(HepMC3::GenEvent const&);
+//END   -- project functions
+
+//END   -- Prototypes for example_MINERvA_PRL.129.021803.cxx
+```
+
+# FAQs and Common Issues
 
 # Appendices
 
