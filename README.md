@@ -278,7 +278,7 @@ Below are some concrete usage examples for each different version of the functio
 
 ```c++
 using namespace ps;
-using namespace ps:pdg;
+using namespace ps::pdg;
 
 auto has_final_state_muon = event::has_out_part(ev, kMuon);
 auto has_final_state_muon_or_antimuon =
@@ -387,9 +387,7 @@ The `ps::part` namespace, defined in [ProSelecta/part.h](env/ProSelecta/part.h) 
 
 ### projectors
 
-The rest of `ps::part` is built around the concept of particle projectors. Projectors are objects that can be called on a HepMC3::GenParticlePtr and return some type. 
-
-Some of these projectors, those that project onto a single real number, can be used to define sorting orders and cuts. ProSelecta defines a number of projectors based on natural projections of four-vectors:
+`ps::part` is built around the concept of particle projectors. Projectors are objects that can be called on a HepMC3::GenParticlePtr and return some calculated object, usually a number representing the value of a physical property. Those that project onto a single real number, can be used to define particle sorting orders and particle cuts. ProSelecta defines a number of projectors based on natural projections of four-vectors:
 
 ```c++
 ps::p3mod; //can be used to sort or cut 

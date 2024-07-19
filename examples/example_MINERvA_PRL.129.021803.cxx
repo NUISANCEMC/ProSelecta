@@ -14,19 +14,19 @@ int MINERvA_PRL129_021803_SignalDefinition(HepMC3::GenEvent const &ev) {
   auto pmu = mu->momentum();
 
   // check muon angle
-  if (pmu.theta() >= 20.0 * unit::deg) {
+  if (pmu.theta() >= 20.0_deg) {
     return false;
   }
 
   // check p||
-  if (pmu.z() < 1.5 * unit::GeV) {
+  if (pmu.z() < 1.5_GeV) {
     return false;
   }
 
   // Check no gammas above 10 MeV
   auto gammas = event::all_out_part(ev, pdg::kGamma);
   for (auto &g : gammas) {
-    if (g->momentum().e() >= 10 * unit::MeV) {
+    if (g->momentum().e() >= 10_MeV) {
       return false;
     }
   }
@@ -79,10 +79,10 @@ double MINERvA_PRL129_021803_Project_q0QE(HepMC3::GenEvent const &ev) {
   auto pnu = nu->momentum();
   auto pmu = mu->momentum();
 
-  static double const m_mu = 105.66 * unit::MeV;
-  static double const m_n = 939.565 * unit::MeV;
-  static double const m_p = 938.272 * unit::MeV;
-  static double const Eb = 34 * unit::MeV;
+  static double const m_mu = 105.66_MeV;
+  static double const m_n = 939.565_MeV;
+  static double const m_p = 938.272_MeV;
+  static double const Eb = 34_MeV;
 
   static double const numer_const =
       std::pow(m_p, 2) - std::pow(m_n - Eb, 2) - std::pow(m_mu, 2);
