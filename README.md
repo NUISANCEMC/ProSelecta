@@ -769,6 +769,7 @@ It is worth noting that event-level loops in python will be comparitively slower
 
 The C++ examples shown in [Quick Start](#quick-start) are reproduced below in python.
 
+1) Check for and fetch an incoming neutrino of any flavor. 
 ```python
 from pyProSelecta import event, part, unit, pdg, p3mod, momentum
 
@@ -778,39 +779,43 @@ if not event.has_beam_part(evt, pdg.kNeutralLeptons):
 nu = event.beam_part(evt, pdg.kNeutralLeptons)
 ```
 
+2) Check that the event has at least one incoming muon neutrino and one outgoing muon:
 ```python
 if not event.has_beam_part(evt, 14) or not event.has_out_part(evt, 13):
   return False
 ```
 
+3) Check the final state topology exactly matches: 1mu1p1pi:
 ```python
 if not event.out_part_topology_matches(evt, [13, 2212, 211], [1, 1, 1]):
   return False
 ```
 
+4) Get all outgoing protons and sort them by 3-momentum magnitude:
 ```python
 protons = event.all_out_part(evt, 2212)
-```
-
-```python
 protons_sorted = part.sort_ascending(p3mod, protons)
 ```
 
+5) Get the highest momentum outgoing proton and negative pion:
 ```python
 hmproton, hmpim = event.hm_out_part(evt, [2212, -211])
 ```
 
+6) Get the transverse component of the vector sum of the final state muon and all protons:
 ```python
 sum_pt = part.sum(momentum, event.all_out_part(
            evt, [13, 2212], squeeze=True)).pt() / unit.GeV_c
 ```
 
+7) Get all protons with more than 0.05 GeV/c but less than 2 GeV/c of 3momentum:
 ```python
 p3mod_cut = (p3mod > 0.05 * unit.GeV) && (p3mod < 2 * unit.GeV)
 passing_protons =
     part.filter(p3mod_cut, event.all_out_part(evt, 2212));
 ```
 
+8) Get the invariant mass of all final state protons and pions with more than 250 MeV/c of 3momentum:
 ```python
 nvmass_protons_and_pions =
     part.sum(momentum,
@@ -844,10 +849,10 @@ pps.load_file(sys.argv[1])
 selfunc = pps.select.get(sys.argv[2])
 projfunc = pps.project.get(sys.argv[3])
 
-auto rdr = hm3.deduce_reader(sys.argv[4])
-evt = hm3.GenEvent 
+rdr = hm3.deduce_reader(sys.argv[4])
+evt = hm3.GenEvent()
 
-while not rdr.failed()
+while not rdr.failed():
   rdr.read_event(evt);
   if rdr.failed():
     break
@@ -874,7 +879,7 @@ If you need to compile one or more snippets into a shared library, you can use t
 
 We have to manually specify functions that we would like to be exposed so that a correct header file can be generated. `pyProSelecta` is used to check that the functions exist in the snippet file and have the correct type and an error will be reported if problems are found. Not every function in the snippet file needs to be exposed - in fact, functions that do not have one of the allowed signatures cannot be exposed by `ProSelectaBuild.py`.
 
-The generated header file only depends on HepMC3, all dependence on the ProSelecta environment is fully encapsulated in the compiled library. Running `ProSelectaBuild.py example_build_manifest.yml`, which references the example snippet, [examples/example_MINERvA_PRL.129.021803.cxx](examples/example_MINERvA_PRL.129.021803.cxx), produces in the following generated header file.
+The generated header file only depends on HepMC3, all dependence on the ProSelecta environment is fully encapsulated in the compiled library. Running `ProSelectaBuild.py example_build_manifest.yml myproj`, which references the example snippet, [examples/example_MINERvA_PRL.129.021803.cxx](examples/example_MINERvA_PRL.129.021803.cxx), produces in the following generated header file.
 
 ```c++
 #include "HepMC3/GenEvent.h"
@@ -895,6 +900,12 @@ double MINERvA_PRL129_021803_Project_q0QE(HepMC3::GenEvent const&);
 ```
 
 # FAQs and Common Issues
+
+## Function Not Defined When It Definitely Is
+
+## Kernel Crashing In Jupyter During ProSelecta Function Execution
+
+## Template Hell
 
 # Appendices
 

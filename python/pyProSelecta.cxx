@@ -3,6 +3,7 @@
 #include "ProSelecta/env.h"
 
 #include "pybind11/functional.h"
+#include "pybind11/operators.h"
 #include "pybind11/pybind11.h"
 #include "pybind11/stl.h"
 #include "pybind11/stl_bind.h"
@@ -37,104 +38,117 @@ PYBIND11_MODULE(pyProSelecta, m) {
   auto m_ps_weight = m.def_submodule("weight", "ProSelecta weight interface");
   m_ps_weight.def("get", &ps::cling::get_weight_func);
 
+  py::class_<ps::cuts>(m, "cuts")
+      .def("__call__", &ps::cuts::operator(), py::arg("event"))
+      .def("__and__", &ps::cuts::operator&&, py::arg("other"))
+      .def("__invert__", &ps::cuts::operator!);
+
+#define CUTABLE_BINDINGS(CN)                                                   \
+  py::class_<ps::detail::CN>(m, #CN)                                           \
+      .def(py::init<>())                                                       \
+      .def("__call__",                                                         \
+           py::overload_cast<HepMC3::ConstGenParticlePtr>(                     \
+               &ps::detail::CN::operator(), py::const_),                       \
+           py::arg("part"))                                                    \
+      .def(                                                                    \
+          "__le__",                                                            \
+          [](ps::detail::CN const &self, double threshold) {                   \
+            return self <= threshold;                                          \
+          },                                                                   \
+          py::arg("threshold"))                                                \
+      .def(                                                                    \
+          "__lt__",                                                            \
+          [](ps::detail::CN const &self, double threshold) {                   \
+            return self < threshold;                                           \
+          },                                                                   \
+          py::arg("threshold"))                                                \
+      .def(                                                                    \
+          "__ge__",                                                            \
+          [](ps::detail::CN const &self, double threshold) {                   \
+            return self >= threshold;                                          \
+          },                                                                   \
+          py::arg("threshold"))                                                \
+      .def(                                                                    \
+          "__gt__",                                                            \
+          [](ps::detail::CN const &self, double threshold) {                   \
+            return self > threshold;                                           \
+          },                                                                   \
+          py::arg("threshold"))
+
+  CUTABLE_BINDINGS(p3mod);
+  CUTABLE_BINDINGS(energy);
+  CUTABLE_BINDINGS(kinetic_energy);
+
+  auto theta_class = CUTABLE_BINDINGS(theta);
+  theta_class.def("__call__",
+                  py::overload_cast<HepMC3::FourVector const &>(
+                      &ps::detail::theta::operator(), py::const_),
+                  py::arg("refvec"));
+
+  auto costheta_class = CUTABLE_BINDINGS(costheta);
+  costheta_class.def("__call__",
+                     py::overload_cast<HepMC3::FourVector const &>(
+                         &ps::detail::costheta::operator(), py::const_),
+                     py::arg("refvec"));
+
+  py::class_<ps::detail::momentum>(m, "momentum")
+      .def(py::init<>())
+      .def("__call__",
+           py::overload_cast<HepMC3::ConstGenParticlePtr>(
+               &ps::detail::momentum::operator(), py::const_),
+           py::arg("part"));
+
+  m.attr("p3mod") = ps::p3mod;
+  m.attr("energy") = ps::energy;
+  m.attr("kinetic_energy") = ps::kinetic_energy;
+  m.attr("theta") = ps::theta;
+  m.attr("costheta") = ps::costheta;
+  m.attr("momentum") = ps::momentum;
+
+#define EVENT_INT_OR_VECTPID_BINDING(mod, EVENTFUNC)                           \
+  mod.def(                                                                     \
+         #EVENTFUNC,                                                           \
+         [](HepMC3::GenEvent const &ev, int PID) {                             \
+           return ps::event::EVENTFUNC(ev, PID);                               \
+         },                                                                    \
+         py::arg("event"), py::arg("PID") = 0)                                 \
+      .def(                                                                    \
+          #EVENTFUNC,                                                          \
+          [](HepMC3::GenEvent const &ev, std::vector<int> const &PIDs) {       \
+            return ps::event::EVENTFUNC(ev, PIDs);                             \
+          },                                                                   \
+          py::arg("event"), py::arg("PIDs"))
+
+#define EVENT_INT_OR_VECTPID_SQUEEZE_BINDING(mod, EVENTFUNC)                   \
+  mod.def(                                                                     \
+         #EVENTFUNC,                                                           \
+         [](HepMC3::GenEvent const &ev, int PID) {                             \
+           return ps::event::EVENTFUNC(ev, PID);                               \
+         },                                                                    \
+         py::arg("event"), py::arg("PID") = 0)                                 \
+      .def(                                                                    \
+          #EVENTFUNC,                                                          \
+          [](HepMC3::GenEvent const &ev, std::vector<int> const &PIDs,         \
+             bool squeeze) {                                                   \
+            if (squeeze) {                                                     \
+              return py::cast(ps::event::EVENTFUNC(ev, PIDs, ps::squeeze));    \
+            } else {                                                           \
+              return py::cast(ps::event::EVENTFUNC(ev, PIDs));                 \
+            }                                                                  \
+          },                                                                   \
+          py::arg("event"), py::arg("PIDs"), py::kw_only(),                    \
+          py::arg("squeeze") = false)
+
   auto m_ps_event = m.def_submodule("event", "ProSelecta event module");
+  EVENT_INT_OR_VECTPID_BINDING(m_ps_event, has_out_part);
+  EVENT_INT_OR_VECTPID_SQUEEZE_BINDING(m_ps_event, num_out_part);
+  EVENT_INT_OR_VECTPID_SQUEEZE_BINDING(m_ps_event, all_out_part);
+  EVENT_INT_OR_VECTPID_SQUEEZE_BINDING(m_ps_event, hm_out_part);
+  EVENT_INT_OR_VECTPID_BINDING(m_ps_event, has_beam_part);
+  EVENT_INT_OR_VECTPID_BINDING(m_ps_event, beam_part);
+  EVENT_INT_OR_VECTPID_BINDING(m_ps_event, has_target_part);
+  EVENT_INT_OR_VECTPID_BINDING(m_ps_event, target_part);
   m_ps_event
-      .def(
-          "has_out_part",
-          [](HepMC3::GenEvent const &ev, int PID) {
-            return ps::event::has_out_part(ev, PID);
-          },
-          py::arg("event"), py::arg("PID") = 0)
-      .def(
-          "has_out_part",
-          [](HepMC3::GenEvent const &ev, std::vector<int> const &PIDs) {
-            return ps::event::has_out_part(ev, PIDs);
-          },
-          py::arg("event"), py::arg("PIDs"))
-      .def(
-          "num_out_part",
-          [](HepMC3::GenEvent const &ev, int PID) {
-            return ps::event::num_out_part(ev, PID);
-          },
-          py::arg("event"), py::arg("PID") = 0)
-      .def(
-          "num_out_part",
-          [](HepMC3::GenEvent const &ev, std::vector<int> const &PIDs) {
-            return ps::event::num_out_part(ev, PIDs);
-          },
-          py::arg("event"), py::arg("PIDs"))
-      .def(
-          "all_out_part",
-          [](HepMC3::GenEvent const &ev, int PID) {
-            return ps::event::all_out_part(ev, PID);
-          },
-          py::arg("event"), py::arg("PID") = 0)
-      .def(
-          "all_out_part",
-          [](HepMC3::GenEvent const &ev, std::vector<int> const &PIDs) {
-            return ps::event::all_out_part(ev, PIDs);
-          },
-          py::arg("event"), py::arg("PIDs"))
-      .def(
-          "hm_out_part",
-          [](HepMC3::GenEvent const &ev, int PID) {
-            return ps::event::hm_out_part(ev, PID);
-          },
-          py::arg("event"), py::arg("PID") = 0)
-      .def(
-          "hm_out_part",
-          [](HepMC3::GenEvent const &ev, std::vector<int> const &PIDs) {
-            return ps::event::hm_out_part(ev, PIDs);
-          },
-          py::arg("event"), py::arg("PIDs"))
-      .def(
-          "has_beam_part",
-          [](HepMC3::GenEvent const &ev, int PID) {
-            return ps::event::has_beam_part(ev, PID);
-          },
-          py::arg("event"), py::arg("PID") = 0)
-      .def(
-          "has_beam_part",
-          [](HepMC3::GenEvent const &ev, std::vector<int> const &PIDs) {
-            return ps::event::has_beam_part(ev, PIDs);
-          },
-          py::arg("event"), py::arg("PIDs"))
-      .def(
-          "beam_part",
-          [](HepMC3::GenEvent const &ev, int PID) {
-            return ps::event::beam_part(ev, PID);
-          },
-          py::arg("event"), py::arg("PID") = 0)
-      .def(
-          "beam_part",
-          [](HepMC3::GenEvent const &ev, std::vector<int> const &PIDs) {
-            return ps::event::beam_part(ev, PIDs);
-          },
-          py::arg("event"), py::arg("PIDs"))
-      .def(
-          "has_target_part",
-          [](HepMC3::GenEvent const &ev, int PID) {
-            return ps::event::has_target_part(ev, PID);
-          },
-          py::arg("event"), py::arg("PID") = 0)
-      .def(
-          "has_target_part",
-          [](HepMC3::GenEvent const &ev, std::vector<int> const &PIDs) {
-            return ps::event::has_target_part(ev, PIDs);
-          },
-          py::arg("event"), py::arg("PIDs"))
-      .def(
-          "target_part",
-          [](HepMC3::GenEvent const &ev, int PID) {
-            return ps::event::target_part(ev, PID);
-          },
-          py::arg("event"), py::arg("PID") = 0)
-      .def(
-          "target_part",
-          [](HepMC3::GenEvent const &ev, std::vector<int> const &PIDs) {
-            return ps::event::target_part(ev, PIDs);
-          },
-          py::arg("event"), py::arg("PIDs"))
       .def(
           "out_nuclear_parts",
           [](HepMC3::GenEvent const &ev) {
@@ -144,84 +158,86 @@ PYBIND11_MODULE(pyProSelecta, m) {
       .def("signal_process_id", &ps::event::signal_process_id,
            py::arg("event"));
 
+#define PARTSFUNC_PROJ_BINDINGS(PARTSFNAME, PROJNAME)                          \
+  .def(                                                                        \
+      #PARTSFNAME,                                                             \
+      [](ps::detail::PROJNAME const &proj,                                     \
+         std::vector<HepMC3::ConstGenParticlePtr> const &parts) {              \
+        return ps::part::PARTSFNAME(proj, parts);                              \
+      },                                                                       \
+      py::arg("projector"), py::arg("parts"))                                  \
+      .def(                                                                    \
+          #PARTSFNAME,                                                         \
+          [](ps::detail::PROJNAME const &proj,                                 \
+             std::vector<std::vector<HepMC3::ConstGenParticlePtr>> const       \
+                 &part_groups,                                                 \
+             bool squeeze) {                                                   \
+            if (squeeze) {                                                     \
+              return py::cast(                                                 \
+                  ps::part::PARTSFNAME(proj, part_groups, ps::squeeze));       \
+            } else {                                                           \
+              return py::cast(ps::part::PARTSFNAME(proj, part_groups));        \
+            }                                                                  \
+          },                                                                   \
+          py::arg("projector"), py::arg("part_groups"), py::kw_only(),         \
+          py::arg("squeeze") = false)
+
+#define PARTSFUNC_BINDINGS(mod, PARTSFNAME)                                    \
+  mod PARTSFUNC_PROJ_BINDINGS(PARTSFNAME, p3mod)                               \
+      PARTSFUNC_PROJ_BINDINGS(PARTSFNAME, energy)                              \
+          PARTSFUNC_PROJ_BINDINGS(PARTSFNAME, kinetic_energy)                  \
+              PARTSFUNC_PROJ_BINDINGS(PARTSFNAME, theta)                       \
+                  PARTSFUNC_PROJ_BINDINGS(PARTSFNAME, costheta)
+
   auto m_ps_part = m.def_submodule("part", "ProSelecta part module");
+  PARTSFUNC_BINDINGS(m_ps_part, sort_ascending);
+  PARTSFUNC_BINDINGS(m_ps_part, highest);
+  PARTSFUNC_BINDINGS(m_ps_part, lowest);
+  PARTSFUNC_BINDINGS(m_ps_part, sum);
   m_ps_part
       .def(
-          "sort_ascending",
-          [](std::string const &by,
+          "sum",
+          [](ps::detail::momentum const &proj,
              std::vector<HepMC3::ConstGenParticlePtr> const &parts) {
-            if (by == "p3mod") {
-              return ps::part::sort_ascending(ps::p3mod, parts);
-            } else if (by == "energy") {
-              return ps::part::sort_ascending(ps::energy, parts);
-            } else if (by == "theta") {
-              return ps::part::sort_ascending(ps::theta, parts);
-            } else if (by == "costheta") {
-              return ps::part::sort_ascending(ps::costheta, parts);
-            } else {
-              std::stringstream ss;
-              ss << "Unknown projector: " << by;
-              throw ps::part::InvalidProjector(ss.str());
-            }
+            return ps::part::sum(proj, parts);
           },
-          py::arg("by"), py::arg("parts"))
-      .def(
-          "highest",
-          [](std::string const &by,
-             std::vector<HepMC3::ConstGenParticlePtr> const &parts) {
-            if (by == "p3mod") {
-              return ps::part::highest(ps::p3mod, parts);
-            } else if (by == "energy") {
-              return ps::part::highest(ps::energy, parts);
-            } else if (by == "theta") {
-              return ps::part::highest(ps::theta, parts);
-            } else if (by == "costheta") {
-              return ps::part::highest(ps::costheta, parts);
-            } else {
-              std::stringstream ss;
-              ss << "Unknown projector: " << by;
-              throw ps::part::InvalidProjector(ss.str());
-            }
-          },
-          py::arg("by"), py::arg("parts"))
-      .def(
-          "lowest",
-          [](std::string const &by,
-             std::vector<HepMC3::ConstGenParticlePtr> const &parts) {
-            if (by == "p3mod") {
-              return ps::part::lowest(ps::p3mod, parts);
-            } else if (by == "energy") {
-              return ps::part::lowest(ps::energy, parts);
-            } else if (by == "theta") {
-              return ps::part::lowest(ps::theta, parts);
-            } else if (by == "costheta") {
-              return ps::part::lowest(ps::costheta, parts);
-            } else {
-              std::stringstream ss;
-              ss << "Unknown projector: " << by;
-              throw ps::part::InvalidProjector(ss.str());
-            }
-          },
-          py::arg("by"), py::arg("parts"))
+          py::arg("projector"), py::arg("parts"))
       .def(
           "sum",
-          [](std::string const &by,
-             std::vector<HepMC3::ConstGenParticlePtr> const &parts) {
-            if (by == "p3mod") {
-              return ps::part::sum(ps::p3mod, parts);
-            } else if (by == "energy") {
-              return ps::part::sum(ps::energy, parts);
-            } else if (by == "theta") {
-              return ps::part::sum(ps::theta, parts);
-            } else if (by == "costheta") {
-              return ps::part::sum(ps::costheta, parts);
+          [](ps::detail::momentum const &proj,
+             std::vector<std::vector<HepMC3::ConstGenParticlePtr>> const
+                 &part_groups,
+             bool squeeze) {
+            if (squeeze) {
+              return py::cast(ps::part::sum(proj, part_groups, ps::squeeze));
             } else {
-              std::stringstream ss;
-              ss << "Unknown projector: " << by;
-              throw ps::part::InvalidProjector(ss.str());
+              return py::cast(ps::part::sum(proj, part_groups));
             }
           },
-          py::arg("by"), py::arg("parts"));
+          py::arg("projector"), py::arg("part_groups"), py::kw_only(),
+          py::arg("squeeze") = false);
+  m_ps_part
+      .def(
+          "filter",
+          [](ps::cuts const &cut,
+             std::vector<HepMC3::ConstGenParticlePtr> const &parts) {
+            return ps::part::filter(cut, parts);
+          },
+          py::arg("cuts"), py::arg("parts"))
+      .def(
+          "filter",
+          [](ps::cuts const &cut,
+             std::vector<std::vector<HepMC3::ConstGenParticlePtr>> const
+                 &part_groups,
+             bool squeeze) {
+            if (squeeze) {
+              return py::cast(ps::part::filter(cut, part_groups, ps::squeeze));
+            } else {
+              return py::cast(ps::part::filter(cut, part_groups));
+            }
+          },
+          py::arg("cuts"), py::arg("part_groups"), py::kw_only(),
+          py::arg("squeeze") = false);
 
   // Units.h
   py::module units = m.def_submodule("unit", "Units constants");

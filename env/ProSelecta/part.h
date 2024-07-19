@@ -24,19 +24,24 @@ NEW_PS_EXCEPT(NoParts);
 NEW_PS_EXCEPT(TooManyParts);
 NEW_PS_EXCEPT(InvalidProjector);
 
-template <typename T, typename Collection>
-inline auto sort_ascending(T const &projector, Collection parts) {
+template <typename T, typename PartCollectionCollection>
+inline auto sort_ascending(T const &projector,
+                           PartCollectionCollection part_groups) {
 
-  static_assert(
-      ps::detail::is_std_vector_or_array_part<Collection>::value,
-      "parts type must be a std::array<HepMC3::ConstGenParticlePtr,N> or "
-      "std::vector<HepMC3::ConstGenParticlePtr>");
-
-  std::sort(parts.begin(), parts.end(),
-            [=](HepMC3::ConstGenParticlePtr a, HepMC3::ConstGenParticlePtr b) {
-              return projector(a) < projector(b);
-            });
-  return parts;
+  if constexpr (ps::detail::is_std_vector_or_array_part<
+                    PartCollectionCollection>::value) {
+    std::sort(
+        part_groups.begin(), part_groups.end(),
+        [=](HepMC3::ConstGenParticlePtr a, HepMC3::ConstGenParticlePtr b) {
+          return projector(a) < projector(b);
+        });
+    return part_groups;
+  } else {
+    for (auto &parts : part_groups) {
+      parts = std::move(sort_ascending(projector, parts));
+    }
+    return part_groups;
+  }
 }
 
 template <typename T, typename PartCollectionCollection>

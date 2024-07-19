@@ -39,7 +39,7 @@ struct theta : public cutable<theta> {
     return vect::angle(part->momentum(), refv);
   }
 
-  theta operator()(HepMC3::FourVector const &refvec) {
+  theta operator()(HepMC3::FourVector const &refvec) const {
     theta proj;
     proj.refv = refvec;
     return proj;
@@ -54,7 +54,7 @@ struct costheta : public cutable<costheta> {
     return std::cos(vect::angle(part->momentum(), refv));
   }
 
-  costheta operator()(HepMC3::FourVector const &refvec) {
+  costheta operator()(HepMC3::FourVector const &refvec) const {
     costheta proj;
     proj.refv = refvec;
     return proj;

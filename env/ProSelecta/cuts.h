@@ -31,9 +31,7 @@ struct cuts {
   }
 
   cuts operator!() const {
-    cuts out = *this;
-    out.negate = !out.negate;
-    return out;
+    return cuts{fcuts,!negate};
   }
 };
 
