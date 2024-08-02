@@ -40,7 +40,7 @@ void pyProSelectaExtNuInit(py::module &m) {
       .def("final_state_topology", ps::ext::nu::isCC, py::arg("event"))
       .def(
           "signal_process_id_filter",
-          [](int sid) -> ps::ProjectionFunc {
+          [](int sid) -> ps::SelectFunc {
             return [sid](HepMC3::GenEvent const &ev) {
               return ps::event::signal_process_id(ev) == sid;
             };
@@ -48,7 +48,7 @@ void pyProSelectaExtNuInit(py::module &m) {
           py::arg("signal_process_id"))
       .def(
           "signal_process_id_filter",
-          [](int sid_low, int sid_high) -> ps::ProjectionFunc {
+          [](int sid_low, int sid_high) -> ps::SelectFunc {
             return [sid_low, sid_high](HepMC3::GenEvent const &ev) {
               return !((ps::event::signal_process_id(ev) < sid_low) ||
                        (ps::event::signal_process_id(ev) > sid_high));

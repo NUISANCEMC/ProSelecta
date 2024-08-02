@@ -899,11 +899,15 @@ double MINERvA_PRL129_021803_Project_q0QE(HepMC3::GenEvent const&);
 
 # FAQs and Common Issues
 
-## Function Not Defined When It Definitely Is
+## Interpreter
 
-## Kernel Crashing In Jupyter During ProSelecta Function Execution
+### Function Not Defined When It Definitely Is
 
-## Template Hell
+### Common Compiler Errors
+
+## python/Juptyer
+
+### Kernel Crashing In Jupyter During ProSelecta Function Execution
 
 # Appendices
 
@@ -948,5 +952,3 @@ If you use ProSelecta in your publication, please cite Cling, HepMC3, and ProSel
    month=mar, pages={107310} }
 
 ```
-
-## Common Compiler Errors
