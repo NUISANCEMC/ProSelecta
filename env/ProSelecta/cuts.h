@@ -3,6 +3,7 @@
 #include "HepMC3/GenParticle.h"
 
 #include <algorithm>
+#include <functional>
 #include <vector>
 
 namespace ps {

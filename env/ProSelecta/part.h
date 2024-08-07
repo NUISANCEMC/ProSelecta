@@ -24,6 +24,11 @@ NEW_PS_EXCEPT(NoParts);
 NEW_PS_EXCEPT(TooManyParts);
 NEW_PS_EXCEPT(InvalidProjector);
 
+template <typename PartCollectionCollection>
+inline auto cat(PartCollectionCollection const &part_groups) {
+    return ps::detail::cat(part_groups);
+}
+
 template <typename T, typename PartCollectionCollection>
 inline auto sort_ascending(T const &projector,
                            PartCollectionCollection part_groups) {
