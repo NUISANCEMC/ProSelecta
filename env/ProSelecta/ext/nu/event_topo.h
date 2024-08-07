@@ -65,7 +65,7 @@ int is1Pi(HepMC3::GenEvent const &ev, bool CCOrNC) {
   }
 
   if (event::num_out_part(ev, pids(pdg::kPiPlus, pdg::kPiZero, pdg::kPiMinus),
-                          ps::squeeze) != 1) {
+                          ps::flatten) != 1) {
     return false;
   }
 
@@ -95,7 +95,7 @@ int isMultiPi(HepMC3::GenEvent const &ev, bool CCOrNC) {
   }
 
   if (event::num_out_part(ev, pids(pdg::kPiPlus, pdg::kPiZero, pdg::kPiMinus),
-                          ps::squeeze) < 2) {
+                          ps::flatten) < 2) {
     return false;
   }
 

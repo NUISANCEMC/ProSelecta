@@ -51,7 +51,7 @@ inline auto num_out_part(HepMC3::GenEvent const &ev, Collection const &PIDs) {
 
 template <typename Collection>
 inline auto num_out_part(HepMC3::GenEvent const &ev, Collection const &PIDs,
-                         ps::detail::squeeze const &) {
+                         ps::detail::flatten const &) {
 
   auto const &all_num_out_part = num_out_part(ev, PIDs);
 
@@ -225,7 +225,7 @@ inline auto all_out_part(HepMC3::GenEvent const &ev, Collection const &PIDs) {
 
 template <typename Collection>
 inline auto all_out_part(HepMC3::GenEvent const &ev, Collection const &PIDs,
-                         ps::detail::squeeze const &) {
+                         ps::detail::flatten const &) {
   return ps::detail::particles<ps::detail::kUndecayedPhysical>(ev, PIDs);
 }
 
@@ -270,7 +270,7 @@ inline auto hm_out_part(HepMC3::GenEvent const &ev, Collection const &PIDs) {
 
 template <typename Collection>
 inline auto hm_out_part(HepMC3::GenEvent const &ev, Collection const &PIDs,
-                        ps::detail::squeeze const &) {
+                        ps::detail::flatten const &) {
   return ps::part::highest(ps::p3mod, hm_out_part(ev, PIDs));
 }
 

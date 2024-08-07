@@ -15,7 +15,7 @@ static ps::detail::theta theta;
 static ps::detail::costheta costheta;
 static ps::detail::momentum momentum;
 
-static ps::detail::squeeze squeeze;
+static ps::detail::flatten flatten;
 
 namespace part {
 
@@ -51,7 +51,7 @@ inline auto sort_ascending(T const &projector,
 
 template <typename T, typename PartCollectionCollection>
 inline auto sort_ascending(T const &projector, PartCollectionCollection parts,
-                           ps::detail::squeeze const &) {
+                           ps::detail::flatten const &) {
   return sort_ascending(projector, ps::detail::cat(parts));
 }
 
@@ -98,7 +98,7 @@ inline auto highest(T const &projector, PartCollectionCollection parts) {
 
 template <typename T, typename PartCollectionCollection>
 inline auto highest(T const &projector, PartCollectionCollection parts,
-                    ps::detail::squeeze const &) {
+                    ps::detail::flatten const &) {
   auto all_parts = ps::detail::cat(parts);
   if (!all_parts.size()) {
     throw EmptyParticleList("highest: no particles");
@@ -149,7 +149,7 @@ inline auto lowest(T const &projector, PartCollectionCollection parts) {
 
 template <typename T, typename PartCollectionCollection>
 inline auto lowest(T const &projector, PartCollectionCollection parts,
-                   ps::detail::squeeze const &) {
+                   ps::detail::flatten const &) {
   auto all_parts = ps::detail::cat(parts);
   if (!all_parts.size()) {
     throw EmptyParticleList("lowest: no particles");
@@ -187,7 +187,7 @@ inline auto filter(ps::cuts const &c, PartCollectionCollection parts) {
 template <typename PartCollectionCollection>
 inline auto filter(ps::cuts const &c,
                    PartCollectionCollection const &part_groups,
-                   ps::detail::squeeze const &) {
+                   ps::detail::flatten const &) {
 
   return filter(c, ps::detail::cat(part_groups));
 }
@@ -236,7 +236,7 @@ inline auto sum(T const &projector, PartCollectionCollection const &parts) {
 
 template <typename T, typename PartCollectionCollection>
 inline auto sum(T const &projector, PartCollectionCollection const &parts,
-                ps::detail::squeeze const &) {
+                ps::detail::flatten const &) {
   return std::accumulate(
       parts.begin(), parts.end(), decltype(projector(parts.front().front())){},
       [&](auto const &all_tot, auto const &partarr) {

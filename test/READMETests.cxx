@@ -95,7 +95,7 @@ TEST_CASE("readme-6", "[ps::readme]") {
 
   auto sum_pt =
       ps::part::sum(ps::momentum, ps::event::all_out_part(
-                                      evt, ps::pids(13, 2212), ps::squeeze))
+                                      evt, ps::pids(13, 2212), ps::flatten))
           .pt() /
       ps::unit::GeV_c;
   REQUIRE_THAT(sum_pt, WithinAbs(0 * ps::unit::GeV, 1E-8));
@@ -128,7 +128,7 @@ TEST_CASE("readme-8", "[ps::readme]") {
                     ps::part::filter(
                         ps::p3mod > 250 * ps::unit::MeV,
                         ps::event::all_out_part(
-                            evt, ps::pids(2212, 211, -211, 111), ps::squeeze)))
+                            evt, ps::pids(2212, 211, -211, 111), ps::flatten)))
           .m();
 }
 

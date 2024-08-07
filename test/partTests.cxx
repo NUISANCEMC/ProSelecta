@@ -117,7 +117,7 @@ TEST_CASE("sum momentum", "[ps::part]") {
                  std::sin(45 * unit::deg) * std::cos(120 * unit::deg)) *
                     unit::GeV,
                 1E-8));
-  REQUIRE_THAT(part::sum(momentum, std::array{protons, muons}, ps::squeeze).pt(),
+  REQUIRE_THAT(part::sum(momentum, std::array{protons, muons}, ps::flatten).pt(),
                WithinAbs(0, 1E-8));
 }
 

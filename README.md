@@ -124,7 +124,7 @@ auto [hmproton, hmpim] = ps::event::hm_out_part(evt, ps::pids(2212, -211));
 ```c++
 auto sum_pt =
     ps::part::sum(ps::momentum, ps::event::all_out_part(
-                                    evt, ps::pids(13, 2212), ps::squeeze))
+                                    evt, ps::pids(13, 2212), ps::flatten))
         .pt() /
     ps::unit::GeV_c;
 ```
@@ -144,7 +144,7 @@ auto invmass_protons_and_pions =
                   ps::part::filter(
                       ps::p3mod > 250 * ps::unit::MeV,
                       ps::event::all_out_part(
-                          evt, ps::pids(2212, 211, -211, 111), ps::squeeze)))
+                          evt, ps::pids(2212, 211, -211, 111), ps::flatten)))
         .m();
 ```
 
@@ -193,10 +193,10 @@ The type of `num_fs_mu_or_amu` is `std::array<int,2>` where `num_fs_mu_or_amu[0]
 auto [num_fs_mu, num_fs_amu] = event::num_out_part(evt, pids(pdg::kMuon, pdg::kAMuon));
 ```
 
-Finally on this note, sometimes you want to search for particles from a list of multiple pids but then not keep the results separated like above. The `ps::squeeze` optional argument can be used to return a single object from many of the ProSelecta functions. What the returned object is depends on the function called, for the example above, we can count the total number of muons and anti-muons in one call by `squeeze`-ing the result:
+Finally on this note, sometimes you want to search for particles from a list of multiple pids but then not keep the results separated like above. The `ps::flatten` optional argument can be used to return a single object from many of the ProSelecta functions. What the returned object is depends on the function called, for the example above, we can count the total number of muons and anti-muons in one call by `flatten`-ing the result:
 
 ```c++
-int num_fs_mu_and_amu = event::num_out_part(evt, pids(pdg::kMuon, pdg::kAMuon), ps::squeeze);
+int num_fs_mu_and_amu = event::num_out_part(evt, pids(pdg::kMuon, pdg::kAMuon), ps::flatten);
 ``` 
 
 ### Searching for final-state particles
@@ -234,7 +234,7 @@ bool ps::event::has_at_least_out_part(HepMC3::GenEvent const &ev,
 
 // Returns an array of the number of final-state particles for each specified
 // PID.
-// - Passing ps::squeeze as the last parameter will return the total number
+// - Passing ps::flatten as the last parameter will return the total number
 //   of final-state particles of all specified PIDs
 // - Convenience overload for passing a single pid exists and returns an int
 //   rather than an std::array<int,1>.
@@ -248,7 +248,7 @@ int ps::event::num_out_part_except(HepMC3::GenEvent const &ev,
 
 // Returns an array of vectors of GenParticlePtr to final-state particles for
 // each specified PID.
-// - Passing ps::squeeze as the last parameter will return all matching
+// - Passing ps::flatten as the last parameter will return all matching
 //   particles in a single std::vector
 // - Convenience overload for passing a single pid exists and returns an
 //   std::vector rather than an std::array<std::vector,1>.
@@ -264,7 +264,7 @@ auto ps::event::all_out_part_except(HepMC3::GenEvent const &ev,
 
 // Returns an array of GenParticlePtr to the highest momentum final-state
 // particles for each specified PID.
-// - Passing ps::squeeze as the last parameter will return only the highest
+// - Passing ps::flatten as the last parameter will return only the highest
 //   momentum particle found over all specified PIDs.
 // - Convenience overload for passing a single pid exists and returns a
 //   GenParticlePtr rather than an std::array<GenParticlePtr,1>.
@@ -302,7 +302,7 @@ auto num_final_state_protons = event::num_out_part(ev, kProton);
 auto [num_fs_protons, num_fs_neutrons] =
     event::num_out_part(ev, pids(kProton, kNeutron));
 auto num_fs_protons_and_neutrons] = 
-    event::num_out_part(ev, pids(kProton,kNeutron), ps::squeeze);
+    event::num_out_part(ev, pids(kProton,kNeutron), ps::flatten);
 
 auto num_exotic = event::num_out_part_except(
     ev, pids(kMuon, kProton, kNeutron, kPiPlus,
@@ -312,7 +312,7 @@ auto all_protons = event::all_out_part(ev, kProton);
 auto [all_protons, all_pims] =
     event::all_out_part(ev, pids(kProton, kPiMinus));
 auto all_protons_and_pims =
-    event::all_out_part(ev, pids(kProton, kPiMinus), ps::squeeze);
+    event::all_out_part(ev, pids(kProton, kPiMinus), ps::flatten);
 
 auto all_not_protons = event::all_out_part_except(ev, kProton);
 auto all_exotic = event::all_out_part_except(
@@ -323,7 +323,7 @@ auto hm_proton = event::hm_out_part(ev, kProton);
 auto [hm_proton, hm_pi0] =
     event::hm_out_part(ev, pids(kProton, kPiZero));
 auto hm_proton_or_pi0 =
-    event::hm_out_part(ev, pids(kProton, kPiZero), ps::squeeze);
+    event::hm_out_part(ev, pids(kProton, kPiZero), ps::flatten);
 ```
 
 
@@ -416,7 +416,7 @@ Any of these projectors can be use with `part::sum`, which generally just passes
 // Returns the accumulated result of applying vector over all particles in parts
 //  - A convenience overload exists for passing a single vector instead of an
 //    array of vectors.
-//  - Passing ps::squeeze as the last parameter will return only the highest
+//  - Passing ps::flatten as the last parameter will return only the highest
 //    momentum particle found over all specified PIDs.
 auto ps::part::sum(
     T const &projector,
@@ -433,10 +433,10 @@ auto sum_T_p = part::sum(kinetic_energy, event::all_out_part(ev, kProton));
 auto [sum_T_p_alt, sum_T_pi0] =
     part::sum(kinetic_energy, event::all_out_part(ev, pids(kProton, kPiZero)));
 auto sum_p_p_and_pi0 = part::sum(
-    p3mod, event::all_out_part(ev, pids(kProton, kPiZero), ps::squeeze));
+    p3mod, event::all_out_part(ev, pids(kProton, kPiZero), ps::flatten));
 // equivalent to
 auto sum_p_p_and_pi0_alt = part::sum(
-    p3mod, event::all_out_part(ev, pids(kProton, kPiZero)), ps::squeeze);
+    p3mod, event::all_out_part(ev, pids(kProton, kPiZero)), ps::flatten);
 ```
 
 ### sorting
@@ -445,7 +445,7 @@ auto sum_p_p_and_pi0_alt = part::sum(
 // Sort each vector of input particles in ascending order according to the projector
 // - A convenience overload exists for passing a single vector instead of an
 //   array of vectors.
-// - Passing ps::squeeze as the last parameter will sort all input particles
+// - Passing ps::flatten as the last parameter will sort all input particles
 //   together according to the result of projector and will return a single 
 //   vector of particles
 auto ps::part::sort_ascending(T const &projector,
@@ -455,7 +455,7 @@ auto ps::part::sort_ascending(T const &projector,
 // - Throws if any vector in parts is empty
 // - A convenience overload exists for passing a single vector instead of an
 //   array of vectors.
-// - Passing ps::squeeze as the last parameter will sort all input particles
+// - Passing ps::flatten as the last parameter will sort all input particles
 //   together according to the result of projector and will return a single 
 //   particle
 auto ps::part::highest(T const &projector,
@@ -463,7 +463,7 @@ auto ps::part::highest(T const &projector,
 
 // Gets the particle from each vector in parts with the lowest projected value
 // - Throws if any vector in parts is empty
-// - Passing ps::squeeze as the last parameter will sort all input particles
+// - Passing ps::flatten as the last parameter will sort all input particles
 //   together according to the result of projector and will return a single 
 //   particle
 auto ps::part::lowest(T const &projector,
@@ -481,19 +481,19 @@ auto protons_orderby_p3mod =
 auto [protons_orderby_p3mod_alt, pims_orderby_p3mod] = part::sort_ascending(
     p3mod, event::all_out_part(ev, pids(kProton, kPiMinus)));
 auto protons_and_pims_orderby_p3mod = part::sort_ascending(
-    p3mod, event::all_out_part(ev, pids(kProton, kPiMinus), ps::squeeze));
+    p3mod, event::all_out_part(ev, pids(kProton, kPiMinus), ps::flatten));
 // equivalent to
 auto protons_and_pims_orderby_p3mod_alt = part::sort_ascending(
-    p3mod, event::all_out_part(ev, pids(kProton, kPiMinus)), ps::squeeze);
+    p3mod, event::all_out_part(ev, pids(kProton, kPiMinus)), ps::flatten);
 
 auto hm_proton = part::highest(p3mod, event::all_out_part(ev, kProton));
 auto [hm_proton_alt, hm_pim] =
     part::highest(p3mod, event::all_out_part(ev, pids(kProton, kPiMinus)));
 auto hm_proton_or_pim = part::highest(
-    p3mod, event::all_out_part(ev, pids(kProton, kPiMinus), ps::squeeze));
+    p3mod, event::all_out_part(ev, pids(kProton, kPiMinus), ps::flatten));
 // equivalent to
 auto hm_proton_or_pim_alt = part::highest(
-    p3mod, event::all_out_part(ev, pids(kProton, kPiMinus)), ps::squeeze);
+    p3mod, event::all_out_part(ev, pids(kProton, kPiMinus)), ps::flatten);
 
 auto pnu = event::beam_part(ev, kNeutralLeptons)->momentum();
 auto angle_with_pnu = ps::theta(pnu);
@@ -504,11 +504,11 @@ auto [most_forward_proton_alt, most_forward_pim] = part::lowest(
     angle_with_pnu, event::all_out_part(ev, pids(kProton, kPiMinus)));
 auto most_forward_proton_or_pim =
     part::lowest(angle_with_pnu,
-                 event::all_out_part(ev, pids(kProton, kPiMinus), ps::squeeze));
+                 event::all_out_part(ev, pids(kProton, kPiMinus), ps::flatten));
 // equivalent to
 auto most_forward_proton_or_pim_alt =
     part::lowest(angle_with_pnu,
-                 event::all_out_part(ev, pids(kProton, kPiMinus)), ps::squeeze);
+                 event::all_out_part(ev, pids(kProton, kPiMinus)), ps::flatten);
 ```
 
 ### cuts
@@ -535,7 +535,7 @@ Importantly, `ps::cuts` can be applied to vectors of particles.
 // Returns the vector of particles passing the cuts, c.
 // - A convenience overload exists for passing a single vector instead of an
 //   array of vectors.
-// - Passing ps::squeeze as the last parameter will sort all input particles
+// - Passing ps::flatten as the last parameter will sort all input particles
 //   together according to the result of projector and will return a single 
 //   particle
 auto ps::part::filter(ps::cuts const &c, std::vector<HepMC3::ConstGenParticlePtr> parts) 
@@ -555,11 +555,11 @@ auto [protons_in_range, pim_in_range] =
                  event::all_out_part(ev, pids(kProton, kPiMinus)));
 auto protons_and_pim_in_range =
     part::filter(p3mod > 0.1 * GeV && p3mod < 1.5 * GeV,
-                 event::all_out_part(ev, pids(kProton, kPiMinus), ps::squeeze));
+                 event::all_out_part(ev, pids(kProton, kPiMinus), ps::flatten));
 // equivalent to
 auto protons_and_pim_in_range_alt =
     part::filter(p3mod > 0.1 * GeV && p3mod < 1.5 * GeV,
-                 event::all_out_part(ev, pids(kProton, kPiMinus)), ps::squeeze);
+                 event::all_out_part(ev, pids(kProton, kPiMinus)), ps::flatten);
 ```
 
 ## `ps::vect`
@@ -803,7 +803,7 @@ hmproton, hmpim = event.hm_out_part(evt, [2212, -211])
 6) Get the transverse component of the vector sum of the final state muon and all protons:
 ```python
 sum_pt = part.sum(momentum, event.all_out_part(
-           evt, [13, 2212], squeeze=True)).pt() / unit.GeV_c
+           evt, [13, 2212], flatten=True)).pt() / unit.GeV_c
 ```
 
 7) Get all protons with more than 0.05 GeV/c but less than 2 GeV/c of 3momentum:
@@ -820,7 +820,7 @@ nvmass_protons_and_pions =
                   part.filter(
                       p3mod > 250 * unit.MeV,
                       event.all_out_part(
-                          evt, [2212, 211, -211, 111], squeeze=True)))
+                          evt, [2212, 211, -211, 111], flatten=True)))
         .m();
 
 ```

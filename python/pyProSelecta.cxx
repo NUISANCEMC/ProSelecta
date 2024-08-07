@@ -119,7 +119,7 @@ PYBIND11_MODULE(pyProSelecta, m) {
           },                                                                   \
           py::arg("event"), py::arg("PIDs"))
 
-#define EVENT_INT_OR_VECTPID_SQUEEZE_BINDING(mod, EVENTFUNC)                   \
+#define EVENT_INT_OR_VECTPID_flatten_BINDING(mod, EVENTFUNC)                   \
   mod.def(                                                                     \
          #EVENTFUNC,                                                           \
          [](HepMC3::GenEvent const &ev, int PID) {                             \
@@ -129,21 +129,21 @@ PYBIND11_MODULE(pyProSelecta, m) {
       .def(                                                                    \
           #EVENTFUNC,                                                          \
           [](HepMC3::GenEvent const &ev, std::vector<int> const &PIDs,         \
-             bool squeeze) {                                                   \
-            if (squeeze) {                                                     \
-              return py::cast(ps::event::EVENTFUNC(ev, PIDs, ps::squeeze));    \
+             bool flatten) {                                                   \
+            if (flatten) {                                                     \
+              return py::cast(ps::event::EVENTFUNC(ev, PIDs, ps::flatten));    \
             } else {                                                           \
               return py::cast(ps::event::EVENTFUNC(ev, PIDs));                 \
             }                                                                  \
           },                                                                   \
           py::arg("event"), py::arg("PIDs"), py::kw_only(),                    \
-          py::arg("squeeze") = false)
+          py::arg("flatten") = false)
 
   auto m_ps_event = m.def_submodule("event", "ProSelecta event module");
   EVENT_INT_OR_VECTPID_BINDING(m_ps_event, has_out_part);
-  EVENT_INT_OR_VECTPID_SQUEEZE_BINDING(m_ps_event, num_out_part);
-  EVENT_INT_OR_VECTPID_SQUEEZE_BINDING(m_ps_event, all_out_part);
-  EVENT_INT_OR_VECTPID_SQUEEZE_BINDING(m_ps_event, hm_out_part);
+  EVENT_INT_OR_VECTPID_flatten_BINDING(m_ps_event, num_out_part);
+  EVENT_INT_OR_VECTPID_flatten_BINDING(m_ps_event, all_out_part);
+  EVENT_INT_OR_VECTPID_flatten_BINDING(m_ps_event, hm_out_part);
   EVENT_INT_OR_VECTPID_BINDING(m_ps_event, has_beam_part);
   EVENT_INT_OR_VECTPID_BINDING(m_ps_event, beam_part);
   EVENT_INT_OR_VECTPID_BINDING(m_ps_event, has_target_part);
@@ -171,16 +171,16 @@ PYBIND11_MODULE(pyProSelecta, m) {
           [](ps::detail::PROJNAME const &proj,                                 \
              std::vector<std::vector<HepMC3::ConstGenParticlePtr>> const       \
                  &part_groups,                                                 \
-             bool squeeze) {                                                   \
-            if (squeeze) {                                                     \
+             bool flatten) {                                                   \
+            if (flatten) {                                                     \
               return py::cast(                                                 \
-                  ps::part::PARTSFNAME(proj, part_groups, ps::squeeze));       \
+                  ps::part::PARTSFNAME(proj, part_groups, ps::flatten));       \
             } else {                                                           \
               return py::cast(ps::part::PARTSFNAME(proj, part_groups));        \
             }                                                                  \
           },                                                                   \
           py::arg("projector"), py::arg("part_groups"), py::kw_only(),         \
-          py::arg("squeeze") = false)
+          py::arg("flatten") = false)
 
 #define PARTSFUNC_BINDINGS(mod, PARTSFNAME)                                    \
   mod PARTSFUNC_PROJ_BINDINGS(PARTSFNAME, p3mod)                               \
@@ -207,15 +207,15 @@ PYBIND11_MODULE(pyProSelecta, m) {
           [](ps::detail::momentum const &proj,
              std::vector<std::vector<HepMC3::ConstGenParticlePtr>> const
                  &part_groups,
-             bool squeeze) {
-            if (squeeze) {
-              return py::cast(ps::part::sum(proj, part_groups, ps::squeeze));
+             bool flatten) {
+            if (flatten) {
+              return py::cast(ps::part::sum(proj, part_groups, ps::flatten));
             } else {
               return py::cast(ps::part::sum(proj, part_groups));
             }
           },
           py::arg("projector"), py::arg("part_groups"), py::kw_only(),
-          py::arg("squeeze") = false);
+          py::arg("flatten") = false);
   m_ps_part
       .def(
           "filter",
@@ -229,15 +229,15 @@ PYBIND11_MODULE(pyProSelecta, m) {
           [](ps::cuts const &cut,
              std::vector<std::vector<HepMC3::ConstGenParticlePtr>> const
                  &part_groups,
-             bool squeeze) {
-            if (squeeze) {
-              return py::cast(ps::part::filter(cut, part_groups, ps::squeeze));
+             bool flatten) {
+            if (flatten) {
+              return py::cast(ps::part::filter(cut, part_groups, ps::flatten));
             } else {
               return py::cast(ps::part::filter(cut, part_groups));
             }
           },
           py::arg("cuts"), py::arg("part_groups"), py::kw_only(),
-          py::arg("squeeze") = false);
+          py::arg("flatten") = false);
 
   // Units.h
   py::module units = m.def_submodule("unit", "Units constants");

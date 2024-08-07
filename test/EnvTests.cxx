@@ -168,6 +168,6 @@ TEST_CASE("LoadText::include_ext", "[ps::ProSelecta]") {
 
   REQUIRE(ps::ProSelecta::Get().load_text(
       R"(
-#include "ProSelecta/ext/event_proj.h"
+#include "ProSelecta/ext/nu/event_proj.h"
 )"));
 }

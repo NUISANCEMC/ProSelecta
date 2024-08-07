@@ -60,6 +60,6 @@ struct broadcast_return<std::vector<int>, ValueType> {
   using type = std::vector<ValueType>;
 };
 
-struct squeeze {};
+struct flatten {};
 
 } // namespace ps::detail
