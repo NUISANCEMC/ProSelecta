@@ -31,13 +31,14 @@ void pyProSelectaExtNuInit(py::module &m) {
       .def("hm_ppi0_GeV", ps::ext::nu::hm_ppi0_GeV, py::arg("event"))
       .def("hm_thetapi0_deg", ps::ext::nu::hm_thetapi0_deg, py::arg("event"))
       .def("isCC", ps::ext::nu::isCC, py::arg("event"))
-      .def("isCC0Pi", ps::ext::nu::isCC, py::arg("event"))
-      .def("isNC0Pi", ps::ext::nu::isCC, py::arg("event"))
-      .def("isCC1Pi", ps::ext::nu::isCC, py::arg("event"))
-      .def("isNC1Pi", ps::ext::nu::isCC, py::arg("event"))
-      .def("isCCMultiPi", ps::ext::nu::isCC, py::arg("event"))
-      .def("isNCMultiPi", ps::ext::nu::isCC, py::arg("event"))
-      .def("final_state_topology", ps::ext::nu::isCC, py::arg("event"))
+      .def("isCC0Pi", ps::ext::nu::isCC0Pi, py::arg("event"))
+      .def("isNC0Pi", ps::ext::nu::isNC0Pi, py::arg("event"))
+      .def("isCC1Pi", ps::ext::nu::isCC1Pi, py::arg("event"))
+      .def("isNC1Pi", ps::ext::nu::isNC1Pi, py::arg("event"))
+      .def("isCCMultiPi", ps::ext::nu::isCCMultiPi, py::arg("event"))
+      .def("isNCMultiPi", ps::ext::nu::isNCMultiPi, py::arg("event"))
+      .def("final_state_topology", ps::ext::nu::final_state_topology,
+           py::arg("event"))
       .def(
           "signal_process_id_filter",
           [](int sid) -> ps::SelectFunc {
