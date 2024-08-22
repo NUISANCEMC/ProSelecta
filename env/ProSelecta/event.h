@@ -106,7 +106,13 @@ inline bool has_out_part(HepMC3::GenEvent const &ev, Collection const &PIDs) {
   static_assert(ps::detail::is_std_vector_or_array_int<Collection>::value,
                 "PIDs type must be a std::array<int,N> or std::vector<int>");
 
-  return ps::detail::has_particles<ps::detail::kUndecayedPhysical>(ev, PIDs);
+  for (auto const &PID : PIDs) {
+    if (ps::detail::has_particles<ps::detail::kUndecayedPhysical>(
+            ev, std::array{PID})) {
+      return true;
+    }
+  }
+  return false;
 }
 
 inline bool has_out_part(HepMC3::GenEvent const &ev, int PID) {
