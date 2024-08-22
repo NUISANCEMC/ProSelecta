@@ -142,7 +142,9 @@ PYBIND11_MODULE(pyProSelecta, m) {
   auto m_ps_event = m.def_submodule("event", "ProSelecta event module");
   EVENT_INT_OR_VECTPID_BINDING(m_ps_event, has_out_part);
   EVENT_INT_OR_VECTPID_flatten_BINDING(m_ps_event, num_out_part);
+  EVENT_INT_OR_VECTPID_BINDING(m_ps_event, num_out_part_except);
   EVENT_INT_OR_VECTPID_flatten_BINDING(m_ps_event, all_out_part);
+  EVENT_INT_OR_VECTPID_BINDING(m_ps_event, all_out_part_except);
   EVENT_INT_OR_VECTPID_flatten_BINDING(m_ps_event, hm_out_part);
   EVENT_INT_OR_VECTPID_BINDING(m_ps_event, has_beam_part);
   EVENT_INT_OR_VECTPID_BINDING(m_ps_event, beam_part);
