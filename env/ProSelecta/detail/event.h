@@ -63,11 +63,12 @@ inline bool has_particles_exact(HepMC3::GenEvent const &ev,
   bool hasall = true;
 
   for (size_t i = 0; i < PIDs.size(); ++i) {
-    hasall = hasall && bool(particles<status>(ev,
-                                              std::array{
-                                                  PIDs[i],
-                                              })
-                                .size() == counts[i]);
+    hasall =
+        hasall && bool(typename Collection::value_type(particles<status>(ev,
+                                                                std::array{
+                                                                    PIDs[i],
+                                                                })
+                                                  .size()) == counts[i]);
   }
 
   return hasall;
@@ -80,11 +81,12 @@ inline bool has_particles_atleast(HepMC3::GenEvent const &ev,
   bool hasall = true;
 
   for (size_t i = 0; i < PIDs.size(); ++i) {
-    hasall = hasall && bool(particles<status>(ev,
-                                              std::array{
-                                                  PIDs[i],
-                                              })
-                                .size() >= counts[i]);
+    hasall =
+        hasall && bool(typename Collection::value_type(particles<status>(ev,
+                                                                std::array{
+                                                                    PIDs[i],
+                                                                })
+                                                  .size()) >= counts[i]);
   }
 
   return hasall;

@@ -11,6 +11,10 @@ constexpr auto pids(Args... args){
 }
 
 namespace pdg {
+
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#pragma GCC diagnostic push
+
 constexpr static int kNuE = 12;
 constexpr static int kANuE = -12;
 
@@ -48,6 +52,8 @@ constexpr static std::array kNeutralLeptons_amatter = {kANuE, kANuMu};
 
 constexpr static std::array kLeptons = {kElectron, kAElectron, kMuon, kAMuon,
                                         kNuE,      kANuE,      kNuMu, kANuMu};
+
+#pragma GCC diagnostic pop
 
 } // namespace pdg
 } // namespace ps
