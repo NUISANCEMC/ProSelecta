@@ -277,7 +277,7 @@ inline auto hm_out_part(HepMC3::GenEvent const &ev, Collection const &PIDs) {
 template <typename Collection>
 inline auto hm_out_part(HepMC3::GenEvent const &ev, Collection const &PIDs,
                         ps::detail::flatten const &) {
-  return ps::part::highest(ps::p3mod, hm_out_part(ev, PIDs));
+  return ps::part::highest(ps::p3mod, all_out_part(ev, PIDs, ps::flatten));
 }
 
 inline HepMC3::ConstGenParticlePtr hm_out_part(HepMC3::GenEvent const &ev,
