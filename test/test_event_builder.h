@@ -113,7 +113,7 @@ HepMC3::GenEvent BuildEvent(std::vector<std::vector<std::string>> const &parts,
 
   HepMC3::GenEvent evt(HepMC3::Units::MEV, HepMC3::Units::CM);
 
-  for (int v = 0; v < (parts.size() - 1); ++v) {
+  for (size_t v = 0; v < (parts.size() - 1); ++v) {
 
     HepMC3::GenVertexPtr vertex = std::make_shared<HepMC3::GenVertex>();
 

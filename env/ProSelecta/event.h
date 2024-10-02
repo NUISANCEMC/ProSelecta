@@ -168,7 +168,8 @@ inline bool out_part_topology_matches(HepMC3::GenEvent const &ev,
   return has_exact_out_part(ev, PIDs, counts) &&
          (ps::detail::particles<ps::detail::kUndecayedPhysical>(
               ev, std::array<int, 0>{})
-              .size() == std::accumulate(counts.begin(), counts.end(), 0));
+              .size() ==
+          size_t(std::accumulate(counts.begin(), counts.end(), 0)));
 }
 
 template <typename Collection>

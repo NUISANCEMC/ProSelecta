@@ -174,67 +174,6 @@ void initialize_environment() {
     return;
   }
 
-  gInterpreter->LoadText(R"(
-static bool ProSelecta_detail_func_return_type_is_int = false;
-static bool ProSelecta_detail_func_return_type_is_vect_int = false;
-static bool ProSelecta_detail_func_return_type_is_double = false;
-static bool ProSelecta_detail_func_return_type_is_vect_double = false;
-
-template <typename T> void ProSelecta_detail_FillFuncReturnTypeDeductions() {
-  ProSelecta_detail_func_return_type_is_int = std::is_same_v<T, int>;
-  ProSelecta_detail_func_return_type_is_vect_int = std::is_same_v<T, 
-    std::vector<int>>;
-  ProSelecta_detail_func_return_type_is_double = std::is_same_v<T, double>;
-  ProSelecta_detail_func_return_type_is_vect_double = 
-    std::is_same_v<T, std::vector<double>>;
-}
-
-std::tuple<bool, bool, bool, bool> 
-ProSelecta_detail_GetFuncReturnTypeDeductions() {
-  return {ProSelecta_detail_func_return_type_is_int, 
-          ProSelecta_detail_func_return_type_is_vect_int, 
-          ProSelecta_detail_func_return_type_is_double, 
-          ProSelecta_detail_func_return_type_is_vect_double};
-}
-
-int ProSelecta_detail_test_int(){ return 1; }
-std::vector<int> ProSelecta_detail_test_vector_int(){ return {1,}; }
-double ProSelecta_detail_test_double(){ return 1; }
-std::vector<double> ProSelecta_detail_test_vector_double(){ return {1,}; }
-)");
-
-  type_check_helper =
-      VoidToFunctionPtr<std::tuple<bool, bool, bool, bool> (*)()>(
-          get_func_with_prototype(
-              "ProSelecta_detail_GetFuncReturnTypeDeductions", ""));
-
-  TInterpreter::EErrorCode cling_err = TInterpreter::EErrorCode::kNoError;
-  assert(returns_int("ProSelecta_detail_test_int", cling_err));
-  if (cling_err != TInterpreter::EErrorCode::kNoError) {
-    std::cerr << "ProSelecta self tests failed." << std::endl;
-    throw std::runtime_error(
-        "ProSelecta_detail_test_int doesn't appear to return an int.");
-  }
-  assert(returns_vector_int("ProSelecta_detail_test_vect_int", cling_err));
-  if (cling_err != TInterpreter::EErrorCode::kNoError) {
-    std::cerr << "ProSelecta self tests failed." << std::endl;
-    throw std::runtime_error("ProSelecta_detail_test_vect_int doesn't appear "
-                             "to return an vector<int>.");
-  }
-  assert(returns_double("ProSelecta_detail_test_double", cling_err));
-  if (cling_err != TInterpreter::EErrorCode::kNoError) {
-    std::cerr << "ProSelecta self tests failed." << std::endl;
-    throw std::runtime_error(
-        "ProSelecta_detail_test_double doesn't appear to return a double.");
-  }
-  assert(
-      returns_vector_double("ProSelecta_detail_test_vector_double", cling_err));
-  if (cling_err != TInterpreter::EErrorCode::kNoError) {
-    std::cerr << "ProSelecta self tests failed." << std::endl;
-    throw std::runtime_error("ProSelecta_detail_test_vector_double doesn't "
-                             "appear to return a vector<double>.");
-  }
-
   char const *pathsc = std::getenv("ProSelecta_INCLUDE_PATH");
   if (!pathsc) {
     throw std::runtime_error(
@@ -264,6 +203,81 @@ std::vector<double> ProSelecta_detail_test_vector_double(){ return {1,}; }
     std::cerr << "ProSelecta environment initialization failed." << std::endl;
     throw std::runtime_error("cling returned false when asked to include the "
                              "ProSelecta/env.h.");
+  }
+
+  bool return_type_tester_parse = gInterpreter->LoadText(R"(
+static bool ProSelecta_detail_func_return_type_is_int = false;
+static bool ProSelecta_detail_func_return_type_is_vect_int = false;
+static bool ProSelecta_detail_func_return_type_is_double = false;
+static bool ProSelecta_detail_func_return_type_is_vect_double = false;
+
+template <typename T> void ProSelecta_detail_FillFuncReturnTypeDeductions() {
+  ProSelecta_detail_func_return_type_is_int = std::is_same_v<T, int>;
+  ProSelecta_detail_func_return_type_is_vect_int = std::is_same_v<T, 
+    std::vector<int>>;
+  ProSelecta_detail_func_return_type_is_double = std::is_same_v<T, double>;
+  ProSelecta_detail_func_return_type_is_vect_double = 
+    std::is_same_v<T, std::vector<double>>;
+}
+
+std::tuple<bool, bool, bool, bool> 
+ProSelecta_detail_GetFuncReturnTypeDeductions() {
+  return {ProSelecta_detail_func_return_type_is_int, 
+          ProSelecta_detail_func_return_type_is_vect_int, 
+          ProSelecta_detail_func_return_type_is_double, 
+          ProSelecta_detail_func_return_type_is_vect_double};
+}
+
+int ProSelecta_detail_test_int(HepMC3::GenEvent const &){ 
+  return 1; 
+}
+std::vector<int> ProSelecta_detail_test_vector_int(HepMC3::GenEvent const &){ 
+  return {1,}; 
+}
+double ProSelecta_detail_test_double(HepMC3::GenEvent const &){ 
+  return 1; 
+}
+std::vector<double> ProSelecta_detail_test_vector_double(HepMC3::GenEvent const &){ 
+  return {1,}; 
+}
+)");
+
+  if (!return_type_tester_parse) {
+    std::cerr << "ProSelecta environment initialization failed." << std::endl;
+    throw std::runtime_error(
+        "cling returned false when asked to parse the return type deducer.");
+  }
+
+  type_check_helper =
+      VoidToFunctionPtr<std::tuple<bool, bool, bool, bool> (*)()>(
+          get_func_with_prototype(
+              "ProSelecta_detail_GetFuncReturnTypeDeductions", ""));
+
+  TInterpreter::EErrorCode cling_err = TInterpreter::EErrorCode::kNoError;
+  assert(returns_int("ProSelecta_detail_test_int", cling_err));
+  if (cling_err != TInterpreter::EErrorCode::kNoError) {
+    std::cerr << "ProSelecta self tests failed." << std::endl;
+    throw std::runtime_error(
+        "ProSelecta_detail_test_int doesn't appear to return an int.");
+  }
+  assert(returns_vector_int("ProSelecta_detail_test_vector_int", cling_err));
+  if (cling_err != TInterpreter::EErrorCode::kNoError) {
+    std::cerr << "ProSelecta self tests failed." << std::endl;
+    throw std::runtime_error("ProSelecta_detail_test_vector_int doesn't appear "
+                             "to return an vector<int>.");
+  }
+  assert(returns_double("ProSelecta_detail_test_double", cling_err));
+  if (cling_err != TInterpreter::EErrorCode::kNoError) {
+    std::cerr << "ProSelecta self tests failed." << std::endl;
+    throw std::runtime_error(
+        "ProSelecta_detail_test_double doesn't appear to return a double.");
+  }
+  assert(
+      returns_vector_double("ProSelecta_detail_test_vector_double", cling_err));
+  if (cling_err != TInterpreter::EErrorCode::kNoError) {
+    std::cerr << "ProSelecta self tests failed." << std::endl;
+    throw std::runtime_error("ProSelecta_detail_test_vector_double doesn't "
+                             "appear to return a vector<double>.");
   }
 
   cling_env_initialized = true;

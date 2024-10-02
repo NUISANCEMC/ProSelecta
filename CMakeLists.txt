@@ -9,6 +9,8 @@ project(ProSelecta VERSION ${ProSelecta_VERSION} LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 
 option(ProSelecta_ENABLE_TESTS "Whether to enable test suite" OFF)
+option(ProSelecta_ENABLE_SANITIZERS "Whether to enable ASAN LSAN and UBSAN" OFF)
+option(ProSelecta_ENABLE_GCOV "Whether to enable GCOV" OFF)
 
 #Changes default install path to be a subdirectory of the build dir.
 #Can set build dir at configure time with -DCMAKE_INSTALL_PREFIX=/install/path
@@ -17,10 +19,12 @@ if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
            CACHE PATH "default install path" FORCE)
 endif()
 
-if(CMAKE_BUILD_TYPE STREQUAL "")
-  set(CMAKE_BUILD_TYPE RelWithDebInfo)
-elseif(NOT DEFINED CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE RelWithDebInfo)
+if(NOT DEFINED CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE STREQUAL "")
+  if(ProSelecta_ENABLE_TESTS)
+    set(CMAKE_BUILD_TYPE Debug)
+  else()
+    set(CMAKE_BUILD_TYPE RelWithDebInfo)
+  endif()
 endif()
 
 LIST(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake/Modules)
@@ -49,6 +53,22 @@ IF("${isSystemDir}" STREQUAL "-1")
 ENDIF("${isSystemDir}" STREQUAL "-1")
 
 ######################### Dependencies
+
+add_library(proselecta_private_compile_options INTERFACE)
+target_compile_options(proselecta_private_compile_options INTERFACE -Wall -Werror -Wextra)
+if(NOT CMAKE_CXX_COMPILER_ID MATCHES "^(Apple)?Clang$")
+    target_compile_options(proselecta_private_compile_options INTERFACE -Wno-class-memaccess)
+endif()
+
+if(ProSelecta_ENABLE_SANITIZERS)
+  target_compile_options(proselecta_private_compile_options BEFORE INTERFACE -fno-omit-frame-pointer -fsanitize=address -fsanitize=leak -fsanitize=undefined)
+  target_link_options(proselecta_private_compile_options BEFORE INTERFACE -fsanitize=address -fsanitize=leak -fsanitize=undefined)
+endif()
+
+if(ProSelecta_ENABLE_GCOV)
+  target_compile_options(proselecta_private_compile_options BEFORE INTERFACE -fprofile-arcs -ftest-coverage)
+  target_link_options(proselecta_private_compile_options BEFORE INTERFACE -fprofile-arcs -ftest-coverage)
+endif()
 
 set(Python3_MIN_VERSION 3.6)
 set(ROOT_MIN_VERSION 6.10)
@@ -88,6 +108,7 @@ set(ProSelecta_PYTHONPATH "python/${Python3_VERSION_MAJOR}.${Python3_VERSION_MIN
 add_subdirectory(python)
 
 if(ProSelecta_ENABLE_TESTS)
+  include(CTest)
   add_subdirectory(test)
 endif()
 

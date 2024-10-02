@@ -71,7 +71,7 @@ TEST_CASE("has_out_part", "[ps::event]") {
   REQUIRE_FALSE(event::has_out_part(evt1, 14));
 
   REQUIRE(event::has_out_part(evt1, pids(2212, 13, -13)));
-  REQUIRE_FALSE(event::has_out_part(evt1, pids(2212, 13, -13, 14)));
+  REQUIRE(event::has_out_part(evt1, pids(2212, 13, -13, 14)));
 }
 
 TEST_CASE("has_out_part<vector>", "[ps::event]") {
@@ -86,7 +86,7 @@ TEST_CASE("has_out_part<vector>", "[ps::event]") {
   REQUIRE_FALSE(event::has_out_part(evt1, 14));
 
   REQUIRE(event::has_out_part(evt1, std::vector<int>{2212, 13, -13}));
-  REQUIRE_FALSE(event::has_out_part(evt1, std::vector<int>{2212, 13, -13, 14}));
+  REQUIRE(event::has_out_part(evt1, std::vector<int>{2212, 13, -13, 14}));
 }
 
 TEST_CASE("has_out_part<vector> zero throw", "[ps::event]") {
@@ -153,7 +153,10 @@ TEST_CASE("has_at_least_out_part", "[ps::event]") {
   REQUIRE_FALSE(event::has_at_least_out_part(evt1, 13, 3));
 
   REQUIRE(event::has_at_least_out_part(evt1, pids(2212, 13, -13), {1, 2, 1}));
-  REQUIRE(!event::has_at_least_out_part(evt1, pids(2212, 13, -13), {1, 2, 2}));
+  REQUIRE_FALSE(
+      event::has_at_least_out_part(evt1, pids(2212, 13, -13), {1, 2, 2}));
+  REQUIRE_FALSE(event::has_at_least_out_part(evt1, pids(2212, 13, -13, 14),
+                                             {1, 1, 1, 1}));
 }
 
 TEST_CASE("num_out_part", "[ps::event]") {
@@ -222,4 +225,43 @@ TEST_CASE("all_out_part_except", "[ps::event]") {
 
   auto not_protons_or_muons = event::all_out_part_except(evt1, pids(2212, 13));
   REQUIRE(not_protons_or_muons.size() == 1);
+}
+
+TEST_CASE("hm_out_part", "[ps::event]") {
+
+  auto evt1 = BuildEvent(
+      {{"14 4 3 0", "1000060120 11 0"},
+       {"2212 1 0.15", "2212 1 0.25", "13 1 0.7", "13 1 1.2", "-13 1 1.3"}});
+
+  auto hm_proton = event::hm_out_part(evt1, 2212);
+  REQUIRE_THAT(hm_proton->momentum().length(),
+               WithinAbs(0.25 * ps::unit::GeV, 1E-8));
+
+  auto hm_muon = event::hm_out_part(evt1, 13);
+  REQUIRE_THAT(hm_muon->momentum().length(),
+               WithinAbs(1.2 * ps::unit::GeV, 1E-8));
+
+  auto [hm_mu, hm_mub] = event::hm_out_part(evt1, pids(13, -13));
+  REQUIRE_THAT(hm_mu->momentum().length(),
+               WithinAbs(1.2 * ps::unit::GeV, 1E-8));
+  REQUIRE_THAT(hm_mub->momentum().length(),
+               WithinAbs(1.3 * ps::unit::GeV, 1E-8));
+
+  auto hm_mu_or_mub = event::hm_out_part(evt1, pids(13, -13), ps::flatten);
+  REQUIRE(hm_mu_or_mub->pid() == -13);
+  REQUIRE_THAT(hm_mu_or_mub->momentum().length(),
+               WithinAbs(1.3 * ps::unit::GeV, 1E-8));
+}
+
+TEST_CASE("out_nuclear_parts", "[ps::event]") {
+
+  auto evt1 = BuildEvent(
+      {{"14 4 3 0", "1000060120 11 0"},
+       {"2212 1 0.15", "2212 1 0.25", "13 1 0.7", "1000060110 1 0.123"}});
+
+  auto out_C11 = event::out_nuclear_parts(evt1);
+  REQUIRE(out_C11.size() == 1);
+  REQUIRE_THAT(out_C11.front()->momentum().length(),
+               WithinAbs(0.123 * ps::unit::GeV, 1E-8));
+  REQUIRE(out_C11.front()->pid() == 1000060110);
 }
