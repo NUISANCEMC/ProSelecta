@@ -38,8 +38,6 @@ constexpr double const fm = 1E-15 * m;
 constexpr double const rad = 1;
 constexpr double const deg = M_PI / 180.0;
 
-} // namespace unit
-
 constexpr auto operator""_MeV(long double MeV) { return MeV; }
 constexpr auto operator""_GeV(long double MeV) { return MeV * ps::unit::GeV; }
 constexpr auto operator""_keV(long double MeV) { return MeV * ps::unit::keV; }
@@ -127,5 +125,7 @@ constexpr auto operator""_rad(unsigned long long rad) { return rad; }
 constexpr auto operator""_deg(unsigned long long rad) {
   return rad * ps::unit::deg;
 }
+
+} // namespace unit
 
 } // namespace ps

@@ -616,10 +616,10 @@ The follow simple system of units is defined in [ProSelecta/unit.h](env/ProSelec
 * Spacetime interval: `ps::unit::[M,G,k,]eV2`
 * Angle: `ps::unit::rad, ps::unit::deg`
 
-User-defined literal operators are also defined under the `ps` namespace which allows a slightly simpler more concise syntax for literals with units. You must have a `using namespace ps;` declaration at the relevant scope to use these literal operators.
+User-defined literal operators are also defined under the `ps` namespace which allows a slightly simpler more concise syntax for literals with units. You must have a `using namespace ps::unit;` declaration at the relevant scope to use these literal operators.
 
 ```c++
-using namespace ps;
+using namespace ps::unit;
 
 auto five_MeV = 5_MeV;
 auto one_eighty_deg = 180_deg;

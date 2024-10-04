@@ -5,8 +5,7 @@
 
 namespace ps {
 
-template <typename ... Args>
-constexpr auto pids(Args... args){
+template <typename... Args> constexpr auto pids(Args... args) {
   return std::array{args...};
 }
 
@@ -52,6 +51,14 @@ constexpr static std::array kNeutralLeptons_amatter = {kANuE, kANuMu};
 
 constexpr static std::array kLeptons = {kElectron, kAElectron, kMuon, kAMuon,
                                         kNuE,      kANuE,      kNuMu, kANuMu};
+
+constexpr static std::array kPions = {kPiPlus, kPiZero, kPiMinus};
+
+// ±10LZZZAAAI
+constexpr static int Carbon12 = 1000060120;
+constexpr static int Oxygen16 = 1000080160;
+constexpr static int Argon40 = 1000180400;
+constexpr static int Iron56 = 1000260560;
 
 #pragma GCC diagnostic pop
 

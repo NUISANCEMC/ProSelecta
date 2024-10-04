@@ -11,7 +11,7 @@
 
 using namespace Catch::Matchers;
 
-using namespace ps;
+using namespace ps::unit;
 
 TEST_CASE("unit constants", "[ps::unit]") {
 
