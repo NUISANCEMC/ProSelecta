@@ -1,9 +1,3 @@
-CPMAddPackage("gh:catchorg/Catch2@3.3.2")
-
-LIST(APPEND CMAKE_MODULE_PATH ${Catch2_SOURCE_DIR}/extras)
-
-include(Catch)
-
 add_executable(testTests testTests.cxx)
 target_link_libraries(testTests PRIVATE Catch2::Catch2WithMain ProSelecta::Interpreter proselecta_private_compile_options ROOT::MathCore HepMC3::All)
 target_include_directories(testTests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})

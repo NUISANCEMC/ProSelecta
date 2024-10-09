@@ -108,7 +108,18 @@ set(ProSelecta_PYTHONPATH "python/${Python3_VERSION_MAJOR}.${Python3_VERSION_MIN
 add_subdirectory(python)
 
 if(ProSelecta_ENABLE_TESTS)
+
+  CPMFindPackage(
+      NAME Catch2
+      GITHUB_REPOSITORY catchorg/Catch2
+      VERSION 3.3.2
+  )
+
+  LIST(APPEND CMAKE_MODULE_PATH ${Catch2_SOURCE_DIR}/extras)
+
   include(CTest)
+  include(Catch)
+
   add_subdirectory(test)
 endif()
 
