@@ -29,29 +29,6 @@ endif()
 
 LIST(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake/Modules)
 
-#### RPATH handling #####
-
-set(CMAKE_MACOSX_RPATH 1)
-
-# use, i.e. don't skip the full RPATH for the build tree
-SET(CMAKE_SKIP_BUILD_RPATH  FALSE)
-
-# when building, don't use the install RPATH already
-# (but later on when installing)
-SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
-
-SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
-
-# add the automatically determined parts of the RPATH
-# which point to directories outside the build tree to the install RPATH
-SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
-
-# the RPATH to be used when installing, but only if it's not a system directory
-LIST(FIND CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}" isSystemDir)
-IF("${isSystemDir}" STREQUAL "-1")
-   SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
-ENDIF("${isSystemDir}" STREQUAL "-1")
-
 ######################### Dependencies
 
 add_library(proselecta_private_compile_options INTERFACE)
@@ -70,15 +47,15 @@ if(ProSelecta_ENABLE_GCOV)
   target_link_options(proselecta_private_compile_options BEFORE INTERFACE -fprofile-arcs -ftest-coverage)
 endif()
 
-set(Python3_MIN_VERSION 3.6)
+set(Python3_MIN_VERSION 3.7)
 set(ROOT_MIN_VERSION 6.10)
-set(pybind11_MIN_VERSION 2.9.2)
+set(pybind11_MIN_VERSION 2.13.6)
 
 find_package(Python3 ${Python3_MIN_VERSION} REQUIRED COMPONENTS Interpreter Development)
 find_package(ROOT ${ROOT_MIN_VERSION} REQUIRED)
 
 LIST(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules)
-include(CPM)
+include(get_cpm)
 
 find_package(Protobuf 2.4)
 find_package(HepMC3 REQUIRED)
