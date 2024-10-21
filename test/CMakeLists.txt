@@ -58,3 +58,7 @@ if(BOOST_FOUND)
   target_link_libraries(pyProSelectaPlugin PRIVATE ProSelecta::Interpreter proselecta_private_compile_options pybind11::module Boost::boost Boost::filesystem)
 
 endif()
+
+add_executable(exceptionTest exceptionTest.cxx)
+target_link_libraries(exceptionTest PRIVATE ProSelecta::Interpreter proselecta_private_compile_options ROOT::MathCore HepMC3::All)
+target_include_directories(exceptionTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})

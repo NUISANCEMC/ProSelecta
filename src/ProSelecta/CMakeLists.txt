@@ -7,7 +7,7 @@ add_library(ProSelectaInterpreter SHARED ProSelecta.cxx ProSelecta_cling.cxx)
 
 target_link_libraries(ProSelectaInterpreter PUBLIC 
   HepMC3::HepMC3
-  ROOT::Core ROOT::Hist)
+  ROOT::Core)
 target_link_libraries(ProSelectaInterpreter PRIVATE proselecta_private_compile_options)
 
 set_target_properties(ProSelectaInterpreter PROPERTIES 
