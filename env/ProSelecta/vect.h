@@ -47,7 +47,7 @@ inline HepMC3::FourVector transverse(HepMC3::FourVector v,
 }
 
 inline HepMC3::FourVector rotate(HepMC3::FourVector const &v,
-                                 HepMC3::FourVector axis, double theta) {
+                                 HepMC3::FourVector axis, double theta_rad) {
   // from https://en.wikipedia.org/wiki/Rodrigues%27_rotation_formula
   axis = direction(axis);
   return v * std::cos(theta) + cross(axis, v) * std::sin(theta) +
