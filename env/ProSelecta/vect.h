@@ -50,8 +50,8 @@ inline HepMC3::FourVector rotate(HepMC3::FourVector const &v,
                                  HepMC3::FourVector axis, double theta_rad) {
   // from https://en.wikipedia.org/wiki/Rodrigues%27_rotation_formula
   axis = direction(axis);
-  return v * std::cos(theta) + cross(axis, v) * std::sin(theta) +
-         axis * dot(axis, v) * (1.0 - std::cos(theta));
+  return v * std::cos(theta_rad) + cross(axis, v) * std::sin(theta_rad) +
+         axis * dot(axis, v) * (1.0 - std::cos(theta_rad));
 }
 
 inline HepMC3::FourVector boost_beta(HepMC3::FourVector const &fv) {
