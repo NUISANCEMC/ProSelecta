@@ -41,6 +41,13 @@ PYBIND11_MODULE(pyProSelecta, m) {
   py::class_<ps::cuts>(m, "cuts")
       .def("__call__", &ps::cuts::operator(), py::arg("event"))
       .def("__and__", &ps::cuts::operator&&, py::arg("other"))
+      .def("__bool__",
+           [](ps::cuts const &self) {
+             throw std::runtime_error(
+                 "Evaluating truthiness of a ProSelecta::cuts object is poorly "
+                 "defined. Did you try and combine cuts with 'and' rather than "
+                 "'&'?");
+           })
       .def("__invert__", &ps::cuts::operator!);
 
 #define CUTABLE_BINDINGS(CN)                                                   \
@@ -157,8 +164,30 @@ PYBIND11_MODULE(pyProSelecta, m) {
             return ps::event::out_nuclear_parts(ev);
           },
           py::arg("event"))
-      .def("signal_process_id", &ps::event::signal_process_id,
-           py::arg("event"));
+      .def("signal_process_id", &ps::event::signal_process_id, py::arg("event"))
+      .def("has_exact_out_part",
+           [](HepMC3::GenEvent const &ev, int PID, int count) {
+             return ps::event::has_exact_out_part(ev, PID, count);
+           })
+      .def("has_exact_out_part",
+           [](HepMC3::GenEvent const &ev, std::vector<int> const &PID,
+              std::vector<int> const &count) {
+             return ps::event::has_exact_out_part(ev, PID, count);
+           })
+      .def("has_at_least_out_part",
+           [](HepMC3::GenEvent const &ev, int PID, int count) {
+             return ps::event::has_at_least_out_part(ev, PID, count);
+           })
+      .def("has_at_least_out_part",
+           [](HepMC3::GenEvent const &ev, std::vector<int> const &PID,
+              std::vector<int> const &count) {
+             return ps::event::has_at_least_out_part(ev, PID, count);
+           })
+      .def("out_part_topology_matches",
+           [](HepMC3::GenEvent const &ev, std::vector<int> const &PID,
+              std::vector<int> const &count) {
+             return ps::event::out_part_topology_matches(ev, PID, count);
+           });
 
 #define PARTSFUNC_PROJ_BINDINGS(PARTSFNAME, PROJNAME)                          \
   .def(                                                                        \
@@ -247,6 +276,8 @@ PYBIND11_MODULE(pyProSelecta, m) {
   units.attr("MeV") = ps::unit::MeV;
   units.attr("GeV2") = ps::unit::GeV2;
   units.attr("MeV2") = ps::unit::MeV2;
+  units.attr("GeV_c") = ps::unit::GeV_c;
+  units.attr("MeV_c") = ps::unit::MeV_c;
   units.attr("GeV_c2") = ps::unit::GeV_c2;
   units.attr("MeV_c2") = ps::unit::MeV_c2;
   units.attr("rad") = ps::unit::rad;
