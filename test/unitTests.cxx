@@ -10,7 +10,6 @@
 #include <fstream>
 
 using namespace Catch::Matchers;
-
 using namespace ps::unit;
 
 TEST_CASE("unit constants", "[ps::unit]") {
