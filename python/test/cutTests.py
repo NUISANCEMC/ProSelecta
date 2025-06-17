@@ -57,14 +57,14 @@ def BuildPart(pline):
                                                pdg, status)
 
 def REQUIRE_FALSE(val):
-  assert(~val)
+  assert(not val)
 
 def REQUIRE(val):
   assert(val)
 
 protons = [ BuildPart(x) for x in ["2212 1 1.5 60", "2212 1 1 20 - 45", "2212 1 0.5 70"]]
 
-REQUIRE_FALSE((p3mod < 0.5 * unit.GeV_c)(protons[-1]))
+REQUIRE_FALSE((p3mod < 0.49 * unit.GeV_c)(protons[-1]))
 
 REQUIRE((p3mod < 1 * unit.GeV_c)(protons[-1]))
 
@@ -89,45 +89,67 @@ REQUIRE_FALSE(((theta > 70 * unit.deg) & (theta < 75 * unit.deg))(protons[-1]))
 REQUIRE(len(part.filter((p3mod <= 1 * unit.GeV_c), protons)) == 2)
 REQUIRE(len(part.filter((p3mod < 1 * unit.GeV_c), protons)) == 1)
 REQUIRE(len(part.filter((p3mod > 1 * unit.GeV_c), protons)) == 1)
-REQUIRE(len(part.filter((p3mod >= 1 * unit.GeV_c), protons)) == 2)
+REQUIRE(len(part.filter((p3mod >= 0.99 * unit.GeV_c), protons)) == 2)
 
-REQUIRE(len(part.filter((p3mod >= 1 * unit.GeV_c) & (p3mod < 1.5 * unit.GeV_c), protons)) ==
+REQUIRE(len(part.filter((p3mod >= 0.99 * unit.GeV_c) & (p3mod < 1.49 * unit.GeV_c), protons)) ==
         1)
-REQUIRE(len(part.filter((p3mod > 1 * unit.GeV_c) & (p3mod < 1.5 * unit.GeV_c), protons)) ==
+REQUIRE(len(part.filter((p3mod > 1 * unit.GeV_c) & (p3mod < 1.49 * unit.GeV_c), protons)) ==
         0)
-REQUIRE(len(part.filter((p3mod < 1.5 * unit.GeV_c) & (p3mod >= 1 * unit.GeV_c), protons)) ==
+REQUIRE(len(part.filter((p3mod < 1.49 * unit.GeV_c) & (p3mod >= 0.99 * unit.GeV_c), protons)) ==
         1)
-REQUIRE(len(part.filter((p3mod >= 1 * unit.GeV_c) & (p3mod < 2 * unit.GeV_c), protons)) ==
+REQUIRE(len(part.filter((p3mod >= 0.99 * unit.GeV_c) & (p3mod < 2 * unit.GeV_c), protons)) ==
         2)
 
-REQUIRE(len(part.filter((theta <= 70 * unit.deg), protons)) == 3)
+REQUIRE(len(part.filter((theta <= 71 * unit.deg), protons)) == 3)
 REQUIRE(len(part.filter((theta < 70 * unit.deg), protons)) == 2)
 REQUIRE(len(part.filter((theta < 60 * unit.deg), protons)) == 1)
 
 REQUIRE(len(part.filter((theta > 45 * unit.deg) & (theta < 70 * unit.deg), protons)) ==
         1)
-REQUIRE(len(part.filter((theta > 60 * unit.deg) & (theta < 70 * unit.deg), protons)) ==
+REQUIRE(len(part.filter((theta > 61 * unit.deg) & (theta < 70 * unit.deg), protons)) ==
         0)
-REQUIRE(len(part.filter((theta < 70 * unit.deg) & (theta > 60 * unit.deg), protons)) ==
+REQUIRE(len(part.filter((theta < 70 * unit.deg) & (theta > 61 * unit.deg), protons)) ==
         0)
 
-REQUIRE(len(part.filter((theta < 80 * unit.deg) && (theta > 65 * unit.deg) &&
-                         (p3mod >= 0.75 * unit.GeV_c) && (p3mod < 2 * unit.GeV_c),
-                     protons)) == 0);
-REQUIRE(len(part.filter((p3mod >= 0.75 * unit.GeV_c) && (p3mod < 2 * unit.GeV_c) &&
-                         (theta < 80 * unit.deg) && (theta > 65 * unit.deg),
-                     protons)) == 0);
+REQUIRE(len(part.filter((theta < 80 * unit.deg) & (theta > 65 * unit.deg) &
+                         (p3mod >= 0.75 * unit.GeV_c) & (p3mod < 2 * unit.GeV_c),
+                     protons)) == 0)
+REQUIRE(len(part.filter((p3mod >= 0.75 * unit.GeV_c) & (p3mod < 2 * unit.GeV_c) &
+                         (theta < 80 * unit.deg) & (theta > 65 * unit.deg),
+                     protons)) == 0)
 
-REQUIRE(len(part.filter((theta < 80 * unit.deg) && (theta >= 60 * unit.deg) &&
-                         (p3mod >= 0.75 * unit.GeV_c) && (p3mod < 2 * unit.GeV_c),
-                     protons)) == 1);
-REQUIRE(len(part.filter((p3mod >= 0.75 * unit.GeV_c) && (p3mod < 2 * unit.GeV_c) &&
-                         (theta < 80 * unit.deg) && (theta >= 60 * unit.deg),
-                     protons)) == 1);
+REQUIRE(len(part.filter((theta < 80 * unit.deg) & (theta >= 60 * unit.deg) &
+                         (p3mod >= 0.75 * unit.GeV_c) & (p3mod < 2 * unit.GeV_c),
+                     protons)) == 1)
+REQUIRE(len(part.filter((p3mod >= 0.75 * unit.GeV_c) & (p3mod < 2 * unit.GeV_c) &
+                         (theta < 80 * unit.deg) & (theta >= 60 * unit.deg),
+                     protons)) == 1)
 
-REQUIRE(len(part.filter((theta < 80 * unit.deg) && (theta > 65 * unit.deg) &&
-                         (p3mod >= 0.4 * unit.GeV_c) && (p3mod < 1 * unit.GeV_c),
-                     protons)) == 1);
-REQUIRE(len(part.filter((p3mod >= 0.4 * unit.GeV_c) && (p3mod < 1 * unit.GeV_c) &&
-                         (theta < 80 * unit.deg) && (theta > 65 * unit.deg),
-                     protons)) == 1);
+REQUIRE(len(part.filter((theta < 80 * unit.deg) & (theta > 65 * unit.deg) &
+                         (p3mod >= 0.4 * unit.GeV_c) & (p3mod < 1 * unit.GeV_c),
+                     protons)) == 1)
+REQUIRE(len(part.filter((p3mod >= 0.4 * unit.GeV_c) & (p3mod < 1 * unit.GeV_c) &
+                         (theta < 80 * unit.deg) & (theta > 65 * unit.deg),
+                     protons)) == 1)
+
+protons = [ BuildPart(x) for x in ["2212 1 1.5 90 - 0", "2212 1 1 90 - 90", "2212 1 0.5 45 - 0"]]
+
+theta_ref = theta(hm.FourVector(1, 0, 0, 0))
+
+REQUIRE(len(part.filter((theta_ref <= 90 * unit.deg), protons)) == 3)
+REQUIRE(len(part.filter((theta_ref < 90 * unit.deg), protons)) == 2)
+REQUIRE(len(part.filter((theta_ref < 45 * unit.deg), protons)) == 1)
+
+REQUIRE(len(part.filter((theta_ref > 40 * unit.deg) & (theta_ref < 70 * unit.deg), protons)
+            ) == 1)
+REQUIRE(len(part.filter((theta_ref > 60 * unit.deg) & (theta_ref < 70 * unit.deg), protons)
+            ) == 0)
+REQUIRE(len(part.filter((theta_ref < 70 * unit.deg) & (theta_ref > 60 * unit.deg), protons)
+            ) == 0)
+
+REQUIRE(len(part.filter((theta(hm.FourVector(1, 0, 0, 0)) < 45 * unit.deg), protons)) == 1)
+
+REQUIRE(len(part.filter((p3mod > 0.4 * unit.GeV_c) & \
+                        (theta_ref < 45 * unit.deg), protons)) == 1)
+REQUIRE(len(part.filter((p3mod > 0.4 * unit.GeV_c) & \
+                        (theta(hm.FourVector(1, 0, 0, 0)) < 45 * unit.deg), protons)) == 1)

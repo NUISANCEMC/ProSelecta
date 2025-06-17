@@ -44,43 +44,24 @@ PYBIND11_MODULE(pyProSelecta, m) {
       .def("__bool__",
            [](ps::cuts const &self) {
              throw std::runtime_error(
-                 "Evaluating truthiness of a ProSelecta::cuts object is poorly "
+                 "Evaluating truthiness of a ProSelecta::cuts object is ill "
                  "defined. Did you try and combine cuts with 'and' rather than "
                  "'&'?");
            })
       .def("__invert__", &ps::cuts::operator!);
 
+  auto mdetail = m.def_submodule("detail", "details");
 #define CUTABLE_BINDINGS(CN)                                                   \
-  py::class_<ps::detail::CN>(m, #CN)                                           \
+  py::class_<ps::detail::CN>(mdetail, #CN)                                     \
       .def(py::init<>())                                                       \
       .def("__call__",                                                         \
            py::overload_cast<HepMC3::ConstGenParticlePtr>(                     \
                &ps::detail::CN::operator(), py::const_),                       \
            py::arg("part"))                                                    \
-      .def(                                                                    \
-          "__le__",                                                            \
-          [](ps::detail::CN const &self, double threshold) {                   \
-            return self <= threshold;                                          \
-          },                                                                   \
-          py::arg("threshold"))                                                \
-      .def(                                                                    \
-          "__lt__",                                                            \
-          [](ps::detail::CN const &self, double threshold) {                   \
-            return self < threshold;                                           \
-          },                                                                   \
-          py::arg("threshold"))                                                \
-      .def(                                                                    \
-          "__ge__",                                                            \
-          [](ps::detail::CN const &self, double threshold) {                   \
-            return self >= threshold;                                          \
-          },                                                                   \
-          py::arg("threshold"))                                                \
-      .def(                                                                    \
-          "__gt__",                                                            \
-          [](ps::detail::CN const &self, double threshold) {                   \
-            return self > threshold;                                           \
-          },                                                                   \
-          py::arg("threshold"))
+      .def("__le__", &ps::detail::CN::operator<=, py::arg("threshold"))        \
+      .def("__lt__", &ps::detail::CN::operator<, py::arg("threshold"))         \
+      .def("__ge__", &ps::detail::CN::operator>=, py::arg("threshold"))        \
+      .def("__gt__", &ps::detail::CN::operator>, py::arg("threshold"))
 
   CUTABLE_BINDINGS(p3mod);
   CUTABLE_BINDINGS(energy);

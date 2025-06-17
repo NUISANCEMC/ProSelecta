@@ -10,31 +10,35 @@
 namespace ps::detail {
 
 template <typename Projector> struct cutable {
+  double operator()(HepMC3::ConstGenParticlePtr part) const {
+    return Projector::project(part);
+  }
+
   ps::cuts operator<(double lim) const {
     return ps::cuts{{
         [=](HepMC3::ConstGenParticlePtr part) -> bool {
-          return static_cast<Projector const *>(this)->operator()(part) < lim;
+          return Projector::project(part) < lim;
         },
     }};
   }
   ps::cuts operator>(double lim) const {
     return ps::cuts{{
         [=](HepMC3::ConstGenParticlePtr part) -> bool {
-          return static_cast<Projector const *>(this)->operator()(part) > lim;
+          return Projector::project(part) > lim;
         },
     }};
   }
   ps::cuts operator<=(double lim) const {
     return ps::cuts{{
         [=](HepMC3::ConstGenParticlePtr part) -> bool {
-          return static_cast<Projector const *>(this)->operator()(part) <= lim;
+          return Projector::project(part) <= lim;
         },
     }};
   }
   ps::cuts operator>=(double lim) const {
     return ps::cuts{{
         [=](HepMC3::ConstGenParticlePtr part) -> bool {
-          return static_cast<Projector const *>(this)->operator()(part) >= lim;
+          return Projector::project(part) >= lim;
         },
     }};
   }

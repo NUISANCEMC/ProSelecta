@@ -83,14 +83,18 @@ TEST_CASE("p3mod filter", "[ps::part]") {
   REQUIRE(part::filter((p3mod > 1_GeV_c), protons).size() == 1);
   REQUIRE(part::filter((p3mod >= 1_GeV_c), protons).size() == 2);
 
-  REQUIRE(part::filter((p3mod >= 1_GeV_c) && (p3mod < 1.5_GeV_c), protons).size() ==
-          1);
-  REQUIRE(part::filter((p3mod > 1_GeV_c) && (p3mod < 1.5_GeV_c), protons).size() ==
-          0);
-  REQUIRE(part::filter((p3mod < 1.5_GeV_c) && (p3mod >= 1_GeV_c), protons).size() ==
-          1);
-  REQUIRE(part::filter((p3mod >= 1_GeV_c) && (p3mod < 2_GeV_c), protons).size() ==
-          2);
+  REQUIRE(
+      part::filter((p3mod >= 1_GeV_c) && (p3mod < 1.5_GeV_c), protons).size() ==
+      1);
+  REQUIRE(
+      part::filter((p3mod > 1_GeV_c) && (p3mod < 1.5_GeV_c), protons).size() ==
+      0);
+  REQUIRE(
+      part::filter((p3mod < 1.5_GeV_c) && (p3mod >= 1_GeV_c), protons).size() ==
+      1);
+  REQUIRE(
+      part::filter((p3mod >= 1_GeV_c) && (p3mod < 2_GeV_c), protons).size() ==
+      2);
 }
 
 TEST_CASE("theta cuts", "[ps::part]") {
@@ -130,6 +134,60 @@ TEST_CASE("theta filter", "[ps::part]") {
           0);
 }
 
+TEST_CASE("theta refv filter", "[ps::part]") {
+
+  std::vector<HepMC3::ConstGenParticlePtr> protons{
+      // 0                           //90
+      BuildPart("2212 1 1.5 90 - 0"), BuildPart("2212 1 1 90 - 90"),
+      // 45
+      BuildPart("2212 1 0.5 45 - 0")};
+
+  auto theta_ref = theta(HepMC3::FourVector(1, 0, 0, 0));
+
+  REQUIRE(part::filter((theta_ref <= 90_deg), protons).size() == 3);
+  REQUIRE(part::filter((theta_ref < 90_deg), protons).size() == 2);
+  REQUIRE(part::filter((theta_ref < 45_deg), protons).size() == 1);
+
+  REQUIRE(part::filter((theta_ref > 40_deg) && (theta_ref < 70_deg), protons)
+              .size() == 1);
+  REQUIRE(part::filter((theta_ref > 60_deg) && (theta_ref < 70_deg), protons)
+              .size() == 0);
+  REQUIRE(part::filter((theta_ref < 70_deg) && (theta_ref > 60_deg), protons)
+              .size() == 0);
+}
+
+TEST_CASE("theta refv inline filter", "[ps::part]") {
+
+  std::vector<HepMC3::ConstGenParticlePtr> protons{
+      // 0                           //90
+      BuildPart("2212 1 1.5 90 - 0"), BuildPart("2212 1 1 90 - 90"),
+      // 45
+      BuildPart("2212 1 0.5 45 - 0")};
+
+  REQUIRE(
+      part::filter((theta(HepMC3::FourVector(1, 0, 0, 0)) <= 90_deg), protons)
+          .size() == 3);
+  REQUIRE(
+      part::filter((theta(HepMC3::FourVector(1, 0, 0, 0)) < 90_deg), protons)
+          .size() == 2);
+  REQUIRE(
+      part::filter((theta(HepMC3::FourVector(1, 0, 0, 0)) < 45_deg), protons)
+          .size() == 1);
+
+  REQUIRE(part::filter((theta(HepMC3::FourVector(1, 0, 0, 0)) > 40_deg) &&
+                           (theta(HepMC3::FourVector(1, 0, 0, 0)) < 70_deg),
+                       protons)
+              .size() == 1);
+  REQUIRE(part::filter((theta(HepMC3::FourVector(1, 0, 0, 0)) > 60_deg) &&
+                           (theta(HepMC3::FourVector(1, 0, 0, 0)) < 70_deg),
+                       protons)
+              .size() == 0);
+  REQUIRE(part::filter((theta(HepMC3::FourVector(1, 0, 0, 0)) < 70_deg) &&
+                           (theta(HepMC3::FourVector(1, 0, 0, 0)) > 60_deg),
+                       protons)
+              .size() == 0);
+}
+
 TEST_CASE("p3mod+theta filter", "[ps::part]") {
 
   std::vector<HepMC3::ConstGenParticlePtr> protons{
@@ -164,6 +222,43 @@ TEST_CASE("p3mod+theta filter", "[ps::part]") {
               .size() == 1);
 }
 
+TEST_CASE("p3mod+theta refv inline filter", "[ps::part]") {
+
+  std::vector<HepMC3::ConstGenParticlePtr> protons{
+      // 0                           //90
+      BuildPart("2212 1 1.5 90 - 0"), BuildPart("2212 1 1 90 - 90"),
+      // 45
+      BuildPart("2212 1 0.5 45 - 0")};
+
+  REQUIRE(part::filter((p3mod > 0.45_GeV_c) &&
+                           (theta(HepMC3::FourVector(1, 0, 0, 0)) <= 90_deg),
+                       protons)
+              .size() == 3);
+  REQUIRE(part::filter((p3mod > 0.45_GeV_c) &&
+                           (theta(HepMC3::FourVector(1, 0, 0, 0)) < 90_deg),
+                       protons)
+              .size() == 2);
+  REQUIRE(
+      part::filter((theta(HepMC3::FourVector(1, 0, 0, 0)) < 45_deg), protons)
+          .size() == 1);
+
+  REQUIRE(part::filter((p3mod > 0.45_GeV_c) &&
+                           (theta(HepMC3::FourVector(1, 0, 0, 0)) > 40_deg) &&
+                           (theta(HepMC3::FourVector(1, 0, 0, 0)) < 70_deg),
+                       protons)
+              .size() == 1);
+  REQUIRE(part::filter((p3mod > 0.45_GeV_c) &&
+                           (theta(HepMC3::FourVector(1, 0, 0, 0)) > 60_deg) &&
+                           (theta(HepMC3::FourVector(1, 0, 0, 0)) < 70_deg),
+                       protons)
+              .size() == 0);
+  REQUIRE(part::filter((p3mod > 0.45_GeV_c) &&
+                           (theta(HepMC3::FourVector(1, 0, 0, 0)) < 70_deg) &&
+                           (theta(HepMC3::FourVector(1, 0, 0, 0)) > 60_deg),
+                       protons)
+              .size() == 0);
+}
+
 TEST_CASE("sort_ascending p3mod", "[ps::part]") {
 
   std::vector<HepMC3::ConstGenParticlePtr> protons{
@@ -196,8 +291,9 @@ TEST_CASE("filter p3mod", "[ps::part]") {
   REQUIRE(part::filter(p3mod > 2_GeV_c, protons).size() == 0);
   REQUIRE(part::filter(p3mod > 1.1_GeV_c, protons).size() == 1);
   REQUIRE(part::filter(p3mod > 0.25_GeV_c, protons).size() == 3);
-  REQUIRE(part::filter(p3mod > 0.75_GeV_c && p3mod < 1.25_GeV_c, protons).size() ==
-          1);
+  REQUIRE(
+      part::filter(p3mod > 0.75_GeV_c && p3mod < 1.25_GeV_c, protons).size() ==
+      1);
 }
 
 TEST_CASE("sum momentum", "[ps::part]") {

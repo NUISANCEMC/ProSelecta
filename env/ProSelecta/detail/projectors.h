@@ -14,26 +14,29 @@
 namespace ps::detail {
 
 struct p3mod : public cutable<p3mod> {
-  double operator()(HepMC3::ConstGenParticlePtr part) const {
+  static double project(HepMC3::ConstGenParticlePtr part) {
     return part->momentum().p3mod();
   }
 };
 
 struct energy : public cutable<energy> {
-  double operator()(HepMC3::ConstGenParticlePtr part) const {
+  static double project(HepMC3::ConstGenParticlePtr part) {
     return part->momentum().e();
   }
 };
 
 struct kinetic_energy : public cutable<kinetic_energy> {
-  double operator()(HepMC3::ConstGenParticlePtr part) const {
+  static double project(HepMC3::ConstGenParticlePtr part) {
     return part->momentum().e() - part->momentum().m();
   }
 };
 
-struct theta : public cutable<theta> {
+struct theta {
 
-  HepMC3::FourVector refv = HepMC3::FourVector{0, 0, 1, 0};
+  HepMC3::FourVector refv;
+
+  theta() : refv{HepMC3::FourVector{0, 0, 1, 0}} {}
+  theta(theta const &other) : refv{other.refv} {}
 
   double operator()(HepMC3::ConstGenParticlePtr part) const {
     return vect::angle(part->momentum(), refv);
@@ -44,9 +47,45 @@ struct theta : public cutable<theta> {
     proj.refv = refvec;
     return proj;
   }
+
+  // need to make sure the lambda owns a copy of the refv or if the theta
+  // instance goes out of scope before the cuts we have a danling this reference
+  // from cutable.
+  ps::cuts operator<(double lim) const {
+    HepMC3::FourVector xrefv = refv;
+    return ps::cuts{{
+        [=](HepMC3::ConstGenParticlePtr part) -> bool {
+          return vect::angle(part->momentum(), xrefv) < lim;
+        },
+    }};
+  }
+  ps::cuts operator>(double lim) const {
+    HepMC3::FourVector xrefv = refv;
+    return ps::cuts{{
+        [=](HepMC3::ConstGenParticlePtr part) -> bool {
+          return vect::angle(part->momentum(), xrefv) > lim;
+        },
+    }};
+  }
+  ps::cuts operator<=(double lim) const {
+    HepMC3::FourVector xrefv = refv;
+    return ps::cuts{{
+        [=](HepMC3::ConstGenParticlePtr part) -> bool {
+          return vect::angle(part->momentum(), xrefv) <= lim;
+        },
+    }};
+  }
+  ps::cuts operator>=(double lim) const {
+    HepMC3::FourVector xrefv = refv;
+    return ps::cuts{{
+        [=](HepMC3::ConstGenParticlePtr part) -> bool {
+          return vect::angle(part->momentum(), xrefv) >= lim;
+        },
+    }};
+  }
 };
 
-struct costheta : public cutable<costheta> {
+struct costheta {
 
   HepMC3::FourVector refv = HepMC3::FourVector{0, 0, 1, 0};
 
@@ -58,6 +97,42 @@ struct costheta : public cutable<costheta> {
     costheta proj;
     proj.refv = refvec;
     return proj;
+  }
+
+  // need to make sure the lambda owns a copy of the refv or if the theta
+  // instance goes out of scope before the cuts we have a danling this reference
+  // from cutable.
+  ps::cuts operator<(double lim) const {
+    HepMC3::FourVector xrefv = refv;
+    return ps::cuts{{
+        [=](HepMC3::ConstGenParticlePtr part) -> bool {
+          return std::cos(vect::angle(part->momentum(), xrefv)) < lim;
+        },
+    }};
+  }
+  ps::cuts operator>(double lim) const {
+    HepMC3::FourVector xrefv = refv;
+    return ps::cuts{{
+        [=](HepMC3::ConstGenParticlePtr part) -> bool {
+          return std::cos(vect::angle(part->momentum(), xrefv)) > lim;
+        },
+    }};
+  }
+  ps::cuts operator<=(double lim) const {
+    HepMC3::FourVector xrefv = refv;
+    return ps::cuts{{
+        [=](HepMC3::ConstGenParticlePtr part) -> bool {
+          return std::cos(vect::angle(part->momentum(), xrefv)) <= lim;
+        },
+    }};
+  }
+  ps::cuts operator>=(double lim) const {
+    HepMC3::FourVector xrefv = refv;
+    return ps::cuts{{
+        [=](HepMC3::ConstGenParticlePtr part) -> bool {
+          return std::cos(vect::angle(part->momentum(), xrefv)) >= lim;
+        },
+    }};
   }
 };
 
