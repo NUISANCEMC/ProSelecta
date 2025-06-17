@@ -86,7 +86,7 @@ add_subdirectory(python)
 
 if(ProSelecta_ENABLE_TESTS)
 
-  CPMFindPackage(
+  CPMAddPackage(
       NAME Catch2
       GITHUB_REPOSITORY catchorg/Catch2
       VERSION 3.3.2

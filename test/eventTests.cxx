@@ -13,7 +13,7 @@ using namespace ps;
 
 TEST_CASE("beam_part", "[ps::event]") {
 
-  auto evt1 = BuildEvent({{"14 4 1", "1000060120 11 0"},
+  auto evt1 = BuildEvent({{"14 4 1", "1000060120 20 0"},
                           {"14 3 1", "1000060110 1 0", "2112 21 0"},
                           {"13 1 0.7", "2212 1 0.15"}},
                          {2, 1});
@@ -32,7 +32,7 @@ TEST_CASE("beam_part", "[ps::event]") {
 
   REQUIRE_THROWS_AS(event::beam_part(evt1, pdg::kNuE), event::NoMatchingParts);
 
-  auto evt2 = BuildEvent({{"14 4 1", "12 4 1", "1000060120 11 0"},
+  auto evt2 = BuildEvent({{"14 4 1", "12 4 1", "1000060120 20 0"},
                           {"14 3 1", "1000060110 1 0", "2112 21 0"},
                           {"13 1 0.7", "2212 1 0.15"}},
                          {2, 1});
@@ -43,7 +43,7 @@ TEST_CASE("beam_part", "[ps::event]") {
 
 TEST_CASE("target_part", "[ps::event]") {
 
-  auto evt1 = BuildEvent({{"14 4 1", "1000060120 11 0"},
+  auto evt1 = BuildEvent({{"14 4 1", "1000060120 20 0"},
                           {"14 3 1", "1000060110 1 0", "2112 21 0"},
                           {"13 1 0.7", "2212 1 0.15"}},
                          {2, 1});
@@ -62,7 +62,7 @@ TEST_CASE("target_part", "[ps::event]") {
 TEST_CASE("has_out_part", "[ps::event]") {
 
   auto evt1 =
-      BuildEvent({{"14 4 3 0", "1000060120 11 0"},
+      BuildEvent({{"14 4 3 0", "1000060120 20 0"},
                   {"2212 1 0.15", "13 1 0.7", "13 1 1.2", "-13 1 1.3"}});
 
   REQUIRE(event::has_out_part(evt1, 2212));
@@ -77,7 +77,7 @@ TEST_CASE("has_out_part", "[ps::event]") {
 TEST_CASE("has_out_part<vector>", "[ps::event]") {
 
   auto evt1 =
-      BuildEvent({{"14 4 3 0", "1000060120 11 0"},
+      BuildEvent({{"14 4 3 0", "1000060120 20 0"},
                   {"2212 1 0.15", "13 1 0.7", "13 1 1.2", "-13 1 1.3"}});
 
   REQUIRE(event::has_out_part(evt1, 2212));
@@ -92,7 +92,7 @@ TEST_CASE("has_out_part<vector>", "[ps::event]") {
 TEST_CASE("has_out_part<vector> zero throw", "[ps::event]") {
 
   auto evt1 =
-      BuildEvent({{"14 4 3 0", "1000060120 11 0"},
+      BuildEvent({{"14 4 3 0", "1000060120 20 0"},
                   {"2212 1 0.15", "13 1 0.7", "13 1 1.2", "-13 1 1.3"}});
 
   REQUIRE(event::has_out_part(evt1, 2212));
@@ -107,7 +107,7 @@ TEST_CASE("has_out_part<vector> zero throw", "[ps::event]") {
 TEST_CASE("has_exact_out_part", "[ps::event]") {
 
   auto evt1 =
-      BuildEvent({{"14 4 3 0", "1000060120 11 0"},
+      BuildEvent({{"14 4 3 0", "1000060120 20 0"},
                   {"2212 1 0.15", "13 1 0.7", "13 1 1.2", "-13 1 1.3"}});
 
   REQUIRE(event::has_exact_out_part(evt1, 2212, 1));
@@ -125,7 +125,7 @@ TEST_CASE("has_exact_out_part", "[ps::event]") {
 TEST_CASE("out_part_topology_matches", "[ps::event]") {
 
   auto evt1 =
-      BuildEvent({{"14 4 3 0", "1000060120 11 0"},
+      BuildEvent({{"14 4 3 0", "1000060120 20 0"},
                   {"2212 1 0.15", "13 1 0.7", "13 1 1.2", "-13 1 1.3"}});
 
   REQUIRE(
@@ -143,7 +143,7 @@ TEST_CASE("out_part_topology_matches", "[ps::event]") {
 TEST_CASE("has_at_least_out_part", "[ps::event]") {
 
   auto evt1 =
-      BuildEvent({{"14 4 3 0", "1000060120 11 0"},
+      BuildEvent({{"14 4 3 0", "1000060120 20 0"},
                   {"2212 1 0.15", "13 1 0.7", "13 1 1.2", "-13 1 1.3"}});
 
   REQUIRE(event::has_at_least_out_part(evt1, 2212, 1));
@@ -162,7 +162,7 @@ TEST_CASE("has_at_least_out_part", "[ps::event]") {
 TEST_CASE("num_out_part", "[ps::event]") {
 
   auto evt1 =
-      BuildEvent({{"14 4 3 0", "1000060120 11 0"},
+      BuildEvent({{"14 4 3 0", "1000060120 20 0"},
                   {"2212 1 0.15", "13 1 0.7", "13 1 1.2", "-13 1 1.3"}});
 
   REQUIRE(event::num_out_part(evt1, 2212) == 1);
@@ -180,7 +180,7 @@ TEST_CASE("num_out_part", "[ps::event]") {
 TEST_CASE("num_out_part_except", "[ps::event]") {
 
   auto evt1 =
-      BuildEvent({{"14 4 3 0", "1000060120 11 0"},
+      BuildEvent({{"14 4 3 0", "1000060120 20 0"},
                   {"2212 1 0.15", "13 1 0.7", "13 1 1.2", "-13 1 1.3"}});
 
   REQUIRE(event::num_out_part_except(evt1, 2212) == 3);
@@ -192,7 +192,7 @@ TEST_CASE("num_out_part_except", "[ps::event]") {
 TEST_CASE("all_out_part", "[ps::event]") {
 
   auto evt1 =
-      BuildEvent({{"14 4 3 0", "1000060120 11 0"},
+      BuildEvent({{"14 4 3 0", "1000060120 20 0"},
                   {"2212 1 0.15", "13 1 0.7", "13 1 1.2", "-13 1 1.3"}});
 
   auto protons = event::all_out_part(evt1, 2212);
@@ -217,7 +217,7 @@ TEST_CASE("all_out_part", "[ps::event]") {
 TEST_CASE("all_out_part_except", "[ps::event]") {
 
   auto evt1 =
-      BuildEvent({{"14 4 3 0", "1000060120 11 0"},
+      BuildEvent({{"14 4 3 0", "1000060120 20 0"},
                   {"2212 1 0.15", "13 1 0.7", "13 1 1.2", "-13 1 1.3"}});
 
   auto not_protons = event::all_out_part_except(evt1, 2212);
@@ -230,7 +230,7 @@ TEST_CASE("all_out_part_except", "[ps::event]") {
 TEST_CASE("hm_out_part", "[ps::event]") {
 
   auto evt1 = BuildEvent(
-      {{"14 4 3 0", "1000060120 11 0"},
+      {{"14 4 3 0", "1000060120 20 0"},
        {"2212 1 0.15", "2212 1 0.25", "13 1 0.7", "13 1 1.2", "-13 1 1.3"}});
 
   auto hm_proton = event::hm_out_part(evt1, 2212);
@@ -256,7 +256,7 @@ TEST_CASE("hm_out_part", "[ps::event]") {
 TEST_CASE("out_nuclear_parts", "[ps::event]") {
 
   auto evt1 = BuildEvent(
-      {{"14 4 3 0", "1000060120 11 0"},
+      {{"14 4 3 0", "1000060120 20 0"},
        {"2212 1 0.15", "2212 1 0.25", "13 1 0.7", "1000060110 1 0.123"}});
 
   auto out_C11 = event::out_nuclear_parts(evt1);
