@@ -808,7 +808,7 @@ sum_pt = part.sum(momentum, event.all_out_part(
 
 7) Get all protons with more than 0.05 GeV/c but less than 2 GeV/c of 3momentum:
 ```python
-p3mod_cut = (p3mod > 0.05 * unit.GeV) && (p3mod < 2 * unit.GeV)
+p3mod_cut = (p3mod > 0.05 * unit.GeV) & (p3mod < 2 * unit.GeV)
 passing_protons =
     part.filter(p3mod_cut, event.all_out_part(evt, 2212));
 ```
